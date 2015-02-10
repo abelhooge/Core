@@ -13,6 +13,8 @@ class Router extends Bus {
 		parent::__construct($core);
 	}
 
+	public function onLoad() {}
+
 	public function setPath($path) {
 		if (substr($path, -1, 1) == '/')
 			$path = substr($path, 0, strlen($path)-1);

@@ -35,7 +35,6 @@ class Core {
 		require_once(FUZESYSPATH . "/class.models.php");
 		require_once(FUZESYSPATH . "/class.layout.php");
 		require_once(FUZESYSPATH . "/class.events.php");
-		require_once(FUZESYSPATH . "/class.router.php");
 
 		// Load them
         $this->mods->events 		= new Events 		($this);
@@ -43,7 +42,6 @@ class Core {
         $this->mods->logger      	= new Logger 		($this);
         $this->mods->models 		= new Models 		($this);
         $this->mods->layout 		= new Layout 		($this);
-        $this->mods->router 		= new Router 		($this);
 	}
 
 	public function shutdown() {
