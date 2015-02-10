@@ -4,10 +4,13 @@ class Layout extends Bus {
 	
 	private $Smarty = array();
 	private $title = "";
+	private $loaded = false;
 
 	public function __construct(&$core) {
 		parent::__construct($core);
+	}
 
+	private function load() {
 		// Load Smarty
 		$smartyDir = FUZEPATH . "/Core/System/Smarty";
 		
@@ -20,6 +23,8 @@ class Layout extends Bus {
 
 		$this->Smarty['main'] = new \Smarty();
 		$this->Smarty['main'] = $this->getSmartyBasicVars($this->Smarty['main']);
+
+		$this->loaded = true;
 	}
 
 	public function getSmartyBasicVars($Smarty) {
@@ -32,6 +37,10 @@ class Layout extends Bus {
 	}
 
 	public function __get($name) {
+		// Chech if Smarty is loaded
+		if (!$this->loaded)
+			$this->load();
+
 		if (!isset($this->Smarty[$name])) {
 			$this->Smarty[$name] = new \Smarty();
 		}
@@ -39,10 +48,18 @@ class Layout extends Bus {
 	}
 
 	public function __call($name, $params) {
+		// Chech if Smarty is loaded
+		if (!$this->loaded)
+			$this->load();
+
 		return call_user_func_array(array($this->Smarty['main'], $name), $params);
 	}
 
 	public function getNew() {
+		// Chech if Smarty is loaded
+		if (!$this->loaded)
+			$this->load();
+
 		return new \Smarty();
 	}
 
@@ -51,6 +68,10 @@ class Layout extends Bus {
 	}
 
 	public function view($view = "default", $dir = "") {
+		// Chech if Smarty is loaded
+		if (!$this->loaded)
+			$this->load();
+
 		// Set the file name and location
 		$vw = explode('/', $view);
 		if (count($vw) == 1) {
@@ -101,6 +122,10 @@ class Layout extends Bus {
 	}
 
 	public function get($view = "default", $dir = "") {
+		// Chech if Smarty is loaded
+		if (!$this->loaded)
+			$this->load();
+
 		// Set the directory
 		$dir = ($dir == "" ? FUZEPATH . "/Application/" . '/Views' : $dir);
 		$this->Smarty['main']->setTemplateDir($dir);
