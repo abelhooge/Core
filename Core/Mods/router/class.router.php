@@ -47,44 +47,32 @@ class Router extends Bus {
 	 * Path structure: /controller/function/par1/par2...
 	 */
 	public function route(){
-
-		// Explode on each slash
-		$path_array = explode('/', $this->getPath());
+		$path = (!empty($this->getPath()) ? explode('/', preg_replace('#/+#','/',$this->getPath())) : array());
+		$path_size = count($path);
 
 		// If trailing slash was given or the last element was empty: remove it
-		if(end($path_array) == ''){
-		
-			array_pop($path_array);
+		if(end($path) == ''){
+			array_pop($path);
 		}
 
-		// Default values
-		$controller	= null;
-		$function	= null;
-		$parameters	= array();
-
-        // Extract controller from the path
-		if(count($path_array) >= 1){
-
-			// Controller is always the first
-            $controller = $path_array[0];
-
-            // Extract function or controller from the path
-			if(count($path_array) >= 2){
-
-				// Function is always second
-                $function = $path_array[1];
-
-                // Extract parameters or controller from the path
-				if(count($path_array) >= 3){
-
-					// Parameters come last
-					$parameters = array_slice($path_array, 2);
+		$CONTROLLER = "";
+		$FUNCTION = "";
+		$PARAMS = array();
+		if ($path_size >= 1) {
+			$CONTROLLER = $path[0];
+			if ($path_size >= 2) {
+				$FUNCTION = $path[1];
+				if ($path_size >= 3) {
+					$PARAMS = array_slice($path, 2);
 				}
 			}
+		} else {
+			// Default controller, default function, no arguments
+			$CONTROLLER = 'standard';
 		}
 
         // Fire the event to notify our modules
-        $event = $this->events->fireEvent('routerRouteEvent', $controller, $function, $parameters);
+        $event = $this->events->fireEvent('routerRouteEvent', $CONTROLLER, $FUNCTION, $PARAMS);
 
         // The event has been cancelled
         if($event->isCancelled()){
@@ -92,71 +80,70 @@ class Router extends Bus {
         }
 
         // Assign everything to the object to make it accessible, but let modules check it first
-		$this->route		    = $path_array;
+		$this->route		    = $path;
 		$this->controllerName   = $event->controller === null ? $this->config->main->default_controller : $event->controller;
 		$this->function		    = $event->function === null ? $this->config->main->default_function : $event->function;
 		$this->parameters 	    = $event->parameters;
 
         // Load the controller
         $dir = (isset($event->directory) ? $event->directory : null);
-        $this->loadController($dir);
+        $this->loadController($CONTROLLER, $FUNCTION, $PARAMS, $dir);
 	}
 
 	/**
-	 * Load the controller
-	 *
-	 * @param null $directory custom controllers directory
+	 * Load a controller
+	 * @access public
+	 * @param String controller name
+	 * @param String function name
+	 * @param Array Parameters
 	 */
-	public function loadController($directory = null){
-        // Select default directory if not given
-        if($directory === null){
-            $directory = FUZEPATH . '/Application/Controller';
-        }
+	public function loadController($controller, $function = '', $params = array(), $directory = null) {
+		$path = ($function != '' ? array($controller, $function) : array($controller));
+		$path = (!empty($params) ? array_merge($path, $params) : $path );
 
-		// Fetch function
-		$function   = $this->function;
+		// The directory where to find the controller files
+		$dir = (isset($directory) ? $directory : FUZEPATH . "/Application/Controller/" );
 
-        // Are there any namespaces given in the controller name?
-		if(strpos($this->controllerName, '\\') === false){
+		// Select the proper functions and parameters
+		$FUNCTION = ($function != '' ? $function : "index");
+		$PARAMS = (!empty($params) ? $params : array());
 
-			// No, add them
-			$className 	= ucfirst($this->controllerName);
-			$file		= $directory.'/controller.'.strtolower($this->controllerName).'.php';
-		}else{
-
-			// Yes, but that means that the name isn't suitable for determining the file name
-			$className = $this->controllerName;
-
-			// Retrieve the actual name of the controller so we can load the correct file
-			$file = $directory.'/'.end(explode('\\', $this->controllerName)).'.php';
+		$CONTROLLER_NAME = ucfirst($controller);
+		$CONTROLLER_FILE = $dir . 'controller.'.strtolower($controller).".php";
+		
+		if (file_exists($CONTROLLER_FILE)) {
+			require_once($CONTROLLER_FILE);
+			array_shift($path);
+		} else {
+			$CONTROLLER_NAME = 'Standard';
+			$CONTROLLER_FILE = $dir . 'controller.standard.php';
+			$FUNCTION = 'not_found';
+			if (file_exists($CONTROLLER_FILE)) {
+				require_once($CONTROLLER_FILE);
+			} else {
+				$this->mods->logger->logError("Failed to load standard controller. Controller loading can not continue!", "Web");
+				$this->mods->logger->enable();
+				return false;
+			}
 		}
 
-        $this->logger->log('Loading controller from file: '.$file);
-
-        // Check if the file exists
-        if(file_exists($file)){
-            require $file;
-
-            $this->controller = new $className($this->core);
-
-            // Check if method exists or if there is a caller function
-            if(method_exists($this->controller, $function) || method_exists($this->controller, '__call')){
-
-                // Execute the function on the controller
-                $this->controller->{$function}();
-            }else{
-
-                // Function could not be found
-                $this->logger->log('Could not find function '.$function.' on controller '.$className);
-                $this->logger->http_logger(404);
-            }
-        }else{
-
-            // Controller could not be found
-            $this->logger->log('Could not find controller '.$className);
-            $this->logger->http_error(404);
-        }
-    }
+		$this->mods->logger->log("Loading controller <b>'".$CONTROLLER_NAME."'</b>", "Web");
+		$CLASS = new $CONTROLLER_NAME($this->core);
+		if (method_exists($CLASS, $FUNCTION) || method_exists($CLASS, '__call')) {
+			array_shift($path);
+			call_user_func(array($CLASS, $FUNCTION), $path);
+		} elseif (method_exists($CLASS, 'not_found')) {
+			$this->mods->logger->logInfo("Function from URL not found. Trying not_found function", $CONTROLLER_NAME, __FILE__, __LINE__);
+			call_user_func(array($CLASS, 'not_found'), $path);
+		} elseif (method_exists($CLASS, 'index')) {
+			$this->mods->logger->logInfo("Function from URL not found. Last try. Trying index function", $CONTROLLER_NAME, __FILE__, __LINE__);
+			call_user_func(array($CLASS, 'index'), $path);
+		} else {
+			$this->mods->logger->logError("Function from URL not found. No index function present. Ignoring request", $CONTROLLER_NAME, __FILE__, __LINE__);
+			$this->mods->logger->enable();
+			return false;
+		}
+	}
 }
 
 ?>
