@@ -123,16 +123,15 @@ class Events extends Bus{
                     //Fire the event to each listener
                     foreach ($listeners as $callback) {
                         if(!is_string($callback[0]))
-                            $this->logger->newLevel('Firing ' . get_class($callback[0]) . '->' . $callback[1]);
+                            $this->logger->log('Firing ' . get_class($callback[0]) . '->' . $callback[1]);
                         else
-                            $this->logger->newLevel('Firing ' . join('->', $callback));
+                            $this->logger->log('Firing ' . join('->', $callback));
                         $this->logger->newLevel('');
                         try {
                             call_user_func($callback, $event);
                         } catch (ModuleException $e) {
                             $this->error->exceptionHandler($e);
                         }
-                        $this->logger->stopLevel();
                         $this->logger->stopLevel();
                     }
 
