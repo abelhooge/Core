@@ -10,6 +10,7 @@ if (!defined('FUZESYSPATH')) {
 class Core {
 
 	public $mods;
+	private $loaded = false;
 
 	## START/STOP
 	public function init() {
@@ -23,11 +24,15 @@ class Core {
 	}
 
 	public function loadStartupFiles() {
+		if ($this->loaded)
+			return;
+
 		// Load core abstracts
 		require_once(FUZESYSPATH . "/class.abstract.bus.php");
-		require_once(FUZESYSPATH . "/class.abstract.model.php");
+		//require_once(FUZESYSPATH . "/class.abstract.model.php");
 		require_once(FUZESYSPATH . "/class.abstract.event.php");
 		require_once(FUZESYSPATH . "/class.abstract.module.php");
+		require_once(FUZESYSPATH . "/class.abstract.eventPriority.php");
 
 		// Load the core classes
 		require_once(FUZESYSPATH . "/class.config.php");
@@ -42,6 +47,8 @@ class Core {
         $this->mods->logger      	= new Logger 		($this);
         $this->mods->models 		= new Models 		($this);
         $this->mods->layout 		= new Layout 		($this);
+
+        $this->loaded = true;
 	}
 
 	public function shutdown() {

@@ -67,6 +67,10 @@ class Layout extends Bus {
 		$this->title = $title;
 	}
 
+	public function getTitle() {
+		return $this->title;
+	}
+
 	public function view($view = "default", $dir = "") {
 		// Chech if Smarty is loaded
 		if (!$this->loaded)

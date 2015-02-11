@@ -4,13 +4,6 @@
  * @package files
  */
 
-/** Config
- *
- * This class keeps the config loaded at all times via a singleton class
- *
- * @name Config
- * @package Core
- */
 class Models extends Bus{
 	
     private $models_array = array();
@@ -21,6 +14,7 @@ class Models extends Bus{
     }
 
     public function loadModel($name, $directory = null){
+        $this->core->loadMod('model');
         if($directory === null){
             $directory = FUZEPATH . "/Application/Models";
         }

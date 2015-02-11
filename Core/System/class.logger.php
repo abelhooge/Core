@@ -17,7 +17,7 @@ class Logger extends Bus{
  			set_Exception_handler(array($this, "exceptionHandler"));
  			error_reporting(false);
  		}
-		$this->events->addListener($this);
+		$this->events->addListener(array($this, 'onCoreShutdownEvent'), 'coreShutdownEvent', EventPriority::LOWEST);
  		$this->newLevel("Logger Initiated");
 	}
 
