@@ -1,26 +1,49 @@
 <?php
 
+/**
+ * Config Module
+ * 
+ * This class gives access to the config files. Allows for reading and editting
+ */
 class Config extends Bus{
 
+	/**
+	 * Wether or not the database is active at the moment
+	 * @access public
+	 * @var Boolean true on active database
+	 */
 	public $dbActive = false;
 
+	/**
+	 * Class Constructor
+	 * @access public
+	 * @param FuzeWorks Core Reference
+	 */
 	public function __construct(&$core) {
 		parent::__construct($core);
 	}
 
+	/**
+	 * Get's called when the class get's loaded. Does nothing
+	 * @access public
+	 */
 	public function onLoad() {}
 
+	/**
+	 * Reads a config file and returns it as object
+	 * @access public
+	 * @param String config file name
+	 * @param String directory, default is Application/Config
+	 * @throws \Exception on file not found
+	 * @return StdObject of config
+	 */
 	public function loadConfigFile($name, $directory = null) {
 		$dir = (isset($directory) ? $directory : FUZEPATH . "Application//config/");
 		$file = $dir . 'config.' . strtolower($name).".php";
-		$file2 = $dir . 'config.' . strtolower($name).".enc.cfg";
 
 		if (file_exists($file)) {
 			$DECODED = (object) require($file);
 			return $DECODED;
-		} elseif (file_exists($file2)) {
-			$data = file_get_contents($file2);
-			return json_decode($data);
 		} else {
 			$this->core->loadMod('database');
 			if ($this->dbActive) {
@@ -53,6 +76,45 @@ class Config extends Bus{
 		}	
 	}
 
+	/**
+	 * Change a value in the config, wherever this is saved
+	 * @access public
+	 * @param String filename
+	 * @param String config key
+	 * @param String/Array config value
+	 * @param String directory, default is Application/Config
+	 */
+	public function set($name, $key, $value, $directory = null) {
+		$dir = (isset($directory) ? $directory : FUZEPATH . "Application//config/");
+		$file = $dir . 'config.' . strtolower($name).".php";
+		$file2 = $dir . 'config.' . strtolower($name).".enc.cfg";
+		if (file_exists($file)) {
+			$DECODED = require($file);
+			if (!is_array($DECODED)) {
+				$DECODED = array();
+			}
+			if (is_null($value)) {
+				unset($DECODED[$key]);
+			} else {
+				$DECODED[$key] = $value;
+			}
+			
+			if (is_writable($file)) {
+				$config = var_export($DECODED, true);
+				file_put_contents($file, "<?php return $config ;");
+			}
+		} else {
+			throw new Exception("Config file '".strtolower($name)."' was not found", 1);
+			return false;
+		}
+	}
+
+	/**
+	 * Magic config getter
+	 * @access public
+	 * @param String config file name
+	 * @return StdObject of config
+	 */
 	public function __get($name) {
 		return $this->loadConfigFile($name);
 	}

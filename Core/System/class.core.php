@@ -75,11 +75,22 @@ class Core {
 
 				// If not, and a mod config file is found, follow that
 				} elseif ( file_exists(FUZEPATH . "/Core/Mods/".strtolower($name)."/moduleInfo.php" )) {
+					// Load the config file
 					$cfg = (object) require(FUZEPATH . "/Core/Mods/".strtolower($name)."/moduleInfo.php");
+
+					// Load the class name and file
 					$class_file = FUZEPATH . "/Core/Mods/".strtolower($name)."/" . $cfg->module_file;
 					$class_name = $cfg->module_class;
+
+					// Load the dependencies first
+					$deps = (isset($cfg->dependencies) ? $cfg->dependencies : array());
+					for ($i=0; $i < count($deps); $i++) { 
+						$this->loadMod($deps[$i]);
+					}
+
 					$path = FUZEPATH . "/Core/Mods/".strtolower($name)."/";
 					$this->mods->logger->log("Loading Module '".$cfg->name."' v".$cfg->version." made by '".$cfg->author."' : '".$cfg->website."'");
+
 					require_once($class_file);
 
 				// If no config file found, but a main class is, load that

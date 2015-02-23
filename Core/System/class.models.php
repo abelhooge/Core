@@ -1,7 +1,6 @@
 <?php
 /**
  * @author FuzeNetwork
- * @package files
  */
 
 class Models extends Bus{

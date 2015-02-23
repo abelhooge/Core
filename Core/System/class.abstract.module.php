@@ -4,8 +4,6 @@
  * Class Module
  *
  * Abstract Class for modules
- *
- * @package System\Core
  */
 class Module extends Bus {
 
