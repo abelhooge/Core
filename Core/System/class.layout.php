@@ -4,7 +4,7 @@ class Layout extends Bus {
 	
 	private $Smarty = array();
 	private $title = "";
-	private $loaded = false;
+	public $loaded = false;
 
 	public function __construct(&$core) {
 		parent::__construct($core);
@@ -25,6 +25,7 @@ class Layout extends Bus {
 		$this->Smarty['main'] = $this->getSmartyBasicVars($this->Smarty['main']);
 
 		$this->loaded = true;
+		$this->mods->events->fireEvent('smartyLoadEvent');
 	}
 
 	public function getSmartyBasicVars($Smarty) {
