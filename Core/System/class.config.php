@@ -1,15 +1,42 @@
 <?php
 
+/**
+ * Config Module
+ * 
+ * This class gives access to the config files. Allows for reading and editting
+ */
 class Config extends Bus{
 
+	/**
+	 * Wether or not the database is active at the moment
+	 * @access public
+	 * @var Boolean true on active database
+	 */
 	public $dbActive = false;
 
+	/**
+	 * Class Constructor
+	 * @access public
+	 * @param FuzeWorks Core Reference
+	 */
 	public function __construct(&$core) {
 		parent::__construct($core);
 	}
 
+	/**
+	 * Get's called when the class get's loaded. Does nothing
+	 * @access public
+	 */
 	public function onLoad() {}
 
+	/**
+	 * Reads a config file and returns it as object
+	 * @access public
+	 * @param String config file name
+	 * @param String directory, default is Application/Config
+	 * @throws \Exception on file not found
+	 * @return StdObject of config
+	 */
 	public function loadConfigFile($name, $directory = null) {
 		$dir = (isset($directory) ? $directory : FUZEPATH . "Application//config/");
 		$file = $dir . 'config.' . strtolower($name).".php";
@@ -79,10 +106,12 @@ class Config extends Bus{
 		}
 	}
 
-	private function write_config($file, $contents) {
-		$DECODED = (object) require($file);
-	}
-
+	/**
+	 * Magic config getter
+	 * @access public
+	 * @param String config file name
+	 * @return StdObject of config
+	 */
 	public function __get($name) {
 		return $this->loadConfigFile($name);
 	}
