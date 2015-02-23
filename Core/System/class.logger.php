@@ -17,11 +17,11 @@ class Logger extends Bus{
  			set_Exception_handler(array($this, "exceptionHandler"));
  			error_reporting(false);
  		}
-		$this->events->addListener(array($this, 'onCoreShutdownEvent'), 'coreShutdownEvent', EventPriority::LOWEST);
+		$this->events->addListener(array($this, 'shutdown'), 'coreShutdownEvent', EventPriority::LOWEST);
  		$this->newLevel("Logger Initiated");
 	}
 
-	public function onCoreShutdownEvent() {
+	public function shutdown() {
 		// Load last error if thrown		
   		$errfile = "Unknown file";
  		$errstr = "shutdown";
