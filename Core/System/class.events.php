@@ -6,7 +6,6 @@
  
 /** 
  * @name Events
- * @package Core
 */
 class Events extends Bus{
 

@@ -13,7 +13,6 @@
  * EventPriority::LOW
  * EventPriority::LOWEST
  *
- * @package System\Core
  */
 
 abstract class EventPriority
