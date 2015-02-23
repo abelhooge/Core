@@ -111,6 +111,14 @@ class Events extends Bus{
 
 		$this->logger->log("Checking for Listeners");
 
+        // Read the event register for listeners
+        $register = $this->config->eventregister->register;
+        if (isset($register[$eventName])) {
+            for ($i=0; $i < count($register[$eventName]); $i++) { 
+                $this->core->loadMod($register[$eventName][$i]);
+            }
+        }
+
         //There are listeners for this event
         if(isset($this->listeners[$eventName])) {
             //Loop from the highest priority to the lowest
@@ -144,8 +152,20 @@ class Events extends Bus{
 		return $event;
 	}
 
+    // Event Preparation:
+    public function buildEventRegister() {
+        $this->logger->newLevel("Building Event Register", 'Events');
+        $dir = FUZEPATH . "/Core/Mods/";
+        $mods = array_values(array_diff(scandir($dir), array('..', '.')));
+        for ($i=0; $i < count($mods); $i++) { 
+            $this->core->loadMod($mods[$i]);
+        }
 
+        $event = $this->fireEvent('eventRegisterBuildEvent', '');
+        $this->config->set('eventregister', 'register', $event->register);
 
+        $this->logger->stopLevel();
+    }
 }
 
 class NotifierEvent extends Event {}
