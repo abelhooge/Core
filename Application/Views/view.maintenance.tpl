@@ -30,7 +30,7 @@
 				<img src='http://myfuze.net/Fuze2tra.png' />
 			</div>
 
-			<div class='col-lg-12 col-md-4 col-sm-12'>
+			<div class='col-lg-12 col-md-12 col-sm-12'>
 				<div id='contentPanel' class="panel panel-default" style='display:none'>
 				    <div id='1' class="panel-body" style='display:none'>
 				       <p class="lead">Dear visitor,</p>
@@ -44,8 +44,6 @@
 
 				    </div>
             	</div>
-
-
 			</div>
 		</div>
 	</div>
