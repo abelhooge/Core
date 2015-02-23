@@ -13,14 +13,10 @@ class Config extends Bus{
 	public function loadConfigFile($name, $directory = null) {
 		$dir = (isset($directory) ? $directory : FUZEPATH . "Application//config/");
 		$file = $dir . 'config.' . strtolower($name).".php";
-		$file2 = $dir . 'config.' . strtolower($name).".enc.cfg";
 
 		if (file_exists($file)) {
 			$DECODED = (object) require($file);
 			return $DECODED;
-		} elseif (file_exists($file2)) {
-			$data = file_get_contents($file2);
-			return json_decode($data);
 		} else {
 			$this->core->loadMod('database');
 			if ($this->dbActive) {
@@ -51,6 +47,40 @@ class Config extends Bus{
 			throw new Exception("Config file '".strtolower($name)."' was not found", 1);
 			return false;
 		}	
+	}
+
+	/**
+	 * Change a value in the config, wherever this is saved
+	 * @access public
+	 * @param String filename
+	 * @param String config key
+	 * @param String config value
+	 * @param String directory, default is Application/Config
+	 */
+	public function set($name, $key, $value, $directory = null) {
+		$dir = (isset($directory) ? $directory : FUZEPATH . "Application//config/");
+		$file = $dir . 'config.' . strtolower($name).".php";
+		$file2 = $dir . 'config.' . strtolower($name).".enc.cfg";
+		if (file_exists($file)) {
+			$DECODED = require($file);
+			if (is_null($value)) {
+				unset($DECODED[$key]);
+			} else {
+				$DECODED[$key] = $value;
+			}
+			
+			if (is_writable($file)) {
+				$config = var_export($DECODED, true);
+				file_put_contents($file, "<?php return $config ;");
+			}
+		} else {
+			throw new Exception("Config file '".strtolower($name)."' was not found", 1);
+			return false;
+		}
+	}
+
+	private function write_config($file, $contents) {
+		$DECODED = (object) require($file);
 	}
 
 	public function __get($name) {
