@@ -81,7 +81,7 @@ class Config extends Bus{
 	 * @access public
 	 * @param String filename
 	 * @param String config key
-	 * @param String config value
+	 * @param String/Array config value
 	 * @param String directory, default is Application/Config
 	 */
 	public function set($name, $key, $value, $directory = null) {
@@ -90,6 +90,9 @@ class Config extends Bus{
 		$file2 = $dir . 'config.' . strtolower($name).".enc.cfg";
 		if (file_exists($file)) {
 			$DECODED = require($file);
+			if (!is_array($DECODED)) {
+				$DECODED = array();
+			}
 			if (is_null($value)) {
 				unset($DECODED[$key]);
 			} else {
