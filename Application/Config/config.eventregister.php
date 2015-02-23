@@ -1,1 +1,5 @@
-<?php return 1 ;
+<?php return array (
+  'register' => 
+  array (
+  ),
+) ;
