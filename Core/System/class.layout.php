@@ -72,7 +72,7 @@ class Layout extends Bus {
 		return $this->title;
 	}
 
-	public function view($view = "default", $dir = "") {
+	public function view($view = "default", $dir = null) {
 		// Chech if Smarty is loaded
 		if (!$this->loaded)
 			$this->load();
@@ -98,13 +98,14 @@ class Layout extends Bus {
 		}
 
 		// Set the directory
-		$dir = ($dir == "" ? FUZEPATH . "/Application/" . '/Views' : $dir);
+		$dir = (!isset($dir) ? FUZEPATH . "/Application/" . '/Views' : $dir);
 		$this->Smarty['main']->setTemplateDir($dir);
 
 		// Set the title
         $this->Smarty['main']->assign('title', $this->title);
   	
   		// Get the viewdir
+  		// @TODO: Fix this for custom directories
         $one = FUZEPATH;
         $two = $dir . "/";
         $count_one = strlen($one);

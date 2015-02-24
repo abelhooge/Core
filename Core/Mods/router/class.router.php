@@ -47,6 +47,7 @@ class Router extends Bus {
 	 * Path structure: /controller/function/par1/par2...
 	 */
 	public function route(){
+		// Retrieve the path and convert it to a proper format
 		$path = (!empty($this->getPath()) ? explode('/', preg_replace('#/+#','/',$this->getPath())) : array());
 		$path_size = count($path);
 
@@ -55,11 +56,58 @@ class Router extends Bus {
 			array_pop($path);
 		}
 
+		// Load the Section config file
+		$cfg = $this->config->sections;
+
+		// Perform a routing check
+		// Prepare CONTROLLER, FUNCTION and PARAMS variables
+		$MODULE = false;
 		$CONTROLLER = "";
 		$FUNCTION = "";
 		$PARAMS = array();
+		$DIRECTORY = null;
+
+		// First check if anything is given
 		if ($path_size >= 1) {
-			$CONTROLLER = $path[0];
+			$first = strtolower($path[0]);
+			// Check if a section exists with this parameter
+			if (isset($cfg->$first)) {
+				$section = $cfg->$first;
+
+				// Load the section dependencies
+				if (!empty($section['dependencies'])) {
+					for ($i=0; $i < count($section['dependencies']); $i++) { 
+						$this->core->loadMod($section['dependencies'][$i]);
+					}
+				}
+
+				// Load the module if it is a module section
+				if ($section['module_section']) {
+					$mod_name = strtolower($section['module_name']);
+					$this->core->loadMod($mod_name);
+
+					$mod_path = $this->mods->{$mod_name}->getModulePath();
+					$DIRECTORY = $mod_path . "/Controller/";
+					$model_dir = $mod_path . "/Models/";
+					$view_dir = $mod_path . "/Views/";;
+				}
+
+				// Set the switch for the rest of the routing
+				$MODULE = true;
+				array_shift($path);
+				$path_size = count($path);
+
+				// And append the controller if found
+				if ($path_size >= 1) {
+					$CONTROLLER = $path[0];
+				} else {
+					$CONTROLLER = 'standard';
+				}
+			} else {
+				// Regular routing
+				$CONTROLLER = $path[0];
+			}
+
 			if ($path_size >= 2) {
 				$FUNCTION = $path[1];
 				if ($path_size >= 3) {
@@ -72,7 +120,7 @@ class Router extends Bus {
 		}
 
         // Fire the event to notify our modules
-        $event = $this->events->fireEvent('routerRouteEvent', $CONTROLLER, $FUNCTION, $PARAMS);
+        $event = $this->events->fireEvent('routerRouteEvent', $CONTROLLER, $FUNCTION, $PARAMS, $DIRECTORY);
 
         // The event has been cancelled
         if($event->isCancelled()){
@@ -87,7 +135,7 @@ class Router extends Bus {
 
         // Load the controller
         $dir = (isset($event->directory) ? $event->directory : null);
-        $this->loadController($CONTROLLER, $FUNCTION, $PARAMS, $dir);
+        $CLASS = $this->loadController($CONTROLLER, $FUNCTION, $PARAMS, $dir);
 	}
 
 	/**
@@ -143,6 +191,8 @@ class Router extends Bus {
 			$this->mods->logger->enable();
 			return false;
 		}
+
+		return $CLASS;
 	}
 }
 
