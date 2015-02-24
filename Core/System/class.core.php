@@ -29,7 +29,6 @@ class Core {
 
 		// Load core abstracts
 		require_once(FUZESYSPATH . "/class.abstract.bus.php");
-		//require_once(FUZESYSPATH . "/class.abstract.model.php");
 		require_once(FUZESYSPATH . "/class.abstract.event.php");
 		require_once(FUZESYSPATH . "/class.abstract.module.php");
 		require_once(FUZESYSPATH . "/class.abstract.eventPriority.php");
