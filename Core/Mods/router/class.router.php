@@ -98,9 +98,6 @@ class Router extends Bus {
 	/**
 	 * Load a controller
 	 * @access public
-	 * @param String controller name
-	 * @param String function name
-	 * @param Array Parameters
 	 */
 	public function loadController() {
 		$file = $this->directory . "controller.".strtolower($this->controllerName).".php";
@@ -118,6 +115,9 @@ class Router extends Bus {
 			} elseif (method_exists($this->controller, 'not_found')) {
 				// Trying last resort
 				$this->logger->log("Function was not found, trying Controllers not_found function");
+
+				// Add the function to the parameters just because it's usefull
+				array_unshift($this->parameters, $this->function);
 				$this->controller->not_found($this->parameters);
 			} else {
 				$this->logger->logError("Could not load not_found function. Aborting");
@@ -130,6 +130,9 @@ class Router extends Bus {
 				require_once($file);
 			$this->controllerClass = ucfirst($this->config->main->default_controller);
 			$this->controller = new $this->controllerClass($this->core);
+
+			// Add the function to the parameters just because it's usefull
+			array_unshift($this->parameters, $this->function);			
 			$this->controller->not_found($this->parameters);
 		}
 	}
