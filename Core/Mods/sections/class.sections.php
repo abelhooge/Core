@@ -1,5 +1,6 @@
 <?php
 /**
+ * Sections module, see usage documentation
  * @author TechFuze
  */
 class Sections extends Module {
@@ -18,10 +19,10 @@ class Sections extends Module {
 	 */
 	private $currentSection = null;
 
-	public function __construct(&$core) {
-		parent::__construct($core);
-	}
-
+	/**
+	 * Loads the module and registers the events
+	 * @access public
+	 */
 	public function onLoad() {
 		// Load module configuration
 		$this->cfg = $this->config->loadConfigFile('sections', $this->getModulePath());
@@ -31,13 +32,55 @@ class Sections extends Module {
 		$this->events->addListener(array($this, 'routerEvent'), 'routerRouteEvent', EventPriority::NORMAL);
 	}
 
+	/**
+	 * Registers this module in the eventRegister for routerRouteEvent
+	 * @access public
+	 * @param eventRegisterBuildEvent Event
+ 	 * @return eventRegisterBuildEvent Event
+	 */
 	public function eventRegisterBuild($event) {
 		$event->addEvent('sections', 'routerRouteEvent');
 		return $event;
 	}
 
-	public function routerEvent($event) {
+	/** 
+	 * Add a section to the config file
+	 * @access public
+	 * @param String section_name, name of the section
+	 * @param Boolean module_section wether this is a module_section
+	 * @param String module_name to use when this is a module_section
+	 * @param String Controller_path, where to find the controllers for this section
+	 * @param String Model_path, where to find the models for this section
+	 * @param String View_path, where to find the views for this section
+	 */
+	public function addSection($name, $module_section = false, $module_name = null, $controller_path = null, $model_path = null, $view_path = null) {
+		$data = array(
+		    'name' => $name,
+		    'module_section' => $module_section,
+		    'module_name' => $module_name,
+		    'controller_path' => FUZEPATH .  $controller_path,
+		    'model_path' => FUZEPATH . $model_path,
+		    'view_path' => FUZEPATH . $view_path,			
+			);
+		$this->config->set('sections', $name, $data, $this->getModulePath());
+	}
 
+	/**
+	 * Removes a section from the config file
+	 * @access public 
+	 * @param String section_name, name of the section to remove
+	 */
+	public function removeSection($name) {
+		$this->config->set('sections', $name, null, $this->getModulePath());
+	}
+
+	/**
+	 * Get's called on routerRouteEvent. Redirects when a section is found
+	 * @access public 
+	 * @param routerRouteEvent Event
+	 * @return routerRouteEvent Event
+	 */
+	public function routerEvent($event) {
 		$name = $event->controller;
 		$controller = null;
 		$function = null;
@@ -50,12 +93,12 @@ class Sections extends Module {
 			$this->currentSection = $name;
 
 			// Logic here, first for module sections
-			if ($section->module_section) {
-				$this->core->loadMod($section->module_name);
-				$event->directory = $this->mods->{$section->module_name}->getModulePath() . "/Controller/";
+			if ($section['module_section']) {
+				$this->core->loadMod($section['module_name']);
+				$event->directory = $this->mods->{$section['module_name']}->getModulePath() . "/Controller/";
 			} else {
 				// Now for regular sections
-				$event->directory = $section->controller_path;
+				$event->directory = $section['controller_path'];
 			}
 
 			// Move the path so it matches the new regime
@@ -77,22 +120,23 @@ class Sections extends Module {
 		return $event;
 	}
 
+	/**
+	 * Retrieves section information from the config file
+	 * @access public
+	 * @param String section_name, name of the section
+	 * @return Array section_information or null
+	 */
 	public function __get($name){
 		// Something given?
         if(empty($name)) {
-
 			// Currently in a section?
             if($this->currentSection !== null){
-
 				// Return that one then
                 return $this->cfg[$this->currentSection];
             }
-
-			// Emptiness...
             return null;
         }
 
-        
 		// Return element $name of the config file
 		if (isset($this->cfg->$name)) {
 			$section = $this->cfg->$name;
