@@ -7,13 +7,18 @@ class Models extends Bus{
 	
     private $models_array = array();
     private $model_types = array();
+    private $models_loaded = false;
 
     public function __construct(&$core){
         parent::__construct($core);
     }
 
     public function loadModel($name, $directory = null){
-        $this->core->loadMod('model');
+        if ($this->models_loaded) {
+            $this->events->fireEvent('modelsLoadEvent');
+            $this->models_loaded = true;
+        }
+
         if($directory === null){
             $directory = FUZEPATH . "/Application/Models";
         }

@@ -1,6 +1,14 @@
 <?php
-class Model {
-	public function onLoad(){}
+class DatabaseModelManager extends Module {
+
+	public function onLoad(){
+		$this->events->addListener(array($this, 'eventRegisterBuild'), 'eventRegisterBuildEvent', EventPriority::NORMAL);
+	}
+
+	public function eventRegisterBuild($event) {
+		$event->addEvent('databasemodel', 'loadModelsEvent');
+		return $event;
+	}
 }
 class DatabaseModel extends Bus{
 
