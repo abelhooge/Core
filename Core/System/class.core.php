@@ -21,6 +21,8 @@ class Core {
 		// Load core functionality
 		$this->mods = new stdClass();
 		$this->loadStartupFiles();
+
+		$this->mods->events->fireEvent('coreStartEvent');
 	}
 
 	public function loadStartupFiles() {
