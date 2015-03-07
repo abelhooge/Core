@@ -58,64 +58,68 @@ class Core {
 
 	## MODLOADING
 	public function loadMod($name) {
+		if (!isset($this->mods->$name)) {
+			$CLASS = $this->loadModule($name);
+			$this->mods->{strtolower($name)}  = &$CLASS;
+		}
+	}
+
+	public function getMod($name) {
+		$CLASS = $this->loadModule($name);
+		return $CLASS;
+	}
+
+	private function loadModule($name) {
 		// Class name
 		$class_name = ucfirst($name);
-		// Check if mod is already loaded
-		if (!isset($this->mods->$name)) {
-			// Check if class is already included
 
-			// If the class is not loaded, load it
-			if (!class_exists($class_name)) {
+		// If the mod is in the top mod directory, load it directly
+		$file = FUZEPATH . "/Core/Mods/class.".$class_name.".php";
+		if (file_exists($file)) {
+			$this->mods->logger->log("Loading module '".$class_name."'");
+			$path = FUZEPATH . "/Core/Mods/class.".$class_name.".php";
+			require_once($file);
 
-				// If the mod is in the top mod directory, load it directly
-				$file = FUZEPATH . "/Core/Mods/class.".$class_name.".php";
-				if (file_exists($file)) {
-					$this->mods->logger->log("Loading module '".$class_name."'");
-					$path = FUZEPATH . "/Core/Mods/class.".$class_name.".php";
-					require_once($file);
+		// If not, and a mod config file is found, follow that
+		} elseif ( file_exists(FUZEPATH . "/Core/Mods/".strtolower($name)."/moduleInfo.php" )) {
+			// Load the config file
+			$cfg = (object) require(FUZEPATH . "/Core/Mods/".strtolower($name)."/moduleInfo.php");
 
-				// If not, and a mod config file is found, follow that
-				} elseif ( file_exists(FUZEPATH . "/Core/Mods/".strtolower($name)."/moduleInfo.php" )) {
-					// Load the config file
-					$cfg = (object) require(FUZEPATH . "/Core/Mods/".strtolower($name)."/moduleInfo.php");
+			// Load the class name and file
+			$class_file = FUZEPATH . "/Core/Mods/".strtolower($name)."/" . $cfg->module_file;
+			$class_name = $cfg->module_class;
 
-					// Load the class name and file
-					$class_file = FUZEPATH . "/Core/Mods/".strtolower($name)."/" . $cfg->module_file;
-					$class_name = $cfg->module_class;
-
-					// Load the dependencies first
-					$deps = (isset($cfg->dependencies) ? $cfg->dependencies : array());
-					for ($i=0; $i < count($deps); $i++) { 
-						$this->loadMod($deps[$i]);
-					}
-
-					$path = FUZEPATH . "/Core/Mods/".strtolower($name)."/";
-					$this->mods->logger->log("Loading Module '".$cfg->name."' v".$cfg->version." made by '".$cfg->author."' : '".$cfg->website."'");
-
-					require_once($class_file);
-
-				// If no config file found, but a main class is, load that
-				} elseif ( file_exists(FUZEPATH . "/Core/Mods/".strtolower($name)."/class.".$class_name.".php") ){
-					$this->mods->logger->log("Loading module '".$class_name."'");
-					$path = FUZEPATH . "/Core/Mods/".strtolower($name)."/";
-					require_once(FUZEPATH . "/Core/Mods/".strtolower($name)."/class.".$class_name.".php");
-
-				// Otherwise Abort
-				} else {
-					// MOD NOT FOUND
-					throw new Exception("Requested mod '".$name."' was not found", 1);
-					return false;
-				}
+			// Load the dependencies first
+			$deps = (isset($cfg->dependencies) ? $cfg->dependencies : array());
+			for ($i=0; $i < count($deps); $i++) { 
+				$this->loadMod($deps[$i]);
 			}
 
-			// Create class object
-			$CLASS = new $class_name($this);
-			if (method_exists($CLASS, 'setModulePath')) {
-				$CLASS->setModulePath($path);
-			}
-			$this->mods->{strtolower($name)}  = &$CLASS;
-			$CLASS->onLoad();
+			$path = FUZEPATH . "/Core/Mods/".strtolower($name)."/";
+			$this->mods->logger->log("Loading Module '".$cfg->name."' v".$cfg->version." made by '".$cfg->author."' : '".$cfg->website."'");
+
+			require_once($class_file);
+
+		// If no config file found, but a main class is, load that
+		} elseif ( file_exists(FUZEPATH . "/Core/Mods/".strtolower($name)."/class.".$class_name.".php") ){
+			$this->mods->logger->log("Loading module '".$class_name."'");
+			$path = FUZEPATH . "/Core/Mods/".strtolower($name)."/";
+			require_once(FUZEPATH . "/Core/Mods/".strtolower($name)."/class.".$class_name.".php");
+
+		// Otherwise Abort
+		} else {
+			// MOD NOT FOUND
+			throw new Exception("Requested mod '".$name."' was not found", 1);
+			return false;
 		}
+
+		// Create class object
+		$CLASS = new $class_name($this);
+		if (method_exists($CLASS, 'setModulePath')) {
+			$CLASS->setModulePath($path);
+		}
+		$CLASS->onLoad();
+		return $CLASS;
 	}
 }
 
