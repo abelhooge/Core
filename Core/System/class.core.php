@@ -95,6 +95,13 @@ class Core {
 				// Load the config file
 				$cfg = (object) $this->register[$name];
 
+				// Check if the module is enabled, otherwise abort
+				if (isset($cfg->enabled)) {
+					if (!$cfg->enabled) {
+						return false;
+					}
+				}
+
 				// Check if a specific version is requested
 				if (isset($version)) {
 					if (isset($cfg->versions)) {
