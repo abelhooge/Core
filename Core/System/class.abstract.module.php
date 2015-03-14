@@ -18,6 +18,11 @@ class Module extends Bus {
 	protected $moduleName = 'placeholder';
 
 	/**
+	 * @var String name used in the mod array 
+	 */
+	protected $linkName = 'placeholder';
+
+	/**
 	 * Constructor
 	 *
 	 * @param Core $core Pointer to the core class
@@ -58,5 +63,23 @@ class Module extends Bus {
         // Only allow one change of this variable from outside
         if($this->modulePath === null)
             $this->modulePath = $modulePath;
+    }
+
+    /**
+     * Set the link name of the module. The link name is the address in the module array so that the module can self reference.
+     * @access public
+     * @param String link name
+     */
+    public function setModuleLinkName($linkName) {
+    	$this->linkName = $linkName;
+    }
+
+    /** 
+     * The name that is required to load itself, eg 'exampleauthor/examplemodulename' or 'techfuze/cms'
+     * @access public
+     * @param String module name
+     */
+    public function setModuleName($modName) {
+    	$this->moduleName = $modName;
     }
 }
