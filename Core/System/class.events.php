@@ -158,9 +158,10 @@ class Events extends Bus{
         $dir = FUZEPATH . "/Core/Mods/";
         $mods = $this->config->modregister->register;
         foreach ($mods as $key => $value) {
-            $this->core->loadMod($key);
+            try {
+                $this->core->loadMod($key);
+            } catch (Exception $e) {}
         }
-
         $event = $this->fireEvent('eventRegisterBuildEvent', '');
         $this->config->set('eventregister', 'register', $event->register);
 
