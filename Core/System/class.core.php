@@ -97,32 +97,39 @@ class Core {
 
 				// Check if a specific version is requested
 				if (isset($version)) {
-					// @TODO: Implement
+					if (isset($cfg->versions)) {
+						if (isset($cfg->versions[$version])) {
+							$ncfg = (object) $cfg->versions[$version];
+							foreach ($ncfg as $key => $value) {
+								$cfg->$key = $value;
+							}
+						}
+					}
+				} 
+
+				// Or load the main version
+				$file = $cfg->directory . $cfg->module_file;
+
+				// Load the dependencies before the module loads
+				$deps = (isset($cfg->dependencies) ? $cfg->dependencies : array());
+				for ($i=0; $i < count($deps); $i++) { 
+					$this->loadMod($deps[$i]);
+				}
+
+				// Check if the file exists
+				if (file_exists($file)) {
+					// And load it
+					require_once($file);
+					$class_name = $cfg->module_class;
+					$msg = "Loading Module '".ucfirst((isset($cfg->name) ? $cfg->name : $cfg->module_name)) . "'";
+					$msg .= (isset($cfg->version) ? " version:".$cfg->version : "");
+					$msg .= (isset($cfg->author) ? " made by ".$cfg->author : "");
+					$msg .= (isset($cfg->website) ? " from ".$cfg->website: "");
+					$this->mods->logger->log($msg);
 				} else {
-					// Or load the main version
-					$file = $cfg->directory . $cfg->module_file;
-
-					// Load the dependencies before the module loads
-					$deps = (isset($cfg->dependencies) ? $cfg->dependencies : array());
-					for ($i=0; $i < count($deps); $i++) { 
-						$this->loadMod($deps[$i]);
-					}
-
-					// Check if the file exists
-					if (file_exists($file)) {
-						// And load it
-						require_once($file);
-						$class_name = $cfg->module_class;
-						$msg = "Loading Module '".ucfirst((isset($cfg->name) ? $cfg->name : $cfg->module_name)) . "'";
-						$msg .= (isset($cfg->version) ? " version:".$cfg->version : "");
-						$msg .= (isset($cfg->author) ? " made by ".$cfg->author : "");
-						$msg .= (isset($cfg->website) ? " from ".$cfg->website: "");
-						$this->mods->logger->log($msg);
-					} else {
-						// Throw Exception if the file does not exist
-						throw new Exception("Requested mod '".$name."' could not be loaded. Class file not found", 1);
-						return false;							
-					}
+					// Throw Exception if the file does not exist
+					throw new Exception("Requested mod '".$name."' could not be loaded. Class file not found", 1);
+					return false;							
 				}
 			} else {
 				// Throw Exception if the module has an invalid config file
