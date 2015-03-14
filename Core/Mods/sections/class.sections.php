@@ -111,6 +111,8 @@ class Sections extends Module {
 
 			// And finally set the controller, if no parameters are set, load the default function
 			$controller = (!empty($event->function) ? $event->function : $this->config->main->default_controller );
+		} else {
+			$this->logger->log("No section was found with name: '".$name."'", 'Sections');
 		}
 
         if($controller !== null)$event->controller  = $controller;
