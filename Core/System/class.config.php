@@ -87,7 +87,6 @@ class Config extends Bus{
 	public function set($name, $key, $value, $directory = null) {
 		$dir = (isset($directory) ? $directory : FUZEPATH . "Application//config/");
 		$file = $dir . 'config.' . strtolower($name).".php";
-		$file2 = $dir . 'config.' . strtolower($name).".enc.cfg";
 		if (file_exists($file)) {
 			$DECODED = require($file);
 			if (!is_array($DECODED)) {

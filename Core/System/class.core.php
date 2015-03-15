@@ -11,6 +11,7 @@ class Core {
 
 	public $mods;
 	private $loaded = false;
+	private $register;
 
 	## START/STOP
 	public function init() {
@@ -21,6 +22,14 @@ class Core {
 		// Load core functionality
 		$this->mods = new stdClass();
 		$this->loadStartupFiles();
+
+		$this->mods->events->fireEvent('coreStartEvent');
+		// Mod register exists, check if expired
+		if ( ( date('U') - $this->mods->config->main->registers_last_update) > $this->mods->config->main->registers_update_interval) {
+			$this->mods->logger->log("Registers have expired. Updating...", 'Core');
+			$this->buildModRegister();
+			$this->mods->events->buildEventRegister();
+		}
 	}
 
 	public function loadStartupFiles() {
@@ -55,65 +64,143 @@ class Core {
 	}
 
 	## MODLOADING
-	public function loadMod($name) {
-		// Class name
-		$class_name = ucfirst($name);
-		// Check if mod is already loaded
-		if (!isset($this->mods->$name)) {
-			// Check if class is already included
+	public function loadMod($name, $version = null) {
+		$CLASS = $this->loadModule($name);
+		if (!isset($this->mods->{strtolower($CLASS[1])})) {
+			return $this->mods->{strtolower($CLASS[1])}  = &$CLASS[0];
+		}	
+	}
 
-			// If the class is not loaded, load it
-			if (!class_exists($class_name)) {
+	public function getMod($name, $version = null) {
+		$CLASS = $this->loadModule($name);
+		return $CLASS[0];
+	}
 
-				// If the mod is in the top mod directory, load it directly
-				$file = FUZEPATH . "/Core/Mods/class.".$class_name.".php";
-				if (file_exists($file)) {
-					$this->mods->logger->log("Loading module '".$class_name."'");
-					$path = FUZEPATH . "/Core/Mods/class.".$class_name.".php";
-					require_once($file);
+	private function loadModule($name, $version = null) {
+		// Load the register if not loaded yet
+		if (!isset($this->mods->config->modregister->register)) {
+			$this->buildModRegister();
+		} else {
 
-				// If not, and a mod config file is found, follow that
-				} elseif ( file_exists(FUZEPATH . "/Core/Mods/".strtolower($name)."/moduleInfo.php" )) {
-					// Load the config file
-					$cfg = (object) require(FUZEPATH . "/Core/Mods/".strtolower($name)."/moduleInfo.php");
-
-					// Load the class name and file
-					$class_file = FUZEPATH . "/Core/Mods/".strtolower($name)."/" . $cfg->module_file;
-					$class_name = $cfg->module_class;
-
-					// Load the dependencies first
-					$deps = (isset($cfg->dependencies) ? $cfg->dependencies : array());
-					for ($i=0; $i < count($deps); $i++) { 
-						$this->loadMod($deps[$i]);
-					}
-
-					$path = FUZEPATH . "/Core/Mods/".strtolower($name)."/";
-					$this->mods->logger->log("Loading Module '".$cfg->name."' v".$cfg->version." made by '".$cfg->author."' : '".$cfg->website."'");
-
-					require_once($class_file);
-
-				// If no config file found, but a main class is, load that
-				} elseif ( file_exists(FUZEPATH . "/Core/Mods/".strtolower($name)."/class.".$class_name.".php") ){
-					$this->mods->logger->log("Loading module '".$class_name."'");
-					$path = FUZEPATH . "/Core/Mods/".strtolower($name)."/";
-					require_once(FUZEPATH . "/Core/Mods/".strtolower($name)."/class.".$class_name.".php");
-
-				// Otherwise Abort
-				} else {
-					// MOD NOT FOUND
-					throw new Exception("Requested mod '".$name."' was not found", 1);
-					return false;
-				}
-			}
-
-			// Create class object
-			$CLASS = new $class_name($this);
-			if (method_exists($CLASS, 'setModulePath')) {
-				$CLASS->setModulePath($path);
-			}
-			$this->mods->{strtolower($name)}  = &$CLASS;
-			$CLASS->onLoad();
+			$this->register = $this->mods->config->modregister->register;
 		}
+
+		// The basic module path
+		$path = FUZEPATH . "/Core/Mods/";
+
+		// Chech if the requested module is set
+		if (isset($this->register[$name])) {
+			// Check if the config file is loaded
+			if (!empty($this->register[$name])) {
+				// Load the config file
+				$cfg = (object) $this->register[$name];
+
+				// Check if the module is enabled, otherwise abort
+				if (isset($cfg->enabled)) {
+					if (!$cfg->enabled) {
+						// Module is disabled
+						throw new Exception("Module '".$name."' is not enabled!", 1);
+						return false;
+					}
+				}
+
+				// Check if a specific version is requested
+				if (isset($version)) {
+					if (isset($cfg->versions)) {
+						if (isset($cfg->versions[$version])) {
+							$ncfg = (object) $cfg->versions[$version];
+							foreach ($ncfg as $key => $value) {
+								$cfg->$key = $value;
+							}
+						}
+					}
+				} 
+
+				// Or load the main version
+				$file = $cfg->directory . $cfg->module_file;
+
+				// Load the dependencies before the module loads
+				$deps = (isset($cfg->dependencies) ? $cfg->dependencies : array());
+				for ($i=0; $i < count($deps); $i++) { 
+					$this->loadMod($deps[$i]);
+				}
+
+				// Check if the file exists
+				if (file_exists($file)) {
+					// And load it
+					require_once($file);
+					$class_name = $cfg->module_class;
+					$msg = "Loading Module '".ucfirst((isset($cfg->name) ? $cfg->name : $cfg->module_name)) . "'";
+					$msg .= (isset($cfg->version) ? " version:".$cfg->version : "");
+					$msg .= (isset($cfg->author) ? " made by ".$cfg->author : "");
+					$msg .= (isset($cfg->website) ? " from ".$cfg->website: "");
+					$this->mods->logger->log($msg);
+				} else {
+					// Throw Exception if the file does not exist
+					throw new Exception("Requested mod '".$name."' could not be loaded. Class file not found", 1);
+					return false;							
+				}
+			} else {
+				// Throw Exception if the module has an invalid config file
+				throw new Exception("Requested mod '".$name."' could not be loaded. Invalid config", 1);
+				return false;			
+			}
+		} else {
+			// Throw Exception if the module is not defined
+			throw new Exception("Requested mod '".$name."' was not found", 1);
+			return false;			
+		}
+
+		// Create class object
+		$CLASS = new $class_name($this);
+		if (method_exists($CLASS, 'setModulePath')) {
+			$CLASS->setModulePath($cfg->directory);
+		}
+		if (method_exists($CLASS, 'setModuleLinkName')) {
+			$CLASS->setModuleLinkName($cfg->module_name);
+		}
+		if (method_exists($CLASS, 'setModuleName')) {
+			$CLASS->setModuleName($name);
+		}
+		$CLASS->onLoad();
+		return array($CLASS, $cfg->module_name);
+	}
+
+	public function buildModRegister() {
+        $this->mods->logger->newLevel("Building Mod Register", 'Core');
+        $dir = FUZEPATH . "Core/Mods/";
+        $mods = array_values(array_diff(scandir($dir), array('..', '.')));
+        $register = array();
+        for ($i=0; $i < count($mods); $i++) { 
+        	$mod_dir = $dir . $mods[$i] . "/";
+        	if (file_exists($mod_dir . "/moduleInfo.php")) {
+        		$cfg = (object) require($mod_dir . "/moduleInfo.php");
+        		$name = "";
+        		$name .= (!empty($cfg->author) ? strtolower($cfg->author)."/" : "");
+        		$name .= strtolower($cfg->module_name);
+
+        		// Append directory
+        		$cfg->directory = $mod_dir;
+        		$register[$name] = (array) $cfg;
+        	} else {
+        		// Get the name
+        		$name = $mods[$i];
+
+        		// Build a dynamic module config
+        		$cfg = new stdClass();
+        		$cfg->module_class = ucfirst($name);
+        		$cfg->module_file = 'class.'.strtolower($name).".php";
+        		$cfg->module_name = $name;
+        		$cfg->dependencies = array();
+        		$cfg->versions = array();
+        		$cfg->directory = $mod_dir;
+        		$register[$name] = (array)$cfg;
+        	}
+        }
+
+        $this->mods->logger->stopLevel();
+        $this->mods->config->set('modregister', 'register', $register);
+        $this->mods->config->set('main', 'registers_last_update', date('U'));
 	}
 }
 
