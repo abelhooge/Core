@@ -65,10 +65,10 @@ class Core {
 
 	## MODLOADING
 	public function loadMod($name, $version = null) {
-		if (!isset($this->mods->$name)) {
-			$CLASS = $this->loadModule($name);
-			$this->mods->{strtolower($CLASS[1])}  = &$CLASS[0];
-		}
+		$CLASS = $this->loadModule($name);
+		if (!isset($this->mods->{strtolower($CLASS[1])})) {
+			return $this->mods->{strtolower($CLASS[1])}  = &$CLASS[0];
+		}	
 	}
 
 	public function getMod($name, $version = null) {
@@ -98,6 +98,8 @@ class Core {
 				// Check if the module is enabled, otherwise abort
 				if (isset($cfg->enabled)) {
 					if (!$cfg->enabled) {
+						// Module is disabled
+						throw new Exception("Module '".$name."' is not enabled!", 1);
 						return false;
 					}
 				}

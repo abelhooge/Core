@@ -94,8 +94,8 @@ class Sections extends Module {
 
 			// Logic here, first for module sections
 			if ($section['module_section']) {
-				$this->core->loadMod($section['module_name']);
-				$event->directory = $this->mods->{$section['module_name']}->getModulePath() . "/Controller/";
+				$mod = $this->core->loadMod($section['module_name']);
+				$event->directory = $mod->getModulePath() . "/Controller/";
 			} else {
 				// Now for regular sections
 				$event->directory = $section['controller_path'];
