@@ -5,6 +5,8 @@ return array(
     'module_file'     => 'class.model.php',
     'module_name'     => 'databasemodel',
 
+    'abstract'      => true,
+
     'name'          => 'DatabaseModel',
     'description'   => 'Abstract type for easy database queries',
     'author'        => 'TechFuze',
