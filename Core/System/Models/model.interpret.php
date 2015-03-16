@@ -1,10 +1,11 @@
 <?php
 
-class Interpret extends DatabaseModel {
+class Interpret extends Model {
 
     public function __construct(&$core){
         parent::__construct($core);
 
+        $this->setType('techfuze/databasemodel', 'DatabaseModel');
         $this->fields   = array();
         $this->table    = '';
     }

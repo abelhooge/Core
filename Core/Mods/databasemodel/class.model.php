@@ -1,7 +1,5 @@
 <?php
-class Model {
-	public function onLoad(){}
-}
+
 class DatabaseModel extends Bus{
 
     public $fields  = array();

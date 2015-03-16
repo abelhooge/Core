@@ -40,6 +40,7 @@ class Core {
 		require_once(FUZESYSPATH . "/class.abstract.bus.php");
 		require_once(FUZESYSPATH . "/class.abstract.event.php");
 		require_once(FUZESYSPATH . "/class.abstract.module.php");
+		require_once(FUZESYSPATH . "/class.abstract.model.php");
 		require_once(FUZESYSPATH . "/class.abstract.eventPriority.php");
 
 		// Load the core classes
@@ -151,7 +152,15 @@ class Core {
 			return false;			
 		}
 
-		// Create class object
+		// If it is an abstract module, return an StdClass for the memory address
+		if (isset($cfg->abstract)) {
+			if ($cfg->abstract) {
+				$c = new stdClass();
+				return array($c, $cfg->module_name);
+			}
+		}
+
+		// Otherwise create the class object
 		$CLASS = new $class_name($this);
 		if (method_exists($CLASS, 'setModulePath')) {
 			$CLASS->setModulePath($cfg->directory);
