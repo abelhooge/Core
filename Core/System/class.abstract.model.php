@@ -10,7 +10,7 @@ abstract class Model extends Bus{
 	/**
 	 * The parent class holder object
 	 * Requests get redirected to this class 
-	 * @access public
+	 * @access private
 	 * @var Parent Object
 	 */
 	private $parentClass;
@@ -24,18 +24,44 @@ abstract class Model extends Bus{
 		parent::__construct($core);
 	}
 
-	protected function setType($type) {
-		
+	/**
+	 * Set the type of this model. Eg, use techfuze/databasemodel and Databasemodel to get a SQL connected model
+	 * @access protected
+	 * @param String Module_name, the name of the module where the model can be found
+	 * @param String class name, the class to load and connect to
+	 */
+	protected function setType($module_name, $class_name) {
+		$this->core->loadMod($module_name);
+		$this->parentClass = new $class_name($this->core);
 	}
 
+	/**
+	 * Retrieves a value from the model class
+	 * @access public
+	 * @param Any key
+	 * @return Any value from the model class
+	 */
 	public function __get($name) {
-		return $parentClass->$name;
+		return $this->parentClass->$name;
 	}
 
+	/**
+	 * Sets a value in the model class
+	 * @access public
+	 * @param Any key 
+	 * @param Any value
+	 */
 	public function __set($name, $value) {
-		$parentClass->$name = $value;
+		$this->parentClass->$name = $value;
 	}
 
+	/**
+	 * Calls a function in the model class
+	 * @access public
+	 * @param String function_name
+	 * @param Array values
+	 * @return Function return
+	 */
 	public function __call($name, $params) {
 		return call_user_func_array(array($this->parentClass, $name), $params);			
 	}

@@ -14,37 +14,26 @@ class Models extends Bus{
     }
 
     public function loadModel($name, $directory = null){
-        if ($this->models_loaded) {
-            $this->events->fireEvent('modelsLoadEvent');
-            $this->models_loaded = true;
-        }
-
         if($directory === null){
             $directory = FUZEPATH . "/Application/Models";
         }
 
         $file = $directory.'/model.'.$name.'.php';
         if (isset($this->model_types[$name])) {
-            $this->logger->logInfo('MODEL LOAD: '.get_class($this->model_types[$name]), get_class($this->model_types[$name]), __FILE__, __LINE__);
+            $this->logger->logInfo('Loading Model: '.get_class($this->model_types[$name]), get_class($this->model_types[$name]));
             $this->models_array[$name] = $this->model_types[$name];
         } elseif (file_exists($file)){
             require_once($file);
             $model = ucfirst($name);
-            $this->logger->logInfo('MODEL LOAD: '.$model, $model, __FILE__, __LINE__);
+            $this->logger->logInfo('Loading Model: '.$model, $model);
             $this->models_array[$name] = new $model($this->core);
         } else{
-        	$this->logger->logWarning('The requested model: \''.$name.'\' could not be found. Loading empty model', 'FuzeWorks->Model');
-            require_once(FUZEPATH . "/Core/System/Models/fz-model-interpret.php");
-            $this->logger->logInfo('MODEL LOAD: interprated model', 'FuzeWorks->Model', __FILE__, __LINE__);
+        	$this->logger->logWarning('The requested model: \''.$name.'\' could not be found. Loading empty model', 'Models');
+            require_once(FUZEPATH . "/Core/System/Models/model.interpret.php");
+            $this->logger->logInfo('Loading Model: interprated databasemodel', 'Models');
             $model = new Interpret($this->core);
             $model->table($name);
             $this->models_array[$name] = $model;
-        }
-    }
-
-    public function register($NAME, $MODEL_OBJECT) {
-        if (!isset($this->model_types[strtolower($NAME)])) {
-            $this->model_types[strtolower($NAME)] = $MODEL_OBJECT;
         }
     }
 
@@ -55,10 +44,6 @@ class Models extends Bus{
     		$this->loadModel(strtolower($name));
     		return $this->models_array[strtolower($name)];
     	}
-    }
-
-    public function getEmptyModel() {
-        return new \FuzeWorks\V100\DatabaseModel($this->core);
     }
 }
  

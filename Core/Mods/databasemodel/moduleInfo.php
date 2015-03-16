@@ -1,7 +1,7 @@
 <?php
 return array(
 
-    'module_class'    => 'DatabaseModelManager',
+    'module_class'    => 'DatabaseModel',
     'module_file'     => 'class.model.php',
     'module_name'     => 'databasemodel',
 
