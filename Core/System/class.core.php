@@ -66,15 +66,33 @@ class Core {
 
 	## MODLOADING
 	public function loadMod($name, $version = null) {
-		$CLASS = $this->loadModule($name);
-		if (!isset($this->mods->{strtolower($CLASS[1])})) {
-			return $this->mods->{strtolower($CLASS[1])}  = &$CLASS[0];
-		}	
-	}
+		// Get class information
+		$data = $this->loadModule($name, $version);
 
-	public function getMod($name, $version = null) {
-		$CLASS = $this->loadModule($name);
-		return $CLASS[0];
+		// If it is an abstract class, create and StdClass
+		if (empty($data)) {
+			return $this->mods->{strtolower($name)} = new StdClass();
+		}
+
+		// Otherwise load the class
+		$class_name = $data['className'];
+
+		// Create the class object if not created yet
+		if (!isset($this->mods->{strtolower($data['moduleLinkName'])})) {
+			$CLASS = new $class_name($this);
+			if (method_exists($CLASS, 'setModulePath')) {
+				$CLASS->setModulePath($data['modulePath']);
+			}
+			if (method_exists($CLASS, 'setModuleLinkName')) {
+				$CLASS->setModuleLinkName($data['moduleLinkName']);
+			}
+			if (method_exists($CLASS, 'setModuleName')) {
+				$CLASS->setModuleName($data['moduleName']);
+			}
+			$CLASS->onLoad();
+
+			return $this->mods->{strtolower($data['moduleLinkName'])} = &$CLASS;		
+		}	
 	}
 
 	private function loadModule($name, $version = null) {
@@ -82,7 +100,6 @@ class Core {
 		if (!isset($this->mods->config->modregister->register)) {
 			$this->buildModRegister();
 		} else {
-
 			$this->register = $this->mods->config->modregister->register;
 		}
 
@@ -156,23 +173,14 @@ class Core {
 		if (isset($cfg->abstract)) {
 			if ($cfg->abstract) {
 				$c = new stdClass();
-				return array($c, $cfg->module_name);
+				return array();
 			}
 		}
 
-		// Otherwise create the class object
-		$CLASS = new $class_name($this);
-		if (method_exists($CLASS, 'setModulePath')) {
-			$CLASS->setModulePath($cfg->directory);
-		}
-		if (method_exists($CLASS, 'setModuleLinkName')) {
-			$CLASS->setModuleLinkName($cfg->module_name);
-		}
-		if (method_exists($CLASS, 'setModuleName')) {
-			$CLASS->setModuleName($name);
-		}
-		$CLASS->onLoad();
-		return array($CLASS, $cfg->module_name);
+		return array('className' => $class_name,
+			'modulePath' => $cfg->directory,
+			'moduleLinkName' => $cfg->module_name,
+			'moduleName' => $name);
 	}
 
 	public function buildModRegister() {
