@@ -1,0 +1,29 @@
+<project name="FuzeWorks" default="build" basedir=".">
+    <target name="clean">
+        <delete dir="${basedir}/build" />
+        <delete dir="${basedir}/source/.git" />
+    </target>
+
+    <target name="prepare">
+        <mkdir dir="${basedir}/build/logs" />
+        <mkdir dir="${basedir}/build/clover" />
+    </target>
+
+    <target name="phpunit">
+        <exec dir="${basedir}" executable="php" failonerror="true">
+            <arg value="phpunit.phar"/>
+            <arg line="--configuration phpunit.xml
+                       --log-junit ${basedir}/build/logs/phpunit.xml
+                       --coverage-clover ${basedir}/build/logs/clover.xml
+                       --coverage-html ${basedir}/build/clover" />
+        </exec>
+    </target>
+
+    <target name="zip">
+        <exec dir="${basedir}" executable="zip" failonerror="true">
+            <arg line="-r ${basedir}/build/fuzeworks-core.zip . -x build\* tests\*" />
+        </exec>
+    </target>
+
+    <target name="build" depends="clean,prepare,phpunit,zip" />
+</project>
