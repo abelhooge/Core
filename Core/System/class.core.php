@@ -92,6 +92,9 @@ class Core {
 			$CLASS->onLoad();
 
 			return $this->mods->{strtolower($data['moduleLinkName'])} = &$CLASS;		
+		} else {
+			$c = &$this->mods->{strtolower($data['moduleLinkName'])};
+			return $c;
 		}	
 	}
 
@@ -104,7 +107,7 @@ class Core {
 		}
 
 		// The basic module path
-		$path = FUZEPATH . "/Core/Mods/";
+		$path = FUZEPATH . "Modules/";
 
 		// Chech if the requested module is set
 		if (isset($this->register[$name])) {
@@ -185,7 +188,7 @@ class Core {
 
 	public function buildModRegister() {
         $this->mods->logger->newLevel("Building Mod Register", 'Core');
-        $dir = FUZEPATH . "Core/Mods/";
+        $dir = FUZEPATH . "Modules/";
         $mods = array_values(array_diff(scandir($dir), array('..', '.')));
         $register = array();
         for ($i=0; $i < count($mods); $i++) { 
@@ -199,6 +202,7 @@ class Core {
         		// Append directory
         		$cfg->directory = $mod_dir;
         		$register[$name] = (array) $cfg;
+        		$this->mods->logger->log("Found module: '".$name."'");
         	} else {
         		// Get the name
         		$name = $mods[$i];
@@ -212,6 +216,7 @@ class Core {
         		$cfg->versions = array();
         		$cfg->directory = $mod_dir;
         		$register[$name] = (array)$cfg;
+        		$this->mods->logger->log("Found module: '".$name."'");
         	}
         }
 

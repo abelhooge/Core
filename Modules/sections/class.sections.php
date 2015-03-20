@@ -30,6 +30,8 @@ class Sections extends Module {
 		// Register Events
 		$this->events->addListener(array($this, 'eventRegisterBuild'), 'eventRegisterBuildEvent', EventPriority::NORMAL);
 		$this->events->addListener(array($this, 'routerEvent'), 'routerRouteEvent', EventPriority::NORMAL);
+		$this->events->addListener(array($this, 'layoutLoadEvent'), 'layoutLoadEvent', EventPriority::NORMAL);
+		$this->events->addListener(array($this, 'modelLoadevent'), 'modelLoadEvent', EventPriority::NORMAL);
 	}
 
 	/**
@@ -40,6 +42,36 @@ class Sections extends Module {
 	 */
 	public function eventRegisterBuild($event) {
 		$event->addEvent('sections', 'routerRouteEvent');
+		$event->addEvent('sections', 'layoutLoadEvent');
+		$event->addEvent('sections', 'modelLoadEvent');
+		return $event;
+	}
+
+	/**
+	 * Redirects layouts to the new section
+	 * @access public
+	 * @param layoutLoadEvent Event
+	 * @return layoutLoadEvent Event
+	 */
+	public function layoutLoadEvent($event) {
+		$layout_name = $event->layout;
+		if ($this->currentSection !== null) {
+			$event->directory = $this->view_path;
+		}
+		return $event;
+	}
+
+	/**
+	 * Redirects models to the new section
+	 * @access public
+	 * @param layoutLoadEvent Event
+	 * @return layoutLoadEvent Event
+	 */
+	public function modelLoadEvent($event) {
+		$model_name = $event->model;
+		if ($this->currentSection !== null) {
+			$event->directory = $this->model_path;
+		}
 		return $event;
 	}
 

@@ -155,7 +155,7 @@ class Events extends Bus{
     // Event Preparation:
     public function buildEventRegister() {
         $this->logger->newLevel("Building Event Register", 'Events');
-        $dir = FUZEPATH . "/Core/Mods/";
+        $dir = FUZEPATH . "/Modules/";
         $mods = $this->config->modregister->register;
         foreach ($mods as $key => $value) {
             try {
