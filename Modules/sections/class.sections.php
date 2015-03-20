@@ -30,6 +30,8 @@ class Sections extends Module {
 		// Register Events
 		$this->events->addListener(array($this, 'eventRegisterBuild'), 'eventRegisterBuildEvent', EventPriority::NORMAL);
 		$this->events->addListener(array($this, 'routerEvent'), 'routerRouteEvent', EventPriority::NORMAL);
+		$this->events->addListener(array($this, 'layoutLoadEvent'), 'layoutLoadEvent', EventPriority::NORMAL);
+		$this->events->addListener(array($this, 'modelLoadevent'), 'modelLoadEvent', EventPriority::NORMAL);
 	}
 
 	/**
@@ -40,6 +42,38 @@ class Sections extends Module {
 	 */
 	public function eventRegisterBuild($event) {
 		$event->addEvent('sections', 'routerRouteEvent');
+		$event->addEvent('sections', 'layoutLoadEvent');
+		$event->addEvent('sections', 'modelLoadEvent');
+		return $event;
+	}
+
+	/**
+	 * Redirects layouts to the new section
+	 * @access public
+	 * @param layoutLoadEvent Event
+	 * @return layoutLoadEvent Event
+	 */
+	public function layoutLoadEvent($event) {
+		$layout_name = $event->layout;
+		if ($this->currentSection !== null) {
+			$section = $this->getSection($this->currentSection);
+			$event->directory = $section['view_path'];
+		}
+		return $event;
+	}
+
+	/**
+	 * Redirects models to the new section
+	 * @access public
+	 * @param layoutLoadEvent Event
+	 * @return layoutLoadEvent Event
+	 */
+	public function modelLoadEvent($event) {
+		$model_name = $event->model;
+		if ($this->currentSection !== null) {
+			$section = $this->getSection($this->currentSection);
+			$event->directory = $section['model_path'];
+		}
 		return $event;
 	}
 
@@ -54,14 +88,28 @@ class Sections extends Module {
 	 * @param String View_path, where to find the views for this section
 	 */
 	public function addSection($name, $module_section = false, $module_name = null, $controller_path = null, $model_path = null, $view_path = null) {
-		$data = array(
-		    'name' => $name,
-		    'module_section' => $module_section,
-		    'module_name' => $module_name,
-		    'controller_path' => FUZEPATH .  $controller_path,
-		    'model_path' => FUZEPATH . $model_path,
-		    'view_path' => FUZEPATH . $view_path,			
-			);
+		if ($module_section) {
+			$m = $this->core->loadMod($module_name);
+			$m_dir = $m->getModulePath();
+			$data = array(
+			    'name' => $name,
+			    'module_section' => $module_section,
+			    'module_name' => $module_name,
+			    'controller_path' => $m_dir .  '/Controller/',
+			    'model_path' => $m_dir . '/Models/',
+			    'view_path' => $m_dir . '/Views/',			
+				);
+		} else {
+			$data = array(
+			    'name' => $name,
+			    'module_section' => $module_section,
+			    'module_name' => $module_name,
+			    'controller_path' => FUZEPATH .  $controller_path,
+			    'model_path' => FUZEPATH . $model_path,
+			    'view_path' => FUZEPATH . $view_path,			
+				);			
+		}
+
 		$this->config->set('sections', $name, $data, $this->getModulePath());
 	}
 
@@ -120,6 +168,18 @@ class Sections extends Module {
         if(count($parameters) !== 0)$event->parameters  = $parameters;
 
 		return $event;
+	}
+
+	/**
+	 * Load a section file
+	 * @access public
+	 * @param String section name
+	 * @return Array Section
+	 */
+	public function getSection($name) {
+		if (isset($this->cfg->$name)) {
+			return $this->cfg->$name;
+		}
 	}
 
 	/**

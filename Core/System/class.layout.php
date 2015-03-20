@@ -72,10 +72,14 @@ class Layout extends Bus {
 		return $this->title;
 	}
 
-	public function view($view = "default", $dir = null) {
+	public function view($view = "default") {
 		// Chech if Smarty is loaded
 		if (!$this->loaded)
 			$this->load();
+
+		$event = $this->events->fireEvent('layoutLoadEvent', $view);
+		$directory 			= ($event->directory === null ? FUZEPATH . "/Application/Views" : $event->directory);
+		$view 				= ($event->layout === null ? $view : $event->layout);
 
 		// Set the file name and location
 		$vw = explode('/', $view);
@@ -98,8 +102,7 @@ class Layout extends Bus {
 		}
 
 		// Set the directory
-		$dir = (!isset($dir) ? FUZEPATH . "/Application/" . '/Views' : $dir);
-		$this->Smarty['main']->setTemplateDir($dir);
+		$this->Smarty['main']->setTemplateDir($directory);
 
 		// Set the title
         $this->Smarty['main']->assign('title', $this->title);
@@ -107,7 +110,7 @@ class Layout extends Bus {
   		// Get the viewdir
   		// @TODO: Fix this for custom directories
         $one = FUZEPATH;
-        $two = $dir . "/";
+        $two = $directory . "/";
         $count_one = strlen($one);
         $count_two = strlen($two);
         $length_three = $count_two - $count_one;
@@ -122,26 +125,26 @@ class Layout extends Bus {
         }catch (\SmartyException $e){
 
         	// Throw error on failure
-            $this->logger->logError('Could not load view '.$dir.'/'.$vw.' :: ' . $e->getMessage(), 'FuzeWorks->Layout', __FILE__, __LINE__);
-            throw new Exception\Layout('Could not load view '.$dir.'/'.$vw);
+            $this->logger->logError('Could not load view '.$directory.'/'.$vw.' :: ' . $e->getMessage(), 'FuzeWorks->Layout', __FILE__, __LINE__);
+            throw new Exception\Layout('Could not load view '.$directory.'/'.$vw);
         }
 	}
 
-	public function get($view = "default", $dir = "") {
+	public function get($view = "default", $directory = "") {
 		// Chech if Smarty is loaded
 		if (!$this->loaded)
 			$this->load();
 
 		// Set the directory
-		$dir = ($dir == "" ? FUZEPATH . "/Application/" . '/Views' : $dir);
-		$this->Smarty['main']->setTemplateDir($dir);
+		$directory = ($directory == "" ? FUZEPATH . "/Application/" . '/Views' : $directory);
+		$this->Smarty['main']->setTemplateDir($directory);
 
 		// Set the title
         $this->Smarty['main']->assign('title', $this->title);
 
   		// Get the viewdir
         $one = FUZEPATH;
-        $two = $dir . "/";
+        $two = $directory . "/";
         $count_one = strlen($one);
         $count_two = strlen($two);
         $length_three = $count_two - $count_one;
@@ -155,8 +158,8 @@ class Layout extends Bus {
         }catch (\SmartyException $e){
 
         	// Throw error on failure
-            $this->logger->logError('Could not load view '.$dir.'/view.'.$view.'.tpl :: ' . $e->getMessage(), 'FuzeWorks->Layout', __FILE__, __LINE__);
-            throw new Exception\Layout('Could not load view '.$dir.'/view.'.$view.'.tpl');
+            $this->logger->logError('Could not load view '.$directory.'/view.'.$view.'.tpl :: ' . $e->getMessage(), 'FuzeWorks->Layout', __FILE__, __LINE__);
+            throw new Exception\Layout('Could not load view '.$directory.'/view.'.$view.'.tpl');
         }
 	}
 }
