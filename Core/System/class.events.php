@@ -112,7 +112,7 @@ class Events extends Bus{
 		$this->logger->log("Checking for Listeners");
 
         // Read the event register for listeners
-        $register = $this->config->eventregister->register;
+        $register = $this->register;
         if (isset($register[$eventName])) {
             for ($i=0; $i < count($register[$eventName]); $i++) { 
                 $this->core->loadMod($register[$eventName][$i]);
@@ -154,18 +154,22 @@ class Events extends Bus{
 
     // Event Preparation:
     public function buildEventRegister() {
-        $this->logger->newLevel("Building Event Register", 'Events');
-        $dir = FUZEPATH . "/Modules/";
-        $mods = $this->config->modregister->register;
-        foreach ($mods as $key => $value) {
-            try {
-                $this->core->loadMod($key);
-            } catch (Exception $e) {}
+        $event_register = array();
+        foreach ($this->core->register as $key => $value) {
+            if (isset($value['events'])) {
+                if (!empty($value['events'])) {
+                    for ($i=0; $i < count($value['events']); $i++) { 
+                        if (isset($event_register[$value['events'][$i]])) {
+                            $event_register[$value['events'][$i]][] = $key;
+                        } else {
+                            $event_register[$value['events'][$i]] = array($key);
+                        }
+                    }
+                }
+            }
         }
-        $event = $this->fireEvent('eventRegisterBuildEvent', '');
-        $this->config->set('eventregister', 'register', $event->register);
 
-        $this->logger->stopLevel();
+        $this->register = $event_register;
     }
 }
 
