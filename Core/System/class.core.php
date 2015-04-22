@@ -11,7 +11,7 @@ class Core {
 
 	public $mods;
 	private $loaded = false;
-	private $register;
+	public $register;
 
 	## START/STOP
 	public function init() {
@@ -23,12 +23,12 @@ class Core {
 		$this->mods = new stdClass();
 		$this->loadStartupFiles();
 
-		$this->mods->events->fireEvent('coreStartEvent');
-		// Mod register exists, check if expired
-		if ( ( date('U') - $this->mods->config->main->registers_last_update) > $this->mods->config->main->registers_update_interval) {
-			$this->mods->logger->log("Registers have expired. Updating...", 'Core');
-			$this->buildModRegister();
-			$this->mods->events->buildEventRegister();
+		$this->buildRegister();
+		$this->mods->events->buildEventRegister();
+
+		$event = $this->mods->events->fireEvent('coreStartEvent');
+		if ($event->isCancelled()) {
+			return true;
 		}
 	}
 
@@ -99,13 +99,6 @@ class Core {
 	}
 
 	private function loadModule($name, $version = null) {
-		// Load the register if not loaded yet
-		if (!isset($this->mods->config->modregister->register)) {
-			$this->buildModRegister();
-		} else {
-			$this->register = $this->mods->config->modregister->register;
-		}
-
 		// The basic module path
 		$path = FUZEPATH . "Modules/";
 
@@ -186,14 +179,20 @@ class Core {
 			'moduleName' => $name);
 	}
 
-	public function buildModRegister() {
-        $this->mods->logger->newLevel("Building Mod Register", 'Core');
-        $dir = FUZEPATH . "Modules/";
-        $mods = array_values(array_diff(scandir($dir), array('..', '.')));
-        $register = array();
-        for ($i=0; $i < count($mods); $i++) { 
-        	$mod_dir = $dir . $mods[$i] . "/";
-        	if (file_exists($mod_dir . "/moduleInfo.php")) {
+	public function buildRegister() {
+		$this->mods->logger->newLevel("Loading Module Headers", 'Core');
+
+		// Get all the module directories
+		$dir = FUZEPATH . "Modules/";
+		$mod_dirs = array();
+		$mod_dirs = array_values(array_diff(scandir($dir), array('..', '.')));
+
+		// Build the module register
+		$register = array();
+		for ($i=0; $i < count($mod_dirs); $i++) { 
+			$mod_dir = $dir . $mod_dirs[$i] . "/";
+			// If a moduleInfo.php exists, load it
+			if (file_exists($mod_dir . "/moduleInfo.php")) {
         		$cfg = (object) require($mod_dir . "/moduleInfo.php");
         		$name = "";
         		$name .= (!empty($cfg->author) ? strtolower($cfg->author)."/" : "");
@@ -203,11 +202,11 @@ class Core {
         		$cfg->directory = $mod_dir;
         		$register[$name] = (array) $cfg;
         		$this->mods->logger->log("Found module: '".$name."'");
-        	} else {
+			} else {
         		// Get the name
-        		$name = $mods[$i];
+        		$name = $mod_dirs[$i];
 
-        		// Build a dynamic module config
+        		// Build a default module config
         		$cfg = new stdClass();
         		$cfg->module_class = ucfirst($name);
         		$cfg->module_file = 'class.'.strtolower($name).".php";
@@ -217,12 +216,12 @@ class Core {
         		$cfg->directory = $mod_dir;
         		$register[$name] = (array)$cfg;
         		$this->mods->logger->log("Found module: '".$name."'");
-        	}
-        }
+			}
+		}
 
-        $this->mods->logger->stopLevel();
-        $this->mods->config->set('modregister', 'register', $register);
-        $this->mods->config->set('main', 'registers_last_update', date('U'));
+		$this->register = $register;
+		$this->mods->logger->stopLevel();
+		
 	}
 }
 
