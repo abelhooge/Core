@@ -92,7 +92,9 @@ class Core {
 				// Check if the module is already loaded. If so, only return a reference, if not, load the module
 				if (in_array($name, $this->loaded_modules)) {
 					// return the link
-					$c = &$this->mods->{strtolower($cfg->name)};
+					$msg = "Module '".ucfirst((isset($cfg->name) ? $cfg->name : $cfg->module_name)) . "' is already loaded";
+					$this->mods->logger->log($msg);
+					$c = &$this->mods->{strtolower($cfg->module_name)};
 					return $c;
 				} else {
 					// Load the module
@@ -144,11 +146,12 @@ class Core {
 					}
 					$CLASS->onLoad();
 
+					// Add to the loaded modules
+					$this->loaded_modules[] = $name;
+
 					// Return a reference
 					return $this->mods->{strtolower($cfg->module_name)} = &$CLASS;
 				}
-
-
 			}
 		}
 	}
