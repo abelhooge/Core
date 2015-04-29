@@ -1,6 +1,10 @@
 <?php
 
-class Database extends Bus {
+use \FuzeWorks\Module;
+use \Exception;
+use \PDO;
+
+class Database extends Module {
 
 	private $DBH;
 	public $prefix;

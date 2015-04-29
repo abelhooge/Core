@@ -1,5 +1,15 @@
 <?php
 
+namespace FuzeWorks;
+
+/**
+ * Interface for a Module that gives abstract model types
+ * A model server must contain the methods from this interface in order to correctly serve models
+ */
+interface ModelServer {
+	public function giveModel($type);
+}
+
 /**
  * Abstract class Model
  * 
@@ -28,11 +38,11 @@ abstract class Model extends Bus{
 	 * Set the type of this model. Eg, use techfuze/databasemodel and Databasemodel to get a SQL connected model
 	 * @access protected
 	 * @param String Module_name, the name of the module where the model can be found
-	 * @param String class name, the class to load and connect to
+	 * @param String Model_type, model type to return
 	 */
-	protected function setType($module_name, $class_name) {
-		$this->core->loadMod($module_name);
-		$this->parentClass = new $class_name($this->core);
+	protected function setType($module_name, $model_type) {
+		$mod = $this->core->loadMod($module_name);
+		$this->parentClass = $mod->giveModel($model_type);
 	}
 
 	/**

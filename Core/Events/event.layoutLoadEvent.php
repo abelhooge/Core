@@ -1,5 +1,7 @@
 <?php
 
+use \FuzeWorks\Event;
+
 class LayoutLoadEvent extends Event {
 	
     public $directory;

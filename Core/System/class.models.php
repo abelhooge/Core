@@ -3,6 +3,8 @@
  * @author FuzeNetwork
  */
 
+namespace FuzeWorks;
+
 class Models extends Bus{
 	
     private $models_array = array();
@@ -25,7 +27,7 @@ class Models extends Bus{
             $this->models_array[$name] = $this->model_types[$name];
         } elseif (file_exists($file)){
             require_once($file);
-            $model = ucfirst($name);
+            $model = "\Model\\" . ucfirst($name);
             $this->logger->logInfo('Loading Model: '.$model, $model);
             $this->models_array[$name] = new $model($this->core);
         } else{

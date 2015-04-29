@@ -1,5 +1,8 @@
 <?php
 
+namespace FuzeWorks;
+use \Exception;
+
 class Layout extends Bus {
 	
 	private $Smarty = array();

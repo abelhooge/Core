@@ -3,7 +3,10 @@
  * @author FuzeNetwork
  * @package files
 */
- 
+
+namespace FuzeWorks;
+use \Exception;
+
 /** 
  * @name Events
 */
@@ -84,10 +87,10 @@ class Events extends Bus{
 	                // No event arguments? Looks like an notify-event
 	                if(func_num_args() == 1){
 	                    // Load notify-event-class
-	                    $eventClass = 'NotifierEvent';
+	                    $eventClass = '\FuzeWorks\NotifierEvent';
 	                }else{
 	                    // No notify-event: we tried all we could
-	                    throw new \Exception("Event ".$eventName." could not be found!");
+	                    throw new Exception("Event ".$eventName." could not be found!");
 	                }
 	            }
 	        }
