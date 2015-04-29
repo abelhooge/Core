@@ -1,9 +1,14 @@
 <?php
+
+namespace Module\Sections;
+use \Module;
+use \EventPriority;
+
 /**
  * Sections module, see usage documentation
  * @author TechFuze
  */
-class Sections extends Module {
+class Main extends Module {
 
 	/** 
 	 * The config holder for this module. Holds an StdObject 
@@ -24,27 +29,44 @@ class Sections extends Module {
 	 * @access public
 	 */
 	public function onLoad() {
-		// Load module configuration
-		$this->cfg = $this->config->loadConfigFile('sections', $this->getModulePath());
+		// Load the config
+		$config = $this->config->loadConfigFile('sections', $this->getModulePath());
+
+		$this->logger->newLevel('Adding module sections', 'Sections');
+		// Add the modules to the config
+		$section_register = array();
+        foreach ($this->core->register as $key => $value) {
+            // Check if the sections value exists in the config file
+            if (isset($value['sections'])) {
+            	// Check if it is empty
+                if (!empty($value['sections'])) {
+                	// If not, cycle through all sections
+                	foreach ($value['sections'] as $section_name => $section) {
+                		// Check if the section is already set 
+                		if (isset($config->$section_name)) {
+                			// If the priority is higher, replace the section
+                			if ($section->priority > $config->$section_name->priority) {
+                				$config->$section_name = $section;
+                				$this->logger->log('Added section with higher priority: \''.$section_name.'\'', 'Sections');
+                			}
+                		} else {
+                			$config->$section_name = $section;
+                			$this->logger->log('Added section: \''.$section_name.'\'', 'Sections');
+                		}
+                	}
+                }
+            }
+        }
+
+        // Apply the changes and log it
+        $this->cfg = $config;
+        $this->logger->log('Added all module sections to the config file', 'Sections');
+        $this->logger->stopLevel();
 
 		// Register Events
-		$this->events->addListener(array($this, 'eventRegisterBuild'), 'eventRegisterBuildEvent', EventPriority::NORMAL);
-		$this->events->addListener(array($this, 'routerEvent'), 'routerRouteEvent', EventPriority::NORMAL);
+		$this->events->addListener(array($this, 'routerRouteEvent'), 'routerRouteEvent', EventPriority::NORMAL);
 		$this->events->addListener(array($this, 'layoutLoadEvent'), 'layoutLoadEvent', EventPriority::NORMAL);
 		$this->events->addListener(array($this, 'modelLoadevent'), 'modelLoadEvent', EventPriority::NORMAL);
-	}
-
-	/**
-	 * Registers this module in the eventRegister for routerRouteEvent
-	 * @access public
-	 * @param eventRegisterBuildEvent Event
- 	 * @return eventRegisterBuildEvent Event
-	 */
-	public function eventRegisterBuild($event) {
-		$event->addEvent('sections', 'routerRouteEvent');
-		$event->addEvent('sections', 'layoutLoadEvent');
-		$event->addEvent('sections', 'modelLoadEvent');
-		return $event;
 	}
 
 	/**
@@ -57,7 +79,12 @@ class Sections extends Module {
 		$layout_name = $event->layout;
 		if ($this->currentSection !== null) {
 			$section = $this->getSection($this->currentSection);
-			$event->directory = $section['view_path'];
+			if ($section['module_section']) {
+				$mod = $this->core->loadMod($section['module_name']);
+				$event->directory = $mod->getModulePath() . '/Views/';
+			} else {
+				$event->directory = $section['view_path'];
+			}
 		}
 		return $event;
 	}
@@ -72,7 +99,12 @@ class Sections extends Module {
 		$model_name = $event->model;
 		if ($this->currentSection !== null) {
 			$section = $this->getSection($this->currentSection);
-			$event->directory = $section['model_path'];
+			if ($section['module_section']) {
+				$mod = $this->core->loadMod($section['module_name']);
+				$event->directory = $mod->getModulePath() . '/Models/';
+			} else {
+				$event->directory = $section['model_path'];
+			}
 		}
 		return $event;
 	}
@@ -128,7 +160,7 @@ class Sections extends Module {
 	 * @param routerRouteEvent Event
 	 * @return routerRouteEvent Event
 	 */
-	public function routerEvent($event) {
+	public function routerRouteEvent($event) {
 		$name = $event->controller;
 		$controller = null;
 		$function = null;
