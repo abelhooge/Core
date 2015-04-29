@@ -81,14 +81,6 @@ class Core {
 				// Load the moduleInfo
 				$cfg = (object) $this->register[$name];
 
-				// Check if the module is enabled
-				if (isset($cfg->enabled)) {
-					if (!$cfg->enabled) {
-						// DO SOMETHING
-						return false;
-					}
-				}
-
 				// Check if the module is already loaded. If so, only return a reference, if not, load the module
 				if (in_array($name, $this->loaded_modules)) {
 					// return the link
@@ -112,9 +104,9 @@ class Core {
 						require_once($file);
 						$class_name = $cfg->module_class;
 						$msg = "Loading Module '".ucfirst((isset($cfg->name) ? $cfg->name : $cfg->module_name)) . "'";
-						$msg .= (isset($cfg->version) ? " version:".$cfg->version : "");
-						$msg .= (isset($cfg->author) ? " made by ".$cfg->author : "");
-						$msg .= (isset($cfg->website) ? " from ".$cfg->website: "");
+						$msg .= (isset($cfg->version) ? "; version: ".$cfg->version : "");
+						$msg .= (isset($cfg->author) ? "; made by ".$cfg->author : "");
+						$msg .= (isset($cfg->website) ? "; from ".$cfg->website: "");
 						$this->mods->logger->log($msg);
 					} else {
 						// Throw Exception if the file does not exist
@@ -177,8 +169,19 @@ class Core {
 
         		// Append directory
         		$cfg->directory = $mod_dir;
-        		$register[$name] = (array) $cfg;
-        		$this->mods->logger->log("Found module: '".$name."'");
+        		if (isset($cfg->enabled)) {
+        			if ($cfg->enabled) {
+        				$register[$name] = (array) $cfg;
+        				$this->mods->logger->log("[ON]  '".$name."'");
+        			} else {
+        				$this->mods->logger->log("[OFF] '".$name."'");
+        			}
+        		} else {
+        			$register[$name] = (array) $cfg;
+        			$this->mods->logger->log("[ON]  '".$name."'");
+        		}
+        		
+        		
 			} else {
         		// Get the name
         		$name = $mod_dirs[$i];
@@ -192,7 +195,7 @@ class Core {
         		$cfg->versions = array();
         		$cfg->directory = $mod_dir;
         		$register[$name] = (array)$cfg;
-        		$this->mods->logger->log("Found module: '".$name."'");
+        		$this->mods->logger->log("[ON]  '".$name."'");
 			}
 		}
 
