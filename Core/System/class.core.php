@@ -55,6 +55,7 @@ class Core {
 		require_once(FUZESYSPATH . "/class.abstract.event.php");
 		require_once(FUZESYSPATH . "/class.abstract.module.php");
 		require_once(FUZESYSPATH . "/class.abstract.model.php");
+		require_once(FUZESYSPATH . "/class.abstract.controller.php");
 		require_once(FUZESYSPATH . "/class.abstract.eventPriority.php");
 
 		// Load the core classes
