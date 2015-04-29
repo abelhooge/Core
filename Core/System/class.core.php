@@ -9,8 +9,11 @@ if (!defined('FUZESYSPATH')) {
 	define( 'FUZESYSPATH', dirname(__FILE__) . '/' ); 
 }
 
-// NotifierEvent, base event
-// Framework
+/**
+ * FuzeWorks Core
+ * 
+ * Holds all the modules and starts the framework. Allows for starting and managing modules
+ */
 class Core {
 
 	public $mods;	

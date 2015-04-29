@@ -3,6 +3,14 @@
 namespace FuzeWorks;
 use \Exception;
 
+/**
+ * Layout Class
+ * 
+ * The Layout class is a wrapper for the Smarty Template engine. Smarty loads .tpl files and variables, and converts them to HTML.
+ * See the Smarty documentation for more information
+ * This class typically loads files from Application/Views unless specified otherwise. 
+ *
+ */
 class Layout extends Bus {
 	
 	private $Smarty = array();

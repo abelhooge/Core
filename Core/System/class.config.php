@@ -4,9 +4,9 @@ namespace FuzeWorks;
 use \Exception;
 
 /**
- * Config Module
+ * Config Class
  * 
- * This class gives access to the config files. Allows for reading and editting
+ * This class gives access to the config files. Can read and write .php files with an array in a file
  */
 class Config extends Bus{
 

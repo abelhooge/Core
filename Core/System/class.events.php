@@ -8,8 +8,16 @@ namespace FuzeWorks;
 use \Exception;
 
 /** 
- * @name Events
-*/
+ * Event Class
+ * 
+ * Controls FuzeWorks Events. Events are classes that get loaded during special moments in the program.
+ * These Event objects get send to so-called 'listeners', which can modify the event object, and eventually return them to invoker.
+ * Typically an event process goes like this:
+ * - Event get's called
+ * - Event object is created
+ * - Event object is send to all listeners in order of EventPriority
+ * - Event is returned
+ */
 class Events extends Bus{
 
 	private $listeners;

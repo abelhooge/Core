@@ -5,6 +5,12 @@
 
 namespace FuzeWorks;
 
+/**
+ * Models Class
+ * 
+ * Simple loader class for MVC Models. Typically loads models from Application/Models unless otherwise specified.
+ * If a model is not found, it will load a DatabaseModel type which will analyze the database and can directly be used. 
+ */
 class Models extends Bus{
 	
     private $models_array = array();
