@@ -14,9 +14,10 @@ class Models extends Bus{
     }
 
     public function loadModel($name, $directory = null){
-        if($directory === null){
-            $directory = FUZEPATH . "/Application/Models";
-        }
+        // Model load event
+        $event = $this->events->fireEvent('modelLoadEvent', $name);
+        $directory          = ($event->directory === null ? FUZEPATH . "/Application/Models" : $event->directory);
+        $name               = ($event->model === null ? $name : $event->model);
 
         $file = $directory.'/model.'.$name.'.php';
         if (isset($this->model_types[$name])) {
