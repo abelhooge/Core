@@ -64,9 +64,9 @@ class Main extends Module {
         $this->logger->stopLevel();
 
 		// Register Events
-		$this->events->addListener(array($this, 'routerRouteEvent'), 'routerRouteEvent', EventPriority::NORMAL);
-		$this->events->addListener(array($this, 'layoutLoadEvent'), 'layoutLoadEvent', EventPriority::NORMAL);
-		$this->events->addListener(array($this, 'modelLoadevent'), 'modelLoadEvent', EventPriority::NORMAL);
+		$this->events->addListener(array($this, 'routerRouteEvent'), 'routerRouteEvent', EventPriority::LOWEST);
+		$this->events->addListener(array($this, 'layoutLoadEvent'), 'layoutLoadEvent', EventPriority::LOWEST);
+		$this->events->addListener(array($this, 'modelLoadevent'), 'modelLoadEvent', EventPriority::LOWEST);
 	}
 
 	/**
