@@ -5,9 +5,10 @@ class Router extends Bus {
 	public $controller = null;
 	public $controllerName = null;
 	public $function = null;
-	private $route = array();
-	private $parameters = array();
-	private $path;
+	public $route = array();
+	public $parameters = array();
+	public $directory;
+	public $path;
 
 	public function __construct(&$core) {
 		parent::__construct($core);
@@ -90,9 +91,6 @@ class Router extends Bus {
 		$this->function		    = ($event->function === null || empty($event->function) ? $this->config->main->default_function : $event->function);
 		$this->parameters 	    = $event->parameters;
 		$this->directory 		= ($event->directory === null || empty($event->directory) ? FUZEPATH . "/Application/Controller/" : $event->directory);
-
-        // Load the controller
-        $this->loadController();
 	}
 
 	/**
@@ -100,6 +98,21 @@ class Router extends Bus {
 	 * @access public
 	 */
 	public function loadController() {
+		// Initate the controllerLoadEvent
+		$event = $this->events->fireEvent('controllerLoadEvent', 
+			$this->route,
+			$this->controllerName,
+			$this->function,
+			$this->parameters,
+			$this->directory
+		);
+
+		$this->route 				= ($event->route === null ? $this->route : $event->route);
+		$this->controllerName 		= ($event->controllerName === null ? $this->controllerName : $event->controllerName);
+		$this->function 			= ($event->function === null ? $this->function : $event->function);
+		$this->parameters 		 	= ($event->parameters === null ? $this->parameters : $event->parameters);
+		$this->directory 			= ($event->directory === null ? $this->directory : $event->directory);
+
 		$file = $this->directory . "controller.".strtolower($this->controllerName).".php";
 		$this->logger->log("Loading controller from file: '".$file."'");
 
