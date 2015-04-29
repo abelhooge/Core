@@ -1,6 +1,8 @@
 <?php
 
-class Router extends Bus {
+use \FuzeWorks\Module;
+
+class Router extends Module {
 
 	public $controller = null;
 	public $controllerName = null;
@@ -120,7 +122,7 @@ class Router extends Bus {
 			if (!class_exists(ucfirst($this->controllerName)))
 				require_once($file);
 
-			$this->controllerClass = ucfirst($this->controllerName);
+			$this->controllerClass = "\Controller\\" . ucfirst($this->controllerName);
 			$this->controller = new $this->controllerClass($this->core);
 
 			if (method_exists($this->controller, $this->function) || method_exists($this->controller, '__call')) {

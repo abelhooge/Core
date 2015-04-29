@@ -7,7 +7,7 @@ if (!defined('FUZEPATH')) {
 require_once( dirname(__FILE__) . "/Core/System/class.core.php");
 
 // Load it
-$core = new Core();
+$core = new \FuzeWorks\Core();
 $core->init();
 $core->loadMod('router');
 $core->mods->router->setPath( (isset($_GET['path']) ? $_GET['path'] : null)   );

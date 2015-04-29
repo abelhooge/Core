@@ -1,11 +1,12 @@
 <?php
 return array(
 
-    'module_class'    => 'DatabaseModel',
+    'module_class'    => 'Module\DatabaseModel',
     'module_file'     => 'class.model.php',
     'module_name'     => 'databasemodel',
 
-    'abstract'      => true,
+    'abstract'      => false,
+    'dependencies'  => array('database'),
 
     'name'          => 'DatabaseModel',
     'description'   => 'Abstract type for easy database queries',
@@ -15,4 +16,6 @@ return array(
 
     'date_created'  => '26-02-2015',
     'date_updated'  => '26-02-2015',
+
+    'enabled'       => true,
 );

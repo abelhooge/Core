@@ -1,6 +1,11 @@
 <?php
 
-class DatabaseModel extends Bus{
+namespace Module;
+use \FuzeWorks\Module;
+use \FuzeWorks\ModelServer;
+use \Exception;
+
+class DatabaseModel extends Module implements ModelServer {
 
     public $fields  = array();
 	public $primary = 'id';
@@ -8,7 +13,12 @@ class DatabaseModel extends Bus{
 
     public function __construct(&$core){
         parent::__construct($core);
-        $this->core->loadMod('database');
+    }
+
+    public function onLoad() {}
+
+    public function giveModel($type) {
+    	return new DatabaseModel($this->core);
     }
 
     public function select(){

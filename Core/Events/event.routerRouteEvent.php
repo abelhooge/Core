@@ -1,5 +1,7 @@
 <?php
 
+use \FuzeWorks\Event;
+
 class RouterRouteEvent extends Event {
 	
 	public $controller;

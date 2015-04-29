@@ -1,5 +1,9 @@
 <?php
 
+namespace FuzeWorks;
+use \stdClass;
+use \Exception;
+
 if (!defined('FUZESYSPATH')) {
 	define('STARTTIME', microtime(true));
 	define( 'FUZESYSPATH', dirname(__FILE__) . '/' ); 
@@ -131,10 +135,14 @@ class Core {
 						$CLASS->setModulePath($cfg->directory);
 					}
 					if (method_exists($CLASS, 'setModuleLinkName')) {
-						$CLASS->setModuleLinkName($cfg->name);
+						$CLASS->setModuleLinkName(strtolower($cfg->module_name));
 					}
 					if (method_exists($CLASS, 'setModuleName')) {
 						$CLASS->setModuleName($name);
+					}
+
+					if (!method_exists($CLASS, 'onLoad')) {
+						throw new Exception("Module '".$name."' does not have an onLoad() method! Invalid module", 1);
 					}
 					$CLASS->onLoad();
 

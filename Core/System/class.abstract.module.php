@@ -1,5 +1,7 @@
 <?php
 
+namespace FuzeWorks;
+
 /**
  * Class Module
  *

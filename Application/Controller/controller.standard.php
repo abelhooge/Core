@@ -1,5 +1,8 @@
 <?php
 
+namespace Controller;
+use \FuzeWorks\Bus;
+
 class Standard extends Bus {
 	public function __construct(&$core) {
 		parent::__construct($core);

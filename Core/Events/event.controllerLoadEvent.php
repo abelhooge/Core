@@ -1,5 +1,7 @@
 <?php
 
+use \FuzeWorks\Event;
+
 class ControllerLoadEvent extends Event {
 	
 	public $route;

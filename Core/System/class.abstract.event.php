@@ -1,5 +1,7 @@
 <?php
 
+namespace FuzeWorks;
+
 class Event {
 
 	private $cancelled = false;

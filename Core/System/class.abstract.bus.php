@@ -1,5 +1,7 @@
 <?php
 
+namespace FuzeWorks;
+
 abstract class Bus {
     protected $core;
     protected $mods;

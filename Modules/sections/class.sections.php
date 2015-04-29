@@ -1,8 +1,8 @@
 <?php
 
 namespace Module\Sections;
-use \Module;
-use \EventPriority;
+use \FuzeWorks\Module;
+use \FuzeWorks\EventPriority;
 
 /**
  * Sections module, see usage documentation
