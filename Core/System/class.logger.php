@@ -3,6 +3,12 @@
 namespace FuzeWorks;
 use \Exception;
 
+/**
+ * Logger Class
+ *
+ * The main tool to handle errors and exceptions. Provides some tools for debugging and tracking where errors take place
+ * All fatal errors get catched by this class and get displayed if configured to do so. 
+ */
 class Logger extends Bus{
 
  	public $infoErrors = array();
@@ -40,6 +46,7 @@ class Logger extends Bus{
 			
 			// Log it!
  			$this->errorHandler($errno, $errstr, $errfile, $errline);
+ 			$this->logInfo($this->backtrace());
  		}
 
 		if ($this->mods->config->error->debug == true || $this->print_to_screen) {
@@ -91,6 +98,13 @@ class Logger extends Bus{
 	}
 
  	public function logToScreen() {
+ 		// Send a screenLogEvent, allows for new screen log designs
+ 		$event = $this->mods->events->fireEvent('screenLogEvent');
+ 		if ($event->isCancelled()) {
+ 			return false;
+ 		}
+
+ 		// Otherwise just load it
         echo '<h3>FuzeWorks debug log</h3>';
         $layer = 0;
         for($i = 0; $i < count($this->Logs); $i++){
@@ -131,7 +145,7 @@ class Logger extends Bus{
 	        $result[] = ($i + 1)  . ')' . substr($trace[$i], strpos($trace[$i], ' ')); // replace '#someNum' with '$i)', set the right ordering
 	    }
 	    
-	    return "\t" . implode("<br/>", $result);
+	    return "<b>BACKTRACE: <br/>\t" . implode("<br/>", $result)."</b>";
  	}
 
  	/* =========================================LOGGING METHODS==============================================================*/
