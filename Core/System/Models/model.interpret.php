@@ -1,5 +1,7 @@
 <?php
 
+namespace FuzeWorks;
+
 class Interpret extends Model {
 
     public function __construct(&$core){
@@ -20,17 +22,6 @@ class Interpret extends Model {
 
 		// Append to model
 		$this->fields = $table_fields;
-    }
-
-    public function toPHP() {
-        $values = array();
-        foreach ($this->fields as $key => $value) {
-            $values[] = '"'.$value.'"';
-        }
-        $values = implode(', ', $values);
-        $text = 'VALUES: array('.$values.')
-        TABLE: '.$this->table;
-        echo $text;
     }
 }
 

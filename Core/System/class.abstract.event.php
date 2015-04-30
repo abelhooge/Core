@@ -19,4 +19,6 @@ class Event {
     }
 }
 
+class NotifierEvent extends Event {}
+
 ?>

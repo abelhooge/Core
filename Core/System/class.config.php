@@ -48,7 +48,7 @@ class Config extends Bus{
 			$DECODED = (object) require($file);
 			return $DECODED;
 		} else {
-			$this->core->loadMod('database');
+			$this->core->loadMod('techfuze/database');
 			if ($this->dbActive) {
 				// Fetch me a query of 5
 				$prefix = $this->mods->database->getPrefix();

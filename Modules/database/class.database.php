@@ -1,11 +1,16 @@
 <?php
 
+namespace Module\Database;
 use \FuzeWorks\Module;
-use \Exception;
 use \PDO;
 
-class Database extends Module {
+class Main extends Module {
 
+	/**
+	 * The default database connection
+	 * @access private
+	 * @var PDO Class
+	 */
 	private $DBH;
 	public $prefix;
 
@@ -14,105 +19,44 @@ class Database extends Module {
 	}
 
 	public function onLoad() {
-		$this->connect($this->getSystemDbSettings());
 		$this->config->dbActive = true;
 	}
 
-	public function connect($params = array()) {
-		if (isset($params['type'])) {
-			$type = $params['type'];
+	public function connect($config = null) {
+		// If nothing is given, connect to database from the main config, otherwise use the served configuration
+		if (is_null($config)) {
+			$db = $this->mods->config->database;
 		} else {
-			throw (new Exception("No database type given"));
+			$db = $config;
 		}
-
-		if (isset($params['datb'])) {
-			$database = $params['datb'];
-		} else {
-			throw (new Exception("No database given. Can not connect without database."));
-		}
-
-		if (isset($params['host'])) {
-			$host = $params['host'];
-		} else {
-			throw (new Exception("No database host given. Can not connect without hostname."));
-		}
-
-		$username = $params['user'];
-		$password = $params['pass'];
-		$this->prefix = $params['prefix'];
-
-		if (isset($params['options'])) {
-			$options = $params['options'];
-		} else {
-			$options = null;
-		}
-
-
-		$DSN_FINAL = "";
-
-		switch ($type) {
-			case 'MYSQL':
-				$DSN = "mysql:host=";
-				$DSN2 = ";dbname=";
-				
-				// Check if charset is required
-				if (isset($extraOptions)) {
-					if (isset($extraOptions->charset)) {
-						$DSN3 = ";charset=" . $extraOptions->charset;
-					} else {
-						$DSN3 = ";";
-					}
-				} else {
-					$DSN3 = ";";
-				}
-				$DSN_FINAL = $DSN . $host . $DSN2 . $database . $DSN3;
+		
+		// Get the DSN for popular types of databases or a custom DSN
+		switch (strtolower($db->type)) {
+			case 'mysql':
+				$dsn = "mysql:host=".$db->host.";";
+				$dsn .= (!empty($db->database) ? "dbname=".$db->database.";" : "");
 				break;
-			case 'sqlite':
-				$DSN = 'sqlite:' . $host . ($database != '' ? ";dbname=" .$database : "");
-				$DSN_FINAL = $DSN;
-				break;
-			default:
-				throw (new Exception("Unknown database type given: '" . $type . "'"));
+			case 'custom':
+				$dsn = $db->dsn;
 				break;
 		}
 
-		// Try and connect
-        try{
-            $this->mods->logger->logInfo("Connecting to '" . $DSN_FINAL. "'", "Database", __FILE__, __LINE__);
-            $this->DBH = new \PDO($DSN_FINAL, $username, $password, $options);
-            $this->DBH->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+		try {
+			$this->mods->logger->logInfo("Connecting to '".$dsn."'", "Database");
+			// And create the connection
+			$this->DBH = new PDO($dsn, $db->username, $db->password, (isset($db->options) ? $db->options : null));
+			$this->DBH->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+			$this->mods->logger->logInfo("Connected to database", "Database");
 
-            $this->mods->logger->logInfo("Connected!", "Database", __FILE__, __LINE__);
-        }catch(\PDOException $e){
-            throw (new Exception('Could not connect to the database: "'. $e->getMessage() . '"'));
-        }
-	}
-
-	public function __call($name, $params) {
-		if ($this->is_active()) {
-			return call_user_func_array(array($this->DBH, $name), $params);			
-		} else {
-			$this->connect($this->getSystemDbSettings());
-			return call_user_func_array(array($this->DBH, $name), $params);	
+			// And set the prefix
+			$this->prefix = $db->prefix;
+		} catch (Exception $e) {
+			throw (new Exception('Could not connect to the database: "'. $e->getMessage() . '"'));
 		}
 	}
 
-	public function __get($name) {
-		if ($this->is_active()) {
-			return $this->DBH->$name;			
-		} else {
-			$this->connect($this->getSystemDbSettings());
-			return $this->DBH->$name;		
-		}		
-	}
-
-	public function __set($name, $value) {
-		if ($this->is_active()) {
-			$this->DBH->$name = $value;		
-		} else {
-			$this->connect($this->getSystemDbSettings());
-			$this->DBH->$name = $value;	
-		}		
+	public function getPrefix() {
+		return $this->prefix;
 	}
 
 	public function is_active() {
@@ -123,25 +67,31 @@ class Database extends Module {
         }
 	}
 
-	public function getPrefix() {
-		return $this->prefix;
+	public function __call($name, $params) {
+		if ($this->is_active()) {
+			return call_user_func_array(array($this->DBH, $name), $params);			
+		} else {
+			$this->connect();
+			return call_user_func_array(array($this->DBH, $name), $params);	
+		}
 	}
 
-	/**
-	 * Retrieve an array of the system DB settings. This is the configuration in the config file of FuzeWorks
-	 * @access public
-	 * @return DBSettings array
-	 */
-	public function getSystemDbSettings() {
-		$dbsettings = array(
-			'type' => $this->mods->config->database->type,
-			'host' => $this->mods->config->database->host,
-			'user' => $this->mods->config->database->username,
-			'pass' => $this->mods->config->database->password,
-			'datb' => $this->mods->config->database->database,
-			'prefix' => $this->mods->config->database->prefix,
-			);
-		return $dbsettings;
+	public function __get($name) {
+		if ($this->is_active()) {
+			return $this->DBH->$name;			
+		} else {
+			$this->connect();
+			return $this->DBH->$name;		
+		}		
+	}
+
+	public function __set($name, $value) {
+		if ($this->is_active()) {
+			$this->DBH->$name = $value;		
+		} else {
+			$this->connect();
+			$this->DBH->$name = $value;	
+		}		
 	}
 }
 
