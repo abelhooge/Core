@@ -82,7 +82,7 @@ class Events extends Bus{
 	## EVENTS
 	public function fireEvent($input) {
 		if (is_string($input)) {
-			// STRING
+			// If the input is a string
 			$eventClass = $input;
 			$eventName = $input;
 	        if(!class_exists($eventClass)){
@@ -92,7 +92,7 @@ class Events extends Bus{
 	                // Load the file
 	                require_once($file);
 	            }else{
-	                // No event arguments? Looks like an notify-event
+	                // No event arguments? Looks like a notify-event
 	                if(func_num_args() == 1){
 	                    // Load notify-event-class
 	                    $eventClass = '\FuzeWorks\NotifierEvent';
@@ -183,8 +183,6 @@ class Events extends Bus{
         $this->register = $event_register;
     }
 }
-
-class NotifierEvent extends Event {}
 
 
 ?>
