@@ -1,9 +1,12 @@
 <?php
 
+namespace FuzeWorks;
+use \Exception;
+
 /**
- * Config Module
+ * Config Class
  * 
- * This class gives access to the config files. Allows for reading and editting
+ * This class gives access to the config files. Can read and write .php files with an array in a file
  */
 class Config extends Bus{
 
@@ -38,14 +41,14 @@ class Config extends Bus{
 	 * @return StdObject of config
 	 */
 	public function loadConfigFile($name, $directory = null) {
-		$dir = (isset($directory) ? $directory : FUZEPATH . "Application//config/");
+		$dir = (isset($directory) ? $directory : "Application/config/");
 		$file = $dir . 'config.' . strtolower($name).".php";
 
 		if (file_exists($file)) {
 			$DECODED = (object) require($file);
 			return $DECODED;
 		} else {
-			$this->core->loadMod('database');
+			$this->core->loadMod('techfuze/database');
 			if ($this->dbActive) {
 				// Fetch me a query of 5
 				$prefix = $this->mods->database->getPrefix();
@@ -85,7 +88,7 @@ class Config extends Bus{
 	 * @param String directory, default is Application/Config
 	 */
 	public function set($name, $key, $value, $directory = null) {
-		$dir = (isset($directory) ? $directory : FUZEPATH . "Application//config/");
+		$dir = (isset($directory) ? $directory : "Application/config/");
 		$file = $dir . 'config.' . strtolower($name).".php";
 		if (file_exists($file)) {
 			$DECODED = require($file);

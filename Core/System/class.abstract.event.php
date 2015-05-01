@@ -1,5 +1,7 @@
 <?php
 
+namespace FuzeWorks;
+
 class Event {
 
 	private $cancelled = false;
@@ -16,5 +18,7 @@ class Event {
         }
     }
 }
+
+class NotifierEvent extends Event {}
 
 ?>

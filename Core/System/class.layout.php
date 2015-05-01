@@ -1,5 +1,16 @@
 <?php
 
+namespace FuzeWorks;
+use \Exception;
+
+/**
+ * Layout Class
+ * 
+ * The Layout class is a wrapper for the Smarty Template engine. Smarty loads .tpl files and variables, and converts them to HTML.
+ * See the Smarty documentation for more information
+ * This class typically loads files from Application/Views unless specified otherwise. 
+ *
+ */
 class Layout extends Bus {
 	
 	private $Smarty = array();
@@ -12,7 +23,7 @@ class Layout extends Bus {
 
 	private function load() {
 		// Load Smarty
-		$smartyDir = FUZEPATH . "/Core/System/Smarty";
+		$smartyDir = "Core/System/Smarty";
 		
 		if (!defined('SMARTY_DIR')) {
 			define('SMARTY_DIR', $smartyDir .  DIRECTORY_SEPARATOR . "libs" .  DIRECTORY_SEPARATOR);
@@ -29,8 +40,8 @@ class Layout extends Bus {
 	}
 
 	public function getSmartyBasicVars($Smarty) {
-		$Smarty->setCompileDir(FUZEPATH . "/Core/Cache/Compile");
-		$Smarty->setCacheDir(FUZEPATH . "/Core/Cache/");
+		$Smarty->setCompileDir("Core/Cache/Compile");
+		$Smarty->setCacheDir("Core/Cache/");
 		$Smarty->assign('siteURL', $this->config->main->SITE_URL);
 		$Smarty->assign('serverName', $this->config->main->SERVER_NAME);
 		$Smarty->assign('siteDomain', $this->config->main->SITE_DOMAIN);
@@ -72,10 +83,14 @@ class Layout extends Bus {
 		return $this->title;
 	}
 
-	public function view($view = "default", $dir = null) {
+	public function view($view = "default") {
 		// Chech if Smarty is loaded
 		if (!$this->loaded)
 			$this->load();
+
+		$event = $this->events->fireEvent('layoutLoadEvent', $view);
+		$directory 			= ($event->directory === null ? "Application/Views" : $event->directory);
+		$view 				= ($event->layout === null ? $view : $event->layout);
 
 		// Set the file name and location
 		$vw = explode('/', $view);
@@ -98,65 +113,54 @@ class Layout extends Bus {
 		}
 
 		// Set the directory
-		$dir = (!isset($dir) ? FUZEPATH . "/Application/" . '/Views' : $dir);
-		$this->Smarty['main']->setTemplateDir($dir);
+		$this->Smarty['main']->setTemplateDir($directory);
 
 		// Set the title
         $this->Smarty['main']->assign('title', $this->title);
   	
   		// Get the viewdir
-  		// @TODO: Fix this for custom directories
-        $one = FUZEPATH;
-        $two = $dir . "/";
-        $count_one = strlen($one);
-        $count_two = strlen($two);
-        $length_three = $count_two - $count_one;
-        $three = $this->config->main->SITE_URL . "/" . substr($two, -$length_three);
-        $this->layout->assign('viewDir', $three);
+        $viewDir = $this->config->main->SITE_URL . "/" . substr($directory . "/", -strlen($directory . "/"));
+        $this->layout->assign('viewDir', $viewDir);
 
         try{
         	
         	// Load the page
             $this->Smarty['main']->display($vw);
-            $this->logger->logInfo("VIEW LOAD: '".$vw."'", "FuzeWorks->Layout", __FILE__, __LINE__);
+            $this->logger->logInfo("VIEW LOAD: '".$vw."'", "Layout", __FILE__, __LINE__);
         }catch (\SmartyException $e){
 
         	// Throw error on failure
-            $this->logger->logError('Could not load view '.$dir.'/'.$vw.' :: ' . $e->getMessage(), 'FuzeWorks->Layout', __FILE__, __LINE__);
-            throw new Exception\Layout('Could not load view '.$dir.'/'.$vw);
+            $this->logger->logError('Could not load view '.$directory.'/'.$vw.' :: ' . $e->getMessage(), 'Layout', __FILE__, __LINE__);
+            throw new Exception\Layout('Could not load view '.$directory.'/'.$vw);
         }
 	}
 
-	public function get($view = "default", $dir = "") {
+	public function get($view = "default", $directory = "") {
 		// Chech if Smarty is loaded
 		if (!$this->loaded)
 			$this->load();
 
 		// Set the directory
-		$dir = ($dir == "" ? FUZEPATH . "/Application/" . '/Views' : $dir);
-		$this->Smarty['main']->setTemplateDir($dir);
+		$directory = ($directory == "" ? "Application/" . '/Views' : $directory);
+		$this->Smarty['main']->setTemplateDir($directory);
 
 		// Set the title
         $this->Smarty['main']->assign('title', $this->title);
 
   		// Get the viewdir
-        $one = FUZEPATH;
-        $two = $dir . "/";
-        $count_one = strlen($one);
-        $count_two = strlen($two);
-        $length_three = $count_two - $count_one;
-        $three = $this->config->main->SITE_URL . "/" . substr($two, -$length_three);
-        $this->layout->assign('viewdir', $three);
+        $viewDir = $this->config->main->SITE_URL . "/" . substr($directory . "/", -strlen($directory . "/"));
+        $this->layout->assign('viewDir', $viewDir);
+        
         try{
         	
         	// Load the page
             return $this->Smarty['main']->fetch('view.'.$view.'.tpl');
-            $this->logger->logInfo("VIEW LOAD: 'view.".$view.'.tpl'."'", "FuzeWorks->Layout", __FILE__, __LINE__);
+            $this->logger->logInfo("VIEW LOAD: 'view.".$view.'.tpl'."'", "Layout", __FILE__, __LINE__);
         }catch (\SmartyException $e){
 
         	// Throw error on failure
-            $this->logger->logError('Could not load view '.$dir.'/view.'.$view.'.tpl :: ' . $e->getMessage(), 'FuzeWorks->Layout', __FILE__, __LINE__);
-            throw new Exception\Layout('Could not load view '.$dir.'/view.'.$view.'.tpl');
+            $this->logger->logError('Could not load view '.$directory.'/view.'.$view.'.tpl :: ' . $e->getMessage(), 'Layout', __FILE__, __LINE__);
+            throw new Exception\Layout('Could not load view '.$directory.'/view.'.$view.'.tpl');
         }
 	}
 }

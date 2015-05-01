@@ -1,5 +1,14 @@
 <?php
 
+namespace FuzeWorks;
+use \Exception;
+
+/**
+ * Logger Class
+ *
+ * The main tool to handle errors and exceptions. Provides some tools for debugging and tracking where errors take place
+ * All fatal errors get catched by this class and get displayed if configured to do so. 
+ */
 class Logger extends Bus{
 
  	public $infoErrors = array();
@@ -37,6 +46,7 @@ class Logger extends Bus{
 			
 			// Log it!
  			$this->errorHandler($errno, $errstr, $errfile, $errline);
+ 			$this->logInfo($this->backtrace());
  		}
 
 		if ($this->mods->config->error->debug == true || $this->print_to_screen) {
@@ -88,6 +98,13 @@ class Logger extends Bus{
 	}
 
  	public function logToScreen() {
+ 		// Send a screenLogEvent, allows for new screen log designs
+ 		$event = $this->mods->events->fireEvent('screenLogEvent');
+ 		if ($event->isCancelled()) {
+ 			return false;
+ 		}
+
+ 		// Otherwise just load it
         echo '<h3>FuzeWorks debug log</h3>';
         $layer = 0;
         for($i = 0; $i < count($this->Logs); $i++){
@@ -111,6 +128,24 @@ class Logger extends Bus{
 	            echo '<div style="'.($layer == 0 ? 'padding-left: 21px;' : "").'font-size: 11pt;">'.(!empty($log['context']) ? '<u>['.$log['context'].']</u>' : "").' '.$log["message"].'<span style="float: right">('.round($log['runtime']*1000, 4).' ms)</span></div>';   	
             }
         }
+ 	}
+
+ 	public function backtrace() {
+	    $e = new Exception();
+	    $trace = explode("\n", $e->getTraceAsString());
+	    // reverse array to make steps line up chronologically
+	    $trace = array_reverse($trace);
+	    array_shift($trace); // remove {main}
+	    array_pop($trace); // remove call to this method
+	    $length = count($trace);
+	    $result = array();
+	    
+	    for ($i = 0; $i < $length; $i++)
+	    {
+	        $result[] = ($i + 1)  . ')' . substr($trace[$i], strpos($trace[$i], ' ')); // replace '#someNum' with '$i)', set the right ordering
+	    }
+	    
+	    return "<b>BACKTRACE: <br/>\t" . implode("<br/>", $result)."</b>";
  	}
 
  	/* =========================================LOGGING METHODS==============================================================*/
@@ -267,8 +302,8 @@ class Logger extends Bus{
             511 => 'Network Authentication Required'
         );
 
-        $this->logError('HTTP-error '.$errno.' called', 'FuzeWorks->Logger');
-        $this->logInfo('Sending header HTTP/1.1 '.$errno.' '.$http_codes[$errno], 'FuzeWorks->Logger', __FILE__, __LINE__);
+        $this->logError('HTTP-error '.$errno.' called', 'Logger');
+        $this->logInfo('Sending header HTTP/1.1 '.$errno.' '.$http_codes[$errno], 'Logger', __FILE__, __LINE__);
         header('HTTP/1.1 '.$errno.' '.$http_codes[$errno]);
     }
 

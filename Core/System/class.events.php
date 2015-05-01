@@ -3,10 +3,21 @@
  * @author FuzeNetwork
  * @package files
 */
- 
+
+namespace FuzeWorks;
+use \Exception;
+
 /** 
- * @name Events
-*/
+ * Event Class
+ * 
+ * Controls FuzeWorks Events. Events are classes that get loaded during special moments in the program.
+ * These Event objects get send to so-called 'listeners', which can modify the event object, and eventually return them to invoker.
+ * Typically an event process goes like this:
+ * - Event get's called
+ * - Event object is created
+ * - Event object is send to all listeners in order of EventPriority
+ * - Event is returned
+ */
 class Events extends Bus{
 
 	private $listeners;
@@ -71,23 +82,23 @@ class Events extends Bus{
 	## EVENTS
 	public function fireEvent($input) {
 		if (is_string($input)) {
-			// STRING
+			// If the input is a string
 			$eventClass = $input;
 			$eventName = $input;
 	        if(!class_exists($eventClass)){
 	            // Check if the file even exists
-	            $file = FUZEPATH . "/Core/Events/event.".$eventName.".php";
+	            $file = "Core/Events/event.".$eventName.".php";
 	            if(file_exists($file)){
 	                // Load the file
 	                require_once($file);
 	            }else{
-	                // No event arguments? Looks like an notify-event
+	                // No event arguments? Looks like a notify-event
 	                if(func_num_args() == 1){
 	                    // Load notify-event-class
-	                    $eventClass = 'NotifierEvent';
+	                    $eventClass = '\FuzeWorks\NotifierEvent';
 	                }else{
 	                    // No notify-event: we tried all we could
-	                    throw new \Exception("Event ".$eventName." could not be found!");
+	                    throw new Exception("Event ".$eventName." could not be found!");
 	                }
 	            }
 	        }
@@ -112,7 +123,7 @@ class Events extends Bus{
 		$this->logger->log("Checking for Listeners");
 
         // Read the event register for listeners
-        $register = $this->config->eventregister->register;
+        $register = $this->register;
         if (isset($register[$eventName])) {
             for ($i=0; $i < count($register[$eventName]); $i++) { 
                 $this->core->loadMod($register[$eventName][$i]);
@@ -154,22 +165,24 @@ class Events extends Bus{
 
     // Event Preparation:
     public function buildEventRegister() {
-        $this->logger->newLevel("Building Event Register", 'Events');
-        $dir = FUZEPATH . "/Core/Mods/";
-        $mods = $this->config->modregister->register;
-        foreach ($mods as $key => $value) {
-            try {
-                $this->core->loadMod($key);
-            } catch (Exception $e) {}
+        $event_register = array();
+        foreach ($this->core->register as $key => $value) {
+            if (isset($value['events'])) {
+                if (!empty($value['events'])) {
+                    for ($i=0; $i < count($value['events']); $i++) { 
+                        if (isset($event_register[$value['events'][$i]])) {
+                            $event_register[$value['events'][$i]][] = $key;
+                        } else {
+                            $event_register[$value['events'][$i]] = array($key);
+                        }
+                    }
+                }
+            }
         }
-        $event = $this->fireEvent('eventRegisterBuildEvent', '');
-        $this->config->set('eventregister', 'register', $event->register);
 
-        $this->logger->stopLevel();
+        $this->register = $event_register;
     }
 }
-
-class NotifierEvent extends Event {}
 
 
 ?>

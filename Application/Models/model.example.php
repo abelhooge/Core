@@ -1,5 +1,8 @@
 <?php
 
+namespace Model;
+use \FuzeWorks\Model;
+
 class Example extends Model{
 
     public function __construct(&$core){
