@@ -136,9 +136,9 @@ class Main extends Module {
 			    'name' => $name,
 			    'module_section' => $module_section,
 			    'module_name' => $module_name,
-			    'controller_path' => FUZEPATH .  $controller_path,
-			    'model_path' => FUZEPATH . $model_path,
-			    'view_path' => FUZEPATH . $view_path,			
+			    'controller_path' => $controller_path,
+			    'model_path' => $model_path,
+			    'view_path' => $view_path,			
 				);			
 		}
 

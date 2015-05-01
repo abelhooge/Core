@@ -24,7 +24,7 @@ class Models extends Bus{
     public function loadModel($name, $directory = null){
         // Model load event
         $event = $this->events->fireEvent('modelLoadEvent', $name);
-        $directory          = ($event->directory === null ? FUZEPATH . "/Application/Models" : $event->directory);
+        $directory          = ($event->directory === null ? "Application/Models" : $event->directory);
         $name               = ($event->model === null ? $name : $event->model);
 
         $file = $directory.'/model.'.$name.'.php';
@@ -38,7 +38,7 @@ class Models extends Bus{
             $this->models_array[$name] = new $model($this->core);
         } else{
         	$this->logger->logWarning('The requested model: \''.$name.'\' could not be found. Loading empty model', 'Models');
-            require_once(FUZEPATH . "/Core/System/Models/model.interpret.php");
+            require_once("Core/System/Models/model.interpret.php");
             $this->logger->logInfo('Loading Model: interprated databasemodel', 'Models');
             $model = new Interpret($this->core);
             $model->table($name);

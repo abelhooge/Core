@@ -87,7 +87,7 @@ class Events extends Bus{
 			$eventName = $input;
 	        if(!class_exists($eventClass)){
 	            // Check if the file even exists
-	            $file = FUZEPATH . "/Core/Events/event.".$eventName.".php";
+	            $file = "Core/Events/event.".$eventName.".php";
 	            if(file_exists($file)){
 	                // Load the file
 	                require_once($file);

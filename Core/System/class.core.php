@@ -4,11 +4,6 @@ namespace FuzeWorks;
 use \stdClass;
 use \Exception;
 
-if (!defined('FUZESYSPATH')) {
-	define('STARTTIME', microtime(true));
-	define( 'FUZESYSPATH', dirname(__FILE__) . '/' ); 
-}
-
 /**
  * FuzeWorks Core
  * 
@@ -29,6 +24,9 @@ class Core {
 
 	## START/STOP
 	public function init() {
+		if (!defined('STARTTIME')) {
+			define('STARTTIME', microtime(true));
+		}
 		// Load basics
 		ignore_user_abort(true);
 		register_shutdown_function(array($this, "shutdown"));
@@ -51,19 +49,19 @@ class Core {
 			return;
 
 		// Load core abstracts
-		require_once(FUZESYSPATH . "/class.abstract.bus.php");
-		require_once(FUZESYSPATH . "/class.abstract.event.php");
-		require_once(FUZESYSPATH . "/class.abstract.module.php");
-		require_once(FUZESYSPATH . "/class.abstract.model.php");
-		require_once(FUZESYSPATH . "/class.abstract.controller.php");
-		require_once(FUZESYSPATH . "/class.abstract.eventPriority.php");
+		require_once("Core/System/class.abstract.bus.php");
+		require_once("Core/System/class.abstract.event.php");
+		require_once("Core/System/class.abstract.module.php");
+		require_once("Core/System/class.abstract.model.php");
+		require_once("Core/System/class.abstract.controller.php");
+		require_once("Core/System/class.abstract.eventPriority.php");
 
 		// Load the core classes
-		require_once(FUZESYSPATH . "/class.config.php");
-		require_once(FUZESYSPATH . "/class.logger.php");
-		require_once(FUZESYSPATH . "/class.models.php");
-		require_once(FUZESYSPATH . "/class.layout.php");
-		require_once(FUZESYSPATH . "/class.events.php");
+		require_once("Core/System/class.config.php");
+		require_once("Core/System/class.logger.php");
+		require_once("Core/System/class.models.php");
+		require_once("Core/System/class.layout.php");
+		require_once("Core/System/class.events.php");
 
 		// Load them
         $this->mods->events 		= new Events 		($this);
@@ -81,7 +79,7 @@ class Core {
 
 	public function loadMod($name) {
 		// Where the modules are
-		$path = FUZEPATH . "Modules/";
+		$path = "Modules/";
 
 		// Check if the requested module is registered
 		if (isset($this->register[$name])) {
@@ -164,7 +162,7 @@ class Core {
 		$this->mods->logger->newLevel("Loading Module Headers", 'Core');
 
 		// Get all the module directories
-		$dir = FUZEPATH . "Modules/";
+		$dir = "Modules/";
 		$mod_dirs = array();
 		$mod_dirs = array_values(array_diff(scandir($dir), array('..', '.')));
 

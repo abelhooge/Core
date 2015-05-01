@@ -23,7 +23,7 @@ class Layout extends Bus {
 
 	private function load() {
 		// Load Smarty
-		$smartyDir = FUZEPATH . "/Core/System/Smarty";
+		$smartyDir = "Core/System/Smarty";
 		
 		if (!defined('SMARTY_DIR')) {
 			define('SMARTY_DIR', $smartyDir .  DIRECTORY_SEPARATOR . "libs" .  DIRECTORY_SEPARATOR);
@@ -40,8 +40,8 @@ class Layout extends Bus {
 	}
 
 	public function getSmartyBasicVars($Smarty) {
-		$Smarty->setCompileDir(FUZEPATH . "/Core/Cache/Compile");
-		$Smarty->setCacheDir(FUZEPATH . "/Core/Cache/");
+		$Smarty->setCompileDir("Core/Cache/Compile");
+		$Smarty->setCacheDir("Core/Cache/");
 		$Smarty->assign('siteURL', $this->config->main->SITE_URL);
 		$Smarty->assign('serverName', $this->config->main->SERVER_NAME);
 		$Smarty->assign('siteDomain', $this->config->main->SITE_DOMAIN);
@@ -89,7 +89,7 @@ class Layout extends Bus {
 			$this->load();
 
 		$event = $this->events->fireEvent('layoutLoadEvent', $view);
-		$directory 			= ($event->directory === null ? FUZEPATH . "/Application/Views" : $event->directory);
+		$directory 			= ($event->directory === null ? "Application/Views" : $event->directory);
 		$view 				= ($event->layout === null ? $view : $event->layout);
 
 		// Set the file name and location
@@ -119,14 +119,8 @@ class Layout extends Bus {
         $this->Smarty['main']->assign('title', $this->title);
   	
   		// Get the viewdir
-  		// @TODO: Fix this for custom directories
-        $one = FUZEPATH;
-        $two = $directory . "/";
-        $count_one = strlen($one);
-        $count_two = strlen($two);
-        $length_three = $count_two - $count_one;
-        $three = $this->config->main->SITE_URL . "/" . substr($two, -$length_three);
-        $this->layout->assign('viewDir', $three);
+        $viewDir = $this->config->main->SITE_URL . "/" . substr($directory . "/", -strlen($directory . "/"));
+        $this->layout->assign('viewDir', $viewDir);
 
         try{
         	
@@ -147,20 +141,16 @@ class Layout extends Bus {
 			$this->load();
 
 		// Set the directory
-		$directory = ($directory == "" ? FUZEPATH . "/Application/" . '/Views' : $directory);
+		$directory = ($directory == "" ? "Application/" . '/Views' : $directory);
 		$this->Smarty['main']->setTemplateDir($directory);
 
 		// Set the title
         $this->Smarty['main']->assign('title', $this->title);
 
   		// Get the viewdir
-        $one = FUZEPATH;
-        $two = $directory . "/";
-        $count_one = strlen($one);
-        $count_two = strlen($two);
-        $length_three = $count_two - $count_one;
-        $three = $this->config->main->SITE_URL . "/" . substr($two, -$length_three);
-        $this->layout->assign('viewdir', $three);
+        $viewDir = $this->config->main->SITE_URL . "/" . substr($directory . "/", -strlen($directory . "/"));
+        $this->layout->assign('viewDir', $viewDir);
+        
         try{
         	
         	// Load the page
