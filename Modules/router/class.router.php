@@ -92,7 +92,7 @@ class Router extends Module {
 		$this->controllerName   = ($event->controller === null || empty($event->controller) ? $this->config->main->default_controller : $event->controller);
 		$this->function		    = ($event->function === null || empty($event->function) ? $this->config->main->default_function : $event->function);
 		$this->parameters 	    = $event->parameters;
-		$this->directory 		= ($event->directory === null || empty($event->directory) ? FUZEPATH . "/Application/Controller/" : $event->directory);
+		$this->directory 		= ($event->directory === null || empty($event->directory) ? "Application/Controller/" : $event->directory);
 	}
 
 	/**

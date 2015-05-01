@@ -302,8 +302,8 @@ class Logger extends Bus{
             511 => 'Network Authentication Required'
         );
 
-        $this->logError('HTTP-error '.$errno.' called', 'FuzeWorks->Logger');
-        $this->logInfo('Sending header HTTP/1.1 '.$errno.' '.$http_codes[$errno], 'FuzeWorks->Logger', __FILE__, __LINE__);
+        $this->logError('HTTP-error '.$errno.' called', 'Logger');
+        $this->logInfo('Sending header HTTP/1.1 '.$errno.' '.$http_codes[$errno], 'Logger', __FILE__, __LINE__);
         header('HTTP/1.1 '.$errno.' '.$http_codes[$errno]);
     }
 

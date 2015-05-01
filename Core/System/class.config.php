@@ -41,7 +41,7 @@ class Config extends Bus{
 	 * @return StdObject of config
 	 */
 	public function loadConfigFile($name, $directory = null) {
-		$dir = (isset($directory) ? $directory : FUZEPATH . "Application//config/");
+		$dir = (isset($directory) ? $directory : "Application/config/");
 		$file = $dir . 'config.' . strtolower($name).".php";
 
 		if (file_exists($file)) {
@@ -88,7 +88,7 @@ class Config extends Bus{
 	 * @param String directory, default is Application/Config
 	 */
 	public function set($name, $key, $value, $directory = null) {
-		$dir = (isset($directory) ? $directory : FUZEPATH . "Application//config/");
+		$dir = (isset($directory) ? $directory : "Application/config/");
 		$file = $dir . 'config.' . strtolower($name).".php";
 		if (file_exists($file)) {
 			$DECODED = require($file);
