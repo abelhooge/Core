@@ -23,7 +23,7 @@ class Models extends Bus{
 
     public function loadModel($name, $directory = null){
         // Model load event
-        $event = $this->events->fireEvent('modelLoadEvent', $name);
+        $event = $this->events->fireEvent('modelLoadEvent', $name, $directory);
         $directory          = ($event->directory === null ? "Application/Models" : $event->directory);
         $name               = ($event->model === null ? $name : $event->model);
 

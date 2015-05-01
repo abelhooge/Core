@@ -12,3 +12,4 @@ FuzeWorks.esproj/*
 *.out
 Core/Cache/
 Core/Logs/Error.log
+build/
