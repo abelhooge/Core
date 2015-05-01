@@ -7,23 +7,25 @@
     <target name="prepare">
         <mkdir dir="${basedir}/build/logs" />
         <mkdir dir="${basedir}/build/clover" />
+        <mkdir dir="${basedir}/build/phpdoc" />
     </target>
 
-    <target name="phpunit">
+    <target name="phpdoc">
         <exec dir="${basedir}" executable="php" failonerror="true">
-            <arg value="phpunit.phar"/>
-            <arg line="--configuration phpunit.xml
-                       --log-junit ${basedir}/build/logs/phpunit.xml
-                       --coverage-clover ${basedir}/build/logs/clover.xml
-                       --coverage-html ${basedir}/build/clover" />
+            <arg value="apigen.phar"/>
+            <arg line="generate --source . 
+                                --exclude 'tests/*'
+                                --exclude 'Core/System/Smarty/*'
+                                --title 'FuzeWorks Documentation build #${buildNumber}'
+                                --destination build/phpdoc" />
         </exec>
     </target>
 
     <target name="zip">
         <exec dir="${basedir}" executable="zip" failonerror="true">
-            <arg line="-r ${basedir}/build/fuzeworks-core.zip . -x build\* tests\*" />
+            <arg line="-r ${basedir}/build/fuzeworks-core.zip . -x build\* tests\* .git\*" />
         </exec>
     </target>
 
-    <target name="build" depends="clean,prepare,phpunit,zip" />
+    <target name="build" depends="clean,prepare,phpdoc,zip" />
 </project>
