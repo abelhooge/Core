@@ -132,11 +132,11 @@ class Layout extends Bus {
         	
         	// Load the page
             $this->Smarty['main']->display($vw);
-            $this->logger->logInfo("VIEW LOAD: '".$vw."'", "FuzeWorks->Layout", __FILE__, __LINE__);
+            $this->logger->logInfo("VIEW LOAD: '".$vw."'", "Layout", __FILE__, __LINE__);
         }catch (\SmartyException $e){
 
         	// Throw error on failure
-            $this->logger->logError('Could not load view '.$directory.'/'.$vw.' :: ' . $e->getMessage(), 'FuzeWorks->Layout', __FILE__, __LINE__);
+            $this->logger->logError('Could not load view '.$directory.'/'.$vw.' :: ' . $e->getMessage(), 'Layout', __FILE__, __LINE__);
             throw new Exception\Layout('Could not load view '.$directory.'/'.$vw);
         }
 	}
@@ -165,11 +165,11 @@ class Layout extends Bus {
         	
         	// Load the page
             return $this->Smarty['main']->fetch('view.'.$view.'.tpl');
-            $this->logger->logInfo("VIEW LOAD: 'view.".$view.'.tpl'."'", "FuzeWorks->Layout", __FILE__, __LINE__);
+            $this->logger->logInfo("VIEW LOAD: 'view.".$view.'.tpl'."'", "Layout", __FILE__, __LINE__);
         }catch (\SmartyException $e){
 
         	// Throw error on failure
-            $this->logger->logError('Could not load view '.$directory.'/view.'.$view.'.tpl :: ' . $e->getMessage(), 'FuzeWorks->Layout', __FILE__, __LINE__);
+            $this->logger->logError('Could not load view '.$directory.'/view.'.$view.'.tpl :: ' . $e->getMessage(), 'Layout', __FILE__, __LINE__);
             throw new Exception\Layout('Could not load view '.$directory.'/view.'.$view.'.tpl');
         }
 	}
