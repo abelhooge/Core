@@ -1,7 +1,6 @@
 <?php
 
 namespace FuzeWorks;
-use \Exception;
 
 /**
  * Layout Class
@@ -131,7 +130,7 @@ class Layout extends Bus {
 
         	// Throw error on failure
             $this->logger->logError('Could not load view '.$directory.'/'.$vw.' :: ' . $e->getMessage(), 'Layout', __FILE__, __LINE__);
-            throw new Exception\Layout('Could not load view '.$directory.'/'.$vw);
+            throw new LayoutException('Could not load view '.$directory.'/'.$vw);
         }
 	}
 
@@ -160,7 +159,7 @@ class Layout extends Bus {
 
         	// Throw error on failure
             $this->logger->logError('Could not load view '.$directory.'/view.'.$view.'.tpl :: ' . $e->getMessage(), 'Layout', __FILE__, __LINE__);
-            throw new Exception\Layout('Could not load view '.$directory.'/view.'.$view.'.tpl');
+            throw new LayoutException('Could not load view '.$directory.'/view.'.$view.'.tpl');
         }
 	}
 }

@@ -1,7 +1,6 @@
 <?php
 
 namespace FuzeWorks;
-use \Exception;
 
 /**
  * Config Class

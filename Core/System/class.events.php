@@ -5,7 +5,6 @@
 */
 
 namespace FuzeWorks;
-use \Exception;
 
 /** 
  * Event Class

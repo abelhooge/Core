@@ -1,7 +1,6 @@
 <?php
 
 namespace FuzeWorks;
-use \Exception;
 
 /**
  * Logger Class
@@ -16,6 +15,7 @@ class Logger extends Bus{
  	public $warningErrors = array();
  	public $Logs = array();
   	private $print_to_screen = false;
+  	public $debug = false;
 
 	public function __construct(&$core) {
 		parent::__construct($core);
@@ -27,6 +27,7 @@ class Logger extends Bus{
  			error_reporting(false);
  		}
 		$this->events->addListener(array($this, 'shutdown'), 'coreShutdownEvent', EventPriority::LOWEST);
+		$this->debug = $this->config->error->debug;
  		$this->newLevel("Logger Initiated");
 	}
 
@@ -49,7 +50,7 @@ class Logger extends Bus{
  			$this->logInfo($this->backtrace());
  		}
 
-		if ($this->mods->config->error->debug == true || $this->print_to_screen) {
+		if ($this->debug == true || $this->print_to_screen) {
 			$this->log("Parsing debug log", "Logger");
 			$this->logToScreen();
 		}
@@ -263,7 +264,7 @@ class Logger extends Bus{
 		return $type = 'Unknown error: '.$type;		
 	}
 
-    public function http_error($errno){
+    public function http_error($errno = 500, $view = true){
         
         $http_codes = array(
 
@@ -305,6 +306,22 @@ class Logger extends Bus{
         $this->logError('HTTP-error '.$errno.' called', 'Logger');
         $this->logInfo('Sending header HTTP/1.1 '.$errno.' '.$http_codes[$errno], 'Logger', __FILE__, __LINE__);
         header('HTTP/1.1 '.$errno.' '.$http_codes[$errno]);
+
+		// Do we want the error-view with it?
+		if($view == false)
+			return;
+
+        $view = 'errors/'.$errno;
+        $this->logger->log('Loading view '.$view);
+
+        try{
+
+            $this->layout->view($view);
+        }catch(LayoutException $exception){
+
+            // No error page could be found, just echo the result
+            echo "<h1>$errno</h1><h3>".$http_codes[$errno]."</h3>";
+        }
     }
 
  	/** 

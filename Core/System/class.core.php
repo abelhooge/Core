@@ -2,7 +2,6 @@
 
 namespace FuzeWorks;
 use \stdClass;
-use \Exception;
 
 /**
  * FuzeWorks Core
@@ -38,6 +37,9 @@ class Core {
 		$this->buildRegister();
 		$this->mods->events->buildEventRegister();
 
+		// And initialize the router paths
+		$this->mods->router->init();
+
 		$event = $this->mods->events->fireEvent('coreStartEvent');
 		if ($event->isCancelled()) {
 			return true;
@@ -55,6 +57,7 @@ class Core {
 		require_once("Core/System/class.abstract.model.php");
 		require_once("Core/System/class.abstract.controller.php");
 		require_once("Core/System/class.abstract.eventPriority.php");
+		require_once("Core/System/class.exceptions.php");
 
 		// Load the core classes
 		require_once("Core/System/class.config.php");
@@ -62,6 +65,7 @@ class Core {
 		require_once("Core/System/class.models.php");
 		require_once("Core/System/class.layout.php");
 		require_once("Core/System/class.events.php");
+		require_once("Core/System/class.router.php");
 
 		// Load them
         $this->mods->events 		= new Events 		($this);
@@ -69,6 +73,7 @@ class Core {
         $this->mods->logger      	= new Logger 		($this);
         $this->mods->models 		= new Models 		($this);
         $this->mods->layout 		= new Layout 		($this);
+        $this->mods->router 		= new Router 		($this);
 
         $this->loaded = true;
 	}

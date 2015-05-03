@@ -3,7 +3,6 @@
 namespace Module;
 use \FuzeWorks\Module;
 use \FuzeWorks\ModelServer;
-use \Exception;
 
 class DatabaseModel extends Module implements ModelServer {
 

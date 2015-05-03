@@ -6,7 +6,7 @@ abstract class Bus {
     protected $core;
     protected $mods;
 
-    protected $library;
+    protected $router;
     protected $config;
     protected $logger;
     protected $models;
@@ -22,6 +22,7 @@ abstract class Bus {
         $this->models           = &$core->mods->models;
         $this->layout           = &$core->mods->layout;
         $this->events           = &$core->mods->events;
+        $this->router           = &$core->mods->router;
     }
 
 }
