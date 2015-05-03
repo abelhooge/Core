@@ -2,18 +2,28 @@
 
 use \FuzeWorks\Event;
 
-class RouterRouteEvent extends Event {
-	
-	public $controller;
-	public $function;
-	public $parameters;
-    public $directory;
+/**
+ * Class routerRouteEvent
+ *
+ * Fired after the router has extracted the path
+ *
+ * @package System\Events
+ */
+class routerRouteEvent extends Event{
 
-    public function init($controller, $function, $parameters){
-        $this->controller   = $controller;
-        $this->function     = $function;
-        $this->parameters   = $parameters;
+    /**
+     * @var array The routing table
+     */
+    public $routes;
+
+    /**
+     * @var boolean Whether the callable will be loaded directly after or not
+     */
+    public $loadCallable;
+
+    public function init($routes, $loadCallable){
+
+        $this->routes       = $routes;
+        $this->loadCallable = $loadCallable;
     }
 }
-
-?>
