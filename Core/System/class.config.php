@@ -41,7 +41,7 @@ class Config extends Bus{
 	 * @return StdObject of config
 	 */
 	public function loadConfigFile($name, $directory = null) {
-		$dir = (isset($directory) ? $directory : "Application/config/");
+		$dir = (isset($directory) ? $directory : "Application/Config/");
 		$file = $dir . 'config.' . strtolower($name).".php";
 
 		if (file_exists($file)) {

@@ -27,8 +27,8 @@
     </target>
 
     <target name="zip">
-        <exec dir="${basedir}" executable="zip" failonerror="true">
-            <arg line="-r ${basedir}/build/fuzeworks-core.zip . -x build\* tests\* .git\* phpunit.phar apigen.phar phpunit.xml build.xml" />
+        <exec dir="${basedir}" executable="git" failonerror="true">
+            <arg line="archive -o ${basedir}/build/fuzeworks-core.zip HEAD" />
         </exec>
     </target>
 
