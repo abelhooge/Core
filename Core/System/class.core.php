@@ -12,6 +12,13 @@ class Core {
 
 	public $mods;	
 	public $register;
+
+	/**
+	 * The current version of the framework
+	 * @access public
+	 * @var String Framework version
+	 */
+	public $version = "0.0.1";
 	
 	/**
 	 * An array which modules are loaded, and should not be loaded again
