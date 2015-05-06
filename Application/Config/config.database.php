@@ -5,4 +5,5 @@
   'username' => '',
   'password' => '',
   'prefix' => '',
+  'debug' => false,
 ) ;

@@ -166,7 +166,11 @@ class Core {
 					// Return a reference
 					return $this->mods->{strtolower($cfg->module_name)} = &$CLASS;
 				}
+			} else {
+				throw new CoreException("Could not load mod '".$name."'. Invalid Configuration", 1);
 			}
+		} else {
+			throw new CoreException("Could not load mod '".$name."'. Not found", 1);
 		}
 	}
 
