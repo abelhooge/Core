@@ -3,6 +3,7 @@
 namespace Module\Database;
 use \FuzeWorks\Module;
 use \PDO;
+use \FuzeWorks\DatabaseException;
 
 class Main extends Module {
 
@@ -22,12 +23,21 @@ class Main extends Module {
 		$this->config->dbActive = true;
 	}
 
+	/**
+	 * Connect to a database
+	 * @access public
+	 * @param StdObject Config, like the database config in Application/Config
+	 */
 	public function connect($config = null) {
 		// If nothing is given, connect to database from the main config, otherwise use the served configuration
 		if (is_null($config)) {
 			$db = $this->mods->config->database;
 		} else {
 			$db = $config;
+		}
+
+		if (empty($db->type) || empty($db->host)) {
+			throw (new DatabaseException('Database is not configured!'));
 		}
 		
 		// Get the DSN for popular types of databases or a custom DSN
@@ -51,7 +61,7 @@ class Main extends Module {
 			// And set the prefix
 			$this->prefix = $db->prefix;
 		} catch (Exception $e) {
-			throw (new Exception('Could not connect to the database: "'. $e->getMessage() . '"'));
+			throw (new DatabaseException('Could not connect to the database: "'. $e->getMessage() . '"'));
 		}
 	}
 

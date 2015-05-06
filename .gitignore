@@ -10,6 +10,11 @@ FuzeWorks.esproj/*
 *.DS_Store
 *.swp
 *.out
+
+# Framework Files
 Core/Cache/
 Core/Logs/Error.log
+
+# Build Files
+vendor/
 build/
