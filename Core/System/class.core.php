@@ -10,16 +10,16 @@ use \stdClass;
  */
 class Core {
 
-	public $mods;	
-	public $register;
-	
-	/**
-	 * An array which modules are loaded, and should not be loaded again
-	 * @access private
-	 * @var Array of module names
-	 */
-	private $loaded_modules = array();
-	private $loaded = false;
+    private $loaded = false;
+
+    /**
+     * Modules Class holder
+     * @access public
+     * @var FuzeWorks\Modules
+     */
+    public $modules;
+
+    public $mods;
 
 	## START/STOP
 	public function init() {
@@ -31,10 +31,9 @@ class Core {
 		register_shutdown_function(array($this, "shutdown"));
 
 		// Load core functionality
-		$this->mods = new stdClass();
 		$this->loadStartupFiles();
 
-		$this->buildRegister();
+		$this->mods->modules->buildRegister();
 		$this->mods->events->buildEventRegister();
 
 		// And initialize the router paths
@@ -66,158 +65,37 @@ class Core {
 		require_once("Core/System/class.layout.php");
 		require_once("Core/System/class.events.php");
 		require_once("Core/System/class.router.php");
+		require_once("Core/System/class.modules.php");
 
-		// Load them
+		// Create the module holder
+		
+
+		// Load the modules
         $this->mods->events 		= new Events 		($this);
-		$this->mods->config	    	= new Config 		($this);
+		$this->mods->config	   		= new Config 		($this);
         $this->mods->logger      	= new Logger 		($this);
         $this->mods->models 		= new Models 		($this);
         $this->mods->layout 		= new Layout 		($this);
         $this->mods->router 		= new Router 		($this);
+        $this->mods->modules 		= new Modules 		($this);
 
         $this->loaded = true;
 	}
 
 	public function shutdown() {
 		$this->mods->events->fireEvent('coreShutdownEvent');
+		$this->mods->logger->shutdown();
 	}
 
 	public function loadMod($name) {
-		// Where the modules are
-		$path = "Modules/";
-
-		// Check if the requested module is registered
-		if (isset($this->register[$name])) {
-			if (!empty($this->register[$name])) {
-				// Load the moduleInfo
-				$cfg = (object) $this->register[$name];
-
-				// Check if the module is already loaded. If so, only return a reference, if not, load the module
-				if (in_array($name, $this->loaded_modules)) {
-					// return the link
-					$msg = "Module '".ucfirst((isset($cfg->name) ? $cfg->name : $cfg->module_name)) . "' is already loaded";
-					$this->mods->logger->log($msg);
-					$c = &$this->mods->{strtolower($cfg->module_name)};
-					return $c;
-				} else {
-					// Load the module
-					$file = $cfg->directory . $cfg->module_file;
-
-					// Load the dependencies before the module loads
-					$deps = (isset($cfg->dependencies) ? $cfg->dependencies : array());
-					for ($i=0; $i < count($deps); $i++) { 
-						$this->loadMod($deps[$i]);
-					}
-
-					// Check if the file exists
-					if (file_exists($file)) {
-						// And load it
-						require_once($file);
-						$class_name = $cfg->module_class;
-						$msg = "Loading Module '".ucfirst((isset($cfg->name) ? $cfg->name : $cfg->module_name)) . "'";
-						$msg .= (isset($cfg->version) ? "; version: ".$cfg->version : "");
-						$msg .= (isset($cfg->author) ? "; made by ".$cfg->author : "");
-						$msg .= (isset($cfg->website) ? "; from ".$cfg->website: "");
-						$this->mods->logger->log($msg);
-					} else {
-						// Throw Exception if the file does not exist
-						throw new Exception("Requested mod '".$name."' could not be loaded. Class file not found", 1);
-						return false;							
-					}
-
-					// If it is an abstract module, load an StdClass for the module address
-					if (isset($cfg->abstract)) {
-						if ($cfg->abstract) {
-							$CLASS = new stdClass();
-							return $this->mods->{strtolower($cfg->module_name)} = &$CLASS;
-						}
-					}
-
-					// Load the module class
-					$class_name = $cfg->module_class;
-					$CLASS = new $class_name($this);
-
-					// Apply default methods
-					if (method_exists($CLASS, 'setModulePath')) {
-						$CLASS->setModulePath($cfg->directory);
-					}
-					if (method_exists($CLASS, 'setModuleLinkName')) {
-						$CLASS->setModuleLinkName(strtolower($cfg->module_name));
-					}
-					if (method_exists($CLASS, 'setModuleName')) {
-						$CLASS->setModuleName($name);
-					}
-
-					if (!method_exists($CLASS, 'onLoad')) {
-						throw new Exception("Module '".$name."' does not have an onLoad() method! Invalid module", 1);
-					}
-					$CLASS->onLoad();
-
-					// Add to the loaded modules
-					$this->loaded_modules[] = $name;
-
-					// Return a reference
-					return $this->mods->{strtolower($cfg->module_name)} = &$CLASS;
-				}
-			}
-		}
+		return $this->mods->modules->loadMod($name);
 	}
 
-	public function buildRegister() {
-		$this->mods->logger->newLevel("Loading Module Headers", 'Core');
-
-		// Get all the module directories
-		$dir = "Modules/";
-		$mod_dirs = array();
-		$mod_dirs = array_values(array_diff(scandir($dir), array('..', '.')));
-
-		// Build the module register
-		$register = array();
-		for ($i=0; $i < count($mod_dirs); $i++) { 
-			$mod_dir = $dir . $mod_dirs[$i] . "/";
-			// If a moduleInfo.php exists, load it
-			if (file_exists($mod_dir . "/moduleInfo.php")) {
-        		$cfg = (object) require($mod_dir . "/moduleInfo.php");
-        		$name = "";
-        		$name .= (!empty($cfg->author) ? strtolower($cfg->author)."/" : "");
-        		$name .= strtolower($cfg->module_name);
-
-        		// Append directory
-        		$cfg->directory = $mod_dir;
-        		if (isset($cfg->enabled)) {
-        			if ($cfg->enabled) {
-        				$register[$name] = (array) $cfg;
-        				$this->mods->logger->log("[ON]  '".$name."'");
-        			} else {
-        				$this->mods->logger->log("[OFF] '".$name."'");
-        			}
-        		} else {
-        			$register[$name] = (array) $cfg;
-        			$this->mods->logger->log("[ON]  '".$name."'");
-        		}
-        		
-        		
-			} else {
-        		// Get the name
-        		$name = $mod_dirs[$i];
-
-        		// Build a default module config
-        		$cfg = new stdClass();
-        		$cfg->module_class = ucfirst($name);
-        		$cfg->module_file = 'class.'.strtolower($name).".php";
-        		$cfg->module_name = $name;
-        		$cfg->dependencies = array();
-        		$cfg->versions = array();
-        		$cfg->directory = $mod_dir;
-        		$register[$name] = (array)$cfg;
-        		$this->mods->logger->log("[ON]  '".$name."'");
-			}
-		}
-
-		$this->register = $register;
-		$this->mods->logger->stopLevel();
-		
+	public function addMod($moduleInfo_file) {
+		return $this->mods->modules->addModule($moduleInfo_file);
 	}
+
+
 }
 
 
