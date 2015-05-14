@@ -20,6 +20,7 @@ namespace FuzeWorks;
 class Events extends Bus{
 
 	private $listeners;
+    private $enabled = true;
 
 	public function __construct(&$core) {
 		parent::__construct($core);
@@ -119,6 +120,13 @@ class Events extends Bus{
 		if (func_num_args() > 1)
 			call_user_func_array(array($event, 'init'), array_slice(func_get_args(), 1));
 
+        // Do not run if the event system is disabled
+        if (!$this->enabled) {
+            $this->logger->log("Event system is disabled");
+            $this->logger->stopLevel();
+            return $event;
+        }
+
 		$this->logger->log("Checking for Listeners");
 
         // Read the event register for listeners
@@ -165,7 +173,7 @@ class Events extends Bus{
     // Event Preparation:
     public function buildEventRegister() {
         $event_register = array();
-        foreach ($this->core->register as $key => $value) {
+        foreach ($this->modules->register as $key => $value) {
             if (isset($value['events'])) {
                 if (!empty($value['events'])) {
                     for ($i=0; $i < count($value['events']); $i++) { 
@@ -180,6 +188,22 @@ class Events extends Bus{
         }
 
         $this->register = $event_register;
+    }
+
+    /**
+     * Enables the event system
+     */
+    public function enable() {
+        $this->logger->log("Enabled the Event system");
+        $this->enabled = true;
+    }
+
+    /**
+     * Disables the event system
+     */
+    public function disable() {
+        $this->logger->log("Disabled the Event system");
+        $this->enabled = false;
     }
 }
 

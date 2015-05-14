@@ -12,6 +12,7 @@ abstract class Bus {
     protected $models;
     protected $layout;
     protected $events;
+    protected $modules;
 
     protected function __construct(&$core){
         $this->core = &$core;
@@ -23,6 +24,7 @@ abstract class Bus {
         $this->layout           = &$core->mods->layout;
         $this->events           = &$core->mods->events;
         $this->router           = &$core->mods->router;
+        $this->modules          = &$core->mods->modules;
     }
 
 }

@@ -25,6 +25,11 @@ class Module extends Bus {
 	protected $linkName = 'placeholder';
 
 	/**
+	 * @var moduleInfo object of the module
+	 */
+	protected $cfg;
+
+	/**
 	 * Constructor
 	 *
 	 * @param Core $core Pointer to the core class
@@ -50,6 +55,15 @@ class Module extends Bus {
 	public function getModulePath(){
 
         return $this->modulePath;
+    }
+
+    /**
+     * Returns the config of the module (moduleInfo.php)
+     * @access public
+ 	 * @return stdClass module config
+     */
+    public function getModuleConfig() {
+    	return $this->cfg;
     }
 
 	/**
@@ -84,4 +98,45 @@ class Module extends Bus {
     public function setModuleName($modName) {
     	$this->moduleName = $modName;
     }
+
+    /**
+     * Add the moduleInfo.php to the module for direct interaction
+     * @access public
+     * @param stdClass module config
+     */
+    public function setModuleConfig($config) {
+    	$this->cfg = $config;
+    }
+
+    /**
+     * Set a value in the modules moduleInfo.php
+     * @access protected
+     * @param Mixed config Key
+     * @param Mixed config value
+     */
+	public function setConfigValue($key, $value) {
+		$file = $this->getModulePath() . "moduleInfo.php";
+		$this->cfg->$key = $value;
+
+		// Check if the module path is set yet
+		if ($this->getModulePath() == null) {
+			$this->logger->logWarning("Could not write module config. ModulePath is not set", get_class($this));
+			return false;
+		}
+
+		if (file_exists($file) && is_writable($file)) {
+			$config = var_export($this->cfg, true);
+			file_put_contents($file, "<?php return $config ;");
+		}
+	}
+
+	/**
+	 * Return a value from the module configuration
+	 * @access public
+	 * @param Mixed config Key
+	 * @return Mixed config value
+	 */
+	public function getConfigValue($key) {
+		return $this->cfg->$key;
+	}
 }
