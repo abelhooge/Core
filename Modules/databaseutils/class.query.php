@@ -59,46 +59,133 @@ class Query extends Module {
     /**
      * From
      *
-     * @param $table null|string The table, if it is null, the table set with setTable() will be used
+     * @param ...$table null|string The table, if it is null, the table set with setTable() will be used
      * @return $this
      * @throws Exception
      */
-    public function from($table = '')
+    public function from()
     {
+        $tables = func_get_args();
 
-        if($table === ''){
+        $this->query .= ' FROM ';
 
-            if($this->table == '')
+        if(count($tables) == 0)
+            $tables[] = "`$this->table`";
+
+        else foreach($tables as $i => $t) {
+
+            if ($t == '' && $this->table == '')
                 throw new Exception("No table given");
 
-            $table = $this->table;
+            $tables[$i] = strpos($t, ' ') === false ? "`$t`" : '`'.implode('` ', explode(' ', $t));
         }
 
-        $this->query .= ' FROM `' . $table . '`';
+        $this->query .= implode(', ', $tables);
 
         return $this;
     }
 
     /**
-     * Where
+     * (Inner) join
      *
-     * @param $field
+     * @param string $table The table to join
+     * @param string $type The type of join to perform (JOIN, LEFT JOIN, RIGHT JOIN, FULL JOIN)
+     * @return $this
+     * @throws Exception
+     */
+    public function join($table, $type = ''){
+
+        if($table === '') {
+
+            if ($this->table == '')
+                throw new Exception("No table given");
+
+            $table = $this->table;
+        }
+
+        if($type != '')
+            $this->query .= ' '.$type;
+
+        $this->query .= ' JOIN ' . (strpos($table, ' ') === false ? "`$table`" : '`'.implode('` ', explode(' ', $table)));
+
+        return $this;
+    }
+
+    /**
+     * Left join
+     *
+     * @param string $table The table to join
+     * @return $this
+     * @throws Exception
+     */
+    public function left_join($table){
+
+        return $this->join($table, 'LEFT');
+    }
+
+    /**
+     * Right join
+     *
+     * @param string $table The table to join
+     * @return $this
+     * @throws Exception
+     */
+    public function right_join($table){
+
+        return $this->join($table, 'RIGHT');
+    }
+
+    /**
+     * Full join
+     *
+     * @param string $table The table to join
+     * @return $this
+     * @throws Exception
+     */
+    public function full_join($table){
+
+        return $this->join($table, 'FULL');
+    }
+
+    /**
+     * On
+     *
+     * @param string $field Field name, or raw SQL
      * @param $arg2 string, The value of the field, or an operator in which case the value is pushed to $arg3
      * @param null|string $arg3 The value of the field when $arg2 is used for an operator
      * @return $this
      */
-    public function where($field, $arg2, $arg3 = null){
+    public function on($field, $arg2 = null, $arg3 = null){
 
-        //The value is the second paramter, unless the second parameter is an operator, in which case it's the third
+        return $this->where($field, $arg2, $arg3, 'ON');
+    }
+
+    /**
+     * Where
+     *
+     * @param string $field Field name, or raw SQL
+     * @param string $arg2, The value of the field, or an operator in which case the value is pushed to $arg3
+     * @param null|string $arg3 The value of the field when $arg2 is used for an operator
+     * @param string $type Whether this is an WHERE or ON operation
+     * @return $this
+     */
+    public function where($field, $arg2 = null, $arg3 = null, $type = 'WHERE'){
+
+        if($arg2 === null)
+            return $this->sql(' '.$type.' '.$field);
+
+        //The value is the second parameter, unless the second parameter is an operator, in which case it's the third
         $value = ($arg3 == null ? $arg2 : $arg3);
         //If the third parameter is not given, the default operator should be used
         $operator = strtoupper($arg3 == null ? "=" : $arg2);
+
+        $field = $this->formatField($field);
 
         switch($operator){
 
             case 'IN':
 
-                $this->query .= ' WHERE `' . $field .'` IN (';
+                $this->query .= ' '.$type.' '.$field.' IN (';
 
                 foreach($value as $k => $v){
 
@@ -109,12 +196,11 @@ class Query extends Module {
                 //Remove the trailing comma and close it
                 $this->query = rtrim($this->query, ",") . ')';
 
-
                 break;
 
             case 'BETWEEN':
 
-                $this->query .= ' WHERE `' . $field .'` BETWEEN ? AND ?';
+                $this->query .= ' '.$type.' '.$field.' BETWEEN ? AND ?';
                 $this->binds[] = $value[0];
                 $this->binds[] = $value[1];
 
@@ -122,7 +208,7 @@ class Query extends Module {
 
             default:
 
-                $this->query .= ' WHERE `' . $field .'` ' . $operator . ' ?';
+                $this->query .= ' '.$type.' '.$field.' ' . $operator . ' ?';
                 $this->binds[] = $value;
 
                 break;
@@ -133,7 +219,7 @@ class Query extends Module {
     /**
      * Where open. Is the start of WHERE(....). To end this call ->close()
      *
-     * @param $field
+     * @param string $field Field name, or raw SQL
      * @param $arg2 string, The value of the field, or an operator in which case the value is pushed to $arg3
      * @param null|string $arg3 The value of the field when $arg2 is used for an operator
      * @return $this
@@ -142,6 +228,7 @@ class Query extends Module {
 
         $old = $this->query;
         $this->where($field, $arg2, $arg3);
+
         //Replace the WHERE with WHERE (
         $this->query =  $old . ' WHERE (' . substr($this->query, strlen($old) + 7);
 
@@ -151,23 +238,28 @@ class Query extends Module {
     /**
      * Or, this function should be called after ->where() or ->having(). Please use ->or as an alias instead of ->_or()
      *
-     * @param $field
+     * @param string $field Field name, or raw SQL
      * @param $arg2 string, The value of the field, or an operator in which case the value is pushed to $arg3
      * @param null|string $arg3 The value of the field when $arg2 is used for an operator
      * @return $this
      */
-    public function _or($field, $arg2, $arg3 = null){
+    private function _or($field, $arg2 = null, $arg3 = null){
+
+        if($arg2 === null)
+            return $this->sql(' OR '.$field);
 
         //The value is the second paramter, unless the second parameter is an operator, in which case it's the third
         $value = ($arg3 == null ? $arg2 : $arg3);
         //If the third parameter is not given, the default operator should be used
         $operator = strtoupper($arg3 == null ? "=" : $arg2);
 
+        $field = $this->formatField($field);
+
         switch($operator){
 
             case 'IN':
 
-                $this->query .= ' OR `' . $field .'` IN (';
+                $this->query .= ' OR ' . $field .' IN (';
 
                 foreach($value as $k => $v){
 
@@ -183,7 +275,7 @@ class Query extends Module {
 
             case 'BETWEEN':
 
-                $this->query .= ' OR `' . $field .'` BETWEEN ? AND ?';
+                $this->query .= ' OR ' . $field .' BETWEEN ? AND ?';
                 $this->binds[] = $value[0];
                 $this->binds[] = $value[1];
 
@@ -191,7 +283,7 @@ class Query extends Module {
 
             default:
 
-                $this->query .= ' OR `' . $field .'` ' . $operator . ' ?';
+                $this->query .= ' OR ' . $field .' ' . $operator . ' ?';
                 $this->binds[] = $value;
 
                 break;
@@ -202,7 +294,7 @@ class Query extends Module {
     /**
      * Or open. Is the start of OR(....). To end this call ->close()
      *
-     * @param $field
+     * @param string $field Field name, or raw SQL
      * @param $arg2 string, The value of the field, or an operator in which case the value is pushed to $arg3
      * @param null|string $arg3 The value of the field when $arg2 is used for an operator
      * @return $this
@@ -220,23 +312,28 @@ class Query extends Module {
     /**
      * And, this function should be called after ->where() or ->having(). Please use ->and as an alias instead of ->_and()
      *
-     * @param $field
+     * @param string $field Field name, or raw SQL
      * @param $arg2 string, The value of the field, or an operator in which case the value is pushed to $arg3
      * @param null|string $arg3 The value of the field when $arg2 is used for an operator
      * @return $this
      */
-    public function _and($field, $arg2, $arg3 = null){
+    private function _and($field, $arg2 = null, $arg3 = null){
+
+        if($arg2 === null)
+            return $this->sql(' AND '.$field);
 
         //The value is the second paramter, unless the second parameter is an operator, in which case it's the third
         $value = ($arg3 == null ? $arg2 : $arg3);
         //If the third parameter is not given, the default operator should be used
         $operator = strtoupper($arg3 == null ? "=" : $arg2);
 
+        $field = $this->formatField($field);
+
         switch($operator){
 
             case 'IN':
 
-                $this->query .= ' AND `' . $field .'` IN (';
+                $this->query .= ' AND ' . $field .' IN (';
 
                 foreach($value as $k => $v){
 
@@ -252,7 +349,7 @@ class Query extends Module {
 
             case 'BETWEEN':
 
-                $this->query .= ' AND `' . $field .'` BETWEEN ? AND ?';
+                $this->query .= ' AND ' . $field .' BETWEEN ? AND ?';
                 $this->binds[] = $value[0];
                 $this->binds[] = $value[1];
 
@@ -260,7 +357,7 @@ class Query extends Module {
 
             default:
 
-                $this->query .= ' AND `' . $field .'` ' . $operator . ' ?';
+                $this->query .= ' AND ' . $field .' ' . $operator . ' ?';
                 $this->binds[] = $value;
 
                 break;
@@ -321,7 +418,9 @@ class Query extends Module {
 
             }
 
-            $this->query .= ' `' . $field . '` ' . $mode;
+            $field = $this->formatField($field);
+
+            $this->query .= ' ' . $field . ' ' . $mode;
         }
 
         return $this;
@@ -356,11 +455,13 @@ class Query extends Module {
         //If the third parameter is not given, the default operator should be used
         $operator = strtoupper($arg3 == null ? "=" : $arg2);
 
+        $field = $this->formatField($field);
+
         switch($operator){
 
             case 'IN':
 
-                $this->query .= ' HAVING `' . $field .'` IN (';
+                $this->query .= ' HAVING ' . $field .' IN (';
 
                 foreach($value as $k => $v){
 
@@ -376,7 +477,7 @@ class Query extends Module {
 
             case 'BETWEEN':
 
-                $this->query .= ' HAVING `' . $field .'` BETWEEN ? AND ?';
+                $this->query .= ' HAVING ' . $field .' BETWEEN ? AND ?';
                 $this->binds[] = $value[0];
                 $this->binds[] = $value[1];
 
@@ -384,7 +485,7 @@ class Query extends Module {
 
             default:
 
-                $this->query .= ' HAVING `' . $field .'` ' . $operator . ' ?';
+                $this->query .= ' HAVING ' . $field .' ' . $operator . ' ?';
                 $this->binds[] = $value;
 
                 break;
@@ -437,17 +538,19 @@ class Query extends Module {
     /**
      * Set
      *
-     * @param $array array Key value, $field => $value
+     * @param $data array|string Key value, $field => $value or raw SQL
      * @return $this
      */
-    public function set($array)
+    public function set($data)
     {
+        if(is_string($data))
+            return $this->sql(' SET '.$data);
 
         $this->query .= ' SET';
 
         $first = true;
 
-        foreach($array as $field => $value){
+        foreach($data as $field => $value){
 
             if(!$first)
                 $this->query .= ',';
@@ -505,6 +608,33 @@ class Query extends Module {
         $this->query = rtrim($this->query, ',') . ')';
 
         return $this;
+    }
+
+    /**
+     * Add raw SQL to the query string
+     *
+     * @param string $sql The SQL to add
+     * @return string
+     */
+    public function sql($sql){
+
+        $this->query .= $sql;
+
+        return $this;
+    }
+
+    /**
+     * Formats the given field
+     *
+     * @param string $field The field to format
+     * @return string The formatted field
+     */
+    private function formatField($field){
+
+        if(strpos($field, '.') === false)
+            $field = "`$field`";
+
+        return $field;
     }
 
     /**

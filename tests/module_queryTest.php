@@ -30,8 +30,26 @@ class QueryTests extends CoreTestAbstract {
 
     public function testSelectSimpleDefaultTable(){
 
-        $this->query->setTable("table")->select()->from('table');
+        $this->query->setTable("table")->select()->from();
         $this->assertEquals('SELECT * FROM `table`', $this->query->getQuery());
+    }
+
+    public function testSelectSimpleComboTable()
+    {
+        $this->query->select()->from('table', 'table2');
+        $this->assertEquals('SELECT * FROM `table`, `table2`', $this->query->getQuery());
+    }
+
+    public function testSelectSimpleAlias()
+    {
+        $this->query->select()->from('table t');
+        $this->assertEquals('SELECT * FROM `table` t', $this->query->getQuery());
+    }
+
+    public function testSelectSimpleComboAlias()
+    {
+        $this->query->select()->from('table t', 'table2 t2');
+        $this->assertEquals('SELECT * FROM `table` t, `table2` t2', $this->query->getQuery());
     }
 
     public function testSelectSimpleOneField(){
@@ -331,5 +349,76 @@ class QueryTests extends CoreTestAbstract {
         $this->assertEquals('INSERT INTO `table` (`field1`,`field2`) VALUES (?,?)', $this->query->getQuery());
         $this->assertEquals(array('value1', 'value2'), $this->query->getBinds());
 
+    }
+
+    /*
+    * Joins
+    */
+
+    public function testJoin(){
+
+        $this->query->select()->from('table')->join('other')->on("field", "value")->where("field", "value2");
+        $this->assertEquals('SELECT * FROM `table` JOIN `other` ON `field` = ? WHERE `field` = ?', $this->query->getQuery());
+        $this->assertEquals(array('value', 'value2'), $this->query->getBinds());
+    }
+
+    public function testJoinLeft(){
+
+        $this->query->select()->from('table')->left_join('other')->on("field", "value")->where("field", "value2");
+        $this->assertEquals('SELECT * FROM `table` LEFT JOIN `other` ON `field` = ? WHERE `field` = ?', $this->query->getQuery());
+        $this->assertEquals(array('value', 'value2'), $this->query->getBinds());
+    }
+
+    public function testJoinRight(){
+
+        $this->query->select()->from('table')->right_join('other')->on("field", "value")->where("field", "value2");
+        $this->assertEquals('SELECT * FROM `table` RIGHT JOIN `other` ON `field` = ? WHERE `field` = ?', $this->query->getQuery());
+        $this->assertEquals(array('value', 'value2'), $this->query->getBinds());
+    }
+
+    public function testJoinFull(){
+
+        $this->query->select()->from('table')->full_join('other')->on("field", "value")->where("field", "value2");
+        $this->assertEquals('SELECT * FROM `table` FULL JOIN `other` ON `field` = ? WHERE `field` = ?', $this->query->getQuery());
+        $this->assertEquals(array('value', 'value2'), $this->query->getBinds());
+    }
+
+    public function testJoinAdvanced(){
+
+        $this->query->select()->from('table')
+            ->left_join('other_a')->on("field", "value")
+            ->right_join('other_b')->on("field", "value2")
+            ->full_join('other_c')->on("field", "value3")
+            ->where("field", "value4");
+        $this->assertEquals('SELECT * FROM `table` LEFT JOIN `other_a` ON `field` = ? RIGHT JOIN `other_b` ON `field` = ? FULL JOIN `other_c` ON `field` = ? WHERE `field` = ?', $this->query->getQuery());
+        $this->assertEquals(array('value', 'value2', 'value3', 'value4'), $this->query->getBinds());
+    }
+
+    /**
+     * Inline joins
+     */
+    public function testJoinInline(){
+
+        $this->query->select()->from('table t', 'other o')->where("o.field", "value");
+        $this->assertEquals('SELECT * FROM `table` t, `other` o WHERE o.field = ?', $this->query->getQuery());
+        $this->assertEquals(array('value'), $this->query->getBinds());
+    }
+
+    public function testJoinInlineAdvanced(){
+
+        $this->query->select()->from('table t', 'other o')->where("o.field = t.field");
+        $this->assertEquals('SELECT * FROM `table` t, `other` o WHERE o.field = t.field', $this->query->getQuery());
+        $this->assertEmpty($this->query->getBinds());
+    }
+
+    public function testJoinAllInOne(){
+
+        $this->query->select()
+            ->from('table t', 'other o')
+                ->left_join('third th')->on('th.field = o.field')
+            ->where("o.field = t.field")
+                ->and('t.thing', '>', 25);
+        $this->assertEquals('SELECT * FROM `table` t, `other` o LEFT JOIN `third` th ON th.field = o.field WHERE o.field = t.field AND t.thing > ?', $this->query->getQuery());
+        $this->assertEquals(array(25), $this->query->getBinds());
     }
 }
