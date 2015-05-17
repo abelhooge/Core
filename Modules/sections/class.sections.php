@@ -195,6 +195,7 @@ class Main extends Module {
 			} else {
 				// Otherwise apply the relocatorCallable
 				$this->directory = $section['controller_path'];
+				$this->controller_namespace = $section['controller_namespace'];
 				$event->callable = array($this, 'relocateCallable');
 			}
 
@@ -232,7 +233,7 @@ class Main extends Module {
         $this->function   = $this->function   === null ? $this->config->main->default_function   : $this->function;
 
         // Construct file paths and classes
-        $class  = '\Controller\\'.ucfirst($this->controller);
+        $class  = $this->controller_namespace."\\".ucfirst($this->controller);
         $file   = $this->directory . '/controller.'.$this->controller.'.php';
 
         $this->logger->log('Loading controller '.$class.' from file: '.$file);
