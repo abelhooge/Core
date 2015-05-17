@@ -125,7 +125,7 @@ class Layout extends Bus {
         	
         	// Load the page
             $this->Smarty['main']->display($vw);
-            $this->logger->logInfo("VIEW LOAD: '".$vw."'", "Layout", __FILE__, __LINE__);
+            $this->logger->logInfo("Loading view: '".$vw."'", "Layout", __FILE__, __LINE__);
         }catch (\SmartyException $e){
 
         	// Throw error on failure
@@ -154,7 +154,7 @@ class Layout extends Bus {
         	
         	// Load the page
             return $this->Smarty['main']->fetch('view.'.$view.'.tpl');
-            $this->logger->logInfo("VIEW LOAD: 'view.".$view.'.tpl'."'", "Layout", __FILE__, __LINE__);
+            $this->logger->logInfo("Loading view: 'view.".$view.'.tpl'."'", "Layout", __FILE__, __LINE__);
         }catch (\SmartyException $e){
 
         	// Throw error on failure

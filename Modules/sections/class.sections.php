@@ -29,11 +29,22 @@ class Main extends Module {
 	 * @access public
 	 */
 	public function onLoad() {
+		// Register Events
+		$this->events->addListener(array($this, 'routerLoadCallableEvent'), 'routerLoadCallableEvent', EventPriority::NORMAL);
+		$this->events->addListener(array($this, 'layoutLoadEvent'), 'layoutLoadEvent', EventPriority::NORMAL);
+		$this->events->addListener(array($this, 'modelLoadevent'), 'modelLoadEvent', EventPriority::NORMAL);
+	}
+
+	/**
+	 * Check which modules have sections and add them to the config
+	 * @access private
+	 */
+	private function reloadSectionConfig() {
 		// Load the config
 		$config = $this->config->loadConfigFile('sections', $this->getModulePath());
 
-		$this->logger->newLevel('Adding module sections', 'Sections');
 		// Add the modules to the config
+		$this->logger->newLevel('Adding module sections', 'Sections');
 		$section_register = array();
         foreach ($this->core->register as $key => $value) {
             // Check if the sections value exists in the config file
@@ -62,11 +73,6 @@ class Main extends Module {
         $this->cfg = $config;
         $this->logger->log('Added all module sections to the config file', 'Sections');
         $this->logger->stopLevel();
-
-		// Register Events
-		$this->events->addListener(array($this, 'routerRouteEvent'), 'routerRouteEvent', EventPriority::LOWEST);
-		$this->events->addListener(array($this, 'layoutLoadEvent'), 'layoutLoadEvent', EventPriority::LOWEST);
-		$this->events->addListener(array($this, 'modelLoadevent'), 'modelLoadEvent', EventPriority::LOWEST);
 	}
 
 	/**
@@ -155,12 +161,15 @@ class Main extends Module {
 	}
 
 	/**
-	 * Get's called on routerRouteEvent. Redirects when a section is found
+	 * Get's called on routerLoadCallableEvent. Redirects when a section is found
 	 * @access public 
-	 * @param routerRouteEvent Event
-	 * @return routerRouteEvent Event
+	 * @param routerLoadCallableEvent Event
+	 * @return routerLoadCallableEvent Event
 	 */
-	public function routerRouteEvent($event) {
+	public function routerLoadCallableEvent($event) {
+		$this->reloadSectionConfig();
+
+		// Get the variables from the event
 		$name = $event->controller;
 		$controller = null;
 		$function = null;
@@ -168,17 +177,25 @@ class Main extends Module {
 		$section = $this->{$name};
 
 		if ($section !== null) {
-			// Section found
+
+			// If a section is found, load it
 			$this->logger->log("Section found with name: '".$name."'", 'Sections');
 			$this->currentSection = $name;
 
-			// Logic here, first for module sections
+			// If the section is a module_section, apply the moduleCallable
 			if ($section['module_section']) {
 				$mod = $this->core->loadMod($section['module_name']);
-				$event->directory = $mod->getModulePath() . "/Controller/";
+				if (method_exists($mod, 'moduleCallable')) {
+					$event->callable = array($mod, 'moduleCallable');
+				} else {
+					$this->logger->logError($section['module_name'] . " does not have callable! Can not continue");
+					return false;
+				}
+
 			} else {
-				// Now for regular sections
-				$event->directory = $section['controller_path'];
+				// Otherwise apply the relocatorCallable
+				$this->directory = $section['controller_path'];
+				$event->callable = array($this, 'relocateCallable');
 			}
 
 			// Move the path so it matches the new regime
@@ -200,6 +217,51 @@ class Main extends Module {
         if(count($parameters) !== 0)$event->parameters  = $parameters;
 
 		return $event;
+	}
+
+    /**
+     * The default callable
+     *
+     * This callable will do the regular routing but in a different directory defined by a section
+     * @access public
+     */
+	public function relocateCallable() {
+        $this->logger->log('Redirector Callable Called');
+
+        $this->controller = $this->controller === null ? $this->config->main->default_controller : $this->controller;
+        $this->function   = $this->function   === null ? $this->config->main->default_function   : $this->function;
+
+        // Construct file paths and classes
+        $class  = '\Controller\\'.ucfirst($this->controller);
+        $file   = $this->directory . '/controller.'.$this->controller.'.php';
+
+        $this->logger->log('Loading controller '.$class.' from file: '.$file);
+
+        // Check if the file exists
+        if(file_exists($file)){
+
+            if(!class_exists($class))
+                require $file;
+
+            $this->callable = new $class($this->core);
+
+            // Check if method exists or if there is a caller function
+            if(method_exists($this->callable, $this->function) || method_exists($this->callable, '__call')){
+
+                // Execute the function on the controller
+                $this->callable->{$this->function}($this->parameters);
+            }else{
+
+                // Function could not be found
+                $this->logger->log('Could not find function '.$this->function.' on controller '.$class);
+                $this->logger->http_error(404);
+            }
+        }else{
+
+            // Controller could not be found
+            $this->logger->log('Could not find controller '.$class);
+            $this->logger->http_error(404);
+        }
 	}
 
 	/**

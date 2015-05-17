@@ -384,7 +384,7 @@ class Router extends Bus{
 
                 // Function could not be found
                 $this->logger->log('Could not find function '.$this->function.' on controller '.$class);
-                $this->error->http_error(404);
+                $this->logger->http_error(404);
             }
         }else{
 
