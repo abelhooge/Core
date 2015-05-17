@@ -18,5 +18,5 @@ return array(
     'date_created'  => '29-04-2015',
     'date_updated'  => '29-04-2015',
 
-    'enabled'       => false,
+    'enabled'       => true,
 );
