@@ -1,6 +1,6 @@
 <html>
 <head>
-	<title>Maintenance</title>
+	<title>FuzeWorks - Home</title>
 	<link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
 	<style>
 		body {
@@ -26,24 +26,25 @@
 <body>
 	<div id='setupcontainer'>
 		<div class='row'>
-			<div id='logo' class='col-lg-5 col-centered' style='margin-top:20%;'>
-				<img src='http://myfuze.net/Fuze2tra.png' />
-			</div>
-
-			<div class='col-lg-12 col-md-12 col-sm-12'>
+			<div class='col-lg-12 col-md-4 col-sm-12'>
 				<div id='contentPanel' class="panel panel-default" style='display:none'>
 				    <div id='1' class="panel-body" style='display:none'>
-				       <p class="lead">Dear visitor,</p>
+				       <p class="lead">Welcome to FuzeWorks</p>
 				       <p>
-				       		This site is currently under maintenance. This has resulted in that you are not able to view the website. 
+				       		This website is currently under development.
 				       </p>
 				       <p>
-				       		Our apologies for the inconvenience. 
+				       		{if $adminMail == ''}
+				       		For further information, please contact the website administrator</a> 
+				       		{else}
+				       		For further information, please contact <a href='mailto:{$adminMail}'>{$adminMail}</a> 
+				       		{/if}
+				       		
 				       </p>
-				       <p><small>if you have any questions, please send your question to <a href='mailto:contact@fuzenetwerk.com'>contact@fuzenetwerk.com</a></small></p>
-
 				    </div>
             	</div>
+
+
 			</div>
 		</div>
 	</div>
@@ -57,12 +58,8 @@
 			
 			start();
 			function start() {
-				$("#logo").animate({ 'marginTop': '0%' }, 1000);
-				$("#progress").fadeIn(2000);
-				$("#contentPanel").fadeIn(2000);
-				$("#1").fadeIn(2000);
-				$("#buttons").fadeIn(2000);
-				currentPage = 1;
+				$("#contentPanel").fadeIn(500);
+				$("#1").fadeIn(500);
 			}
 		</script>
 	</footer>

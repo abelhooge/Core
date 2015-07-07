@@ -9,7 +9,7 @@ class Standard extends Controller {
 	}
 
 	public function index($path = null) {
-		$this->layout->view('maintenance');
+		$this->layout->view('home');
 	}
 }
 
