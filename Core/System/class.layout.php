@@ -20,7 +20,7 @@ class Layout extends Bus {
 		parent::__construct($core);
 	}
 
-	private function load() {
+	private function smartyLoad() {
 		// Load Smarty
 		$smartyDir = "Core/System/Smarty";
 		
@@ -50,7 +50,7 @@ class Layout extends Bus {
 	public function __get($name) {
 		// Chech if Smarty is loaded
 		if (!$this->loaded)
-			$this->load();
+			$this->smartyLoad();
 
 		if (!isset($this->Smarty[$name])) {
 			$this->Smarty[$name] = new \Smarty();
@@ -61,17 +61,9 @@ class Layout extends Bus {
 	public function __call($name, $params) {
 		// Chech if Smarty is loaded
 		if (!$this->loaded)
-			$this->load();
+			$this->smartyLoad();
 
 		return call_user_func_array(array($this->Smarty['main'], $name), $params);
-	}
-
-	public function getNew() {
-		// Chech if Smarty is loaded
-		if (!$this->loaded)
-			$this->load();
-
-		return new \Smarty();
 	}
 
 	public function setTitle($title) {
@@ -85,7 +77,7 @@ class Layout extends Bus {
 	public function view($view = "default") {
 		// Chech if Smarty is loaded
 		if (!$this->loaded)
-			$this->load();
+			$this->smartyLoad();
 
 		$event = $this->events->fireEvent('layoutLoadEvent', $view);
 		$directory 			= ($event->directory === null ? "Application/Views" : $event->directory);
@@ -137,7 +129,7 @@ class Layout extends Bus {
 	public function get($view = "default", $directory = "") {
 		// Chech if Smarty is loaded
 		if (!$this->loaded)
-			$this->load();
+			$this->smartyLoad();
 
 		// Set the directory
 		$directory = ($directory == "" ? "Application/" . '/Views' : $directory);
