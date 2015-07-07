@@ -14,7 +14,7 @@ class Main extends Module {
 	 * @access public
 	 */
 	public function onLoad() {
-
+		// Do Something
 	}
 
 }
