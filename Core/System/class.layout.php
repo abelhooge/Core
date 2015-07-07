@@ -44,6 +44,7 @@ class Layout extends Bus {
 		$Smarty->assign('siteURL', $this->config->main->SITE_URL);
 		$Smarty->assign('serverName', $this->config->main->SERVER_NAME);
 		$Smarty->assign('siteDomain', $this->config->main->SITE_DOMAIN);
+		$Smarty->assign('adminMail', $this->config->main->administrator_mail);
 		return $Smarty;
 	}
 
