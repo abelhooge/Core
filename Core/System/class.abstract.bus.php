@@ -4,7 +4,7 @@ namespace FuzeWorks;
 
 abstract class Bus {
     protected $core;
-    protected $mods;
+    public $mods;
 
     protected $router;
     protected $config;
