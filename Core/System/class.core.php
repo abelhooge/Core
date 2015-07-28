@@ -31,6 +31,9 @@ class Core {
 		// Load core functionality
 		$this->loadStartupFiles();
 
+		// Load Composer
+		$this->loadComposer();
+
 		$this->mods->modules->buildRegister();
 		$this->mods->events->buildEventRegister();
 
@@ -91,6 +94,17 @@ class Core {
 
 	public function addMod($moduleInfo_file) {
 		return $this->mods->modules->addModule($moduleInfo_file);
+	}
+
+	/**
+	 * Load composer if it is present
+	 * @access private 
+	 * @param String directory of composer autoload file (optional)
+	 */
+	private function loadComposer($file = "vendor/autoload.php") {
+		if (file_exists($file)) {
+			require($file);
+		}
 	}
 
 
