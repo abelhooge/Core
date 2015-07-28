@@ -46,39 +46,74 @@ class Core {
 		}
 	}
 
-	public function loadStartupFiles() {
+	public function loadStartupFiles($config = array()) {
 		if ($this->loaded)
 			return;
 
 		// Load core abstracts
 		require_once("Core/System/class.abstract.bus.php");
-		require_once("Core/System/class.abstract.event.php");
-		require_once("Core/System/class.abstract.module.php");
-		require_once("Core/System/class.abstract.model.php");
-		require_once("Core/System/class.abstract.controller.php");
-		require_once("Core/System/class.abstract.eventPriority.php");
+		require_once("Core/System/class.catcher.php");
 		require_once("Core/System/class.exceptions.php");
+		require_once("Core/System/class.abstract.event.php");
 
 		// Load the core classes
 		require_once("Core/System/class.config.php");
-		require_once("Core/System/class.logger.php");
-		require_once("Core/System/class.models.php");
-		require_once("Core/System/class.layout.php");
-		require_once("Core/System/class.events.php");
-		require_once("Core/System/class.router.php");
-		require_once("Core/System/class.modules.php");
 
 		// Create the module holder
-		
-
-		// Load the modules
-        $this->mods->events 		= new Events 		($this);
 		$this->mods->config	   		= new Config 		($this);
-        $this->mods->logger      	= new Logger 		($this);
-        $this->mods->models 		= new Models 		($this);
-        $this->mods->layout 		= new Layout 		($this);
-        $this->mods->router 		= new Router 		($this);
-        $this->mods->modules 		= new Modules 		($this);
+		$core_mods = $this->mods->config->core;
+
+		// Events
+		if ($core_mods->enable_events) {
+			require_once("Core/System/class.abstract.eventPriority.php");
+			require_once("Core/System/class.events.php");
+			$this->mods->events 	= new Events 		($this);
+		} else {
+			$this->mods->events 	= new EventsCatcher ($this);
+		}
+
+		// Logger
+		if ($core_mods->enable_logger) {
+			require_once("Core/System/class.logger.php");
+			$this->mods->logger 	= new Logger 		($this);
+		} else {
+			$this->mods->logger 	= new Catcher 		($this);
+		}
+
+		// Models
+		if ($core_mods->enable_models) {
+			require_once("Core/System/class.abstract.model.php");
+			require_once("Core/System/class.models.php");
+			$this->mods->models 	= new Models 		($this);
+		} else {
+			$this->mods->models 	= new Catcher 		($this);
+		}
+
+		// Layout
+		if ($core_mods->enable_layout) {
+			require_once("Core/System/class.layout.php");
+			$this->mods->layout 	= new Layout 		($this);
+		} else {
+			$this->mods->layout 	= new Catcher 		($this);
+		}
+
+		// Router
+		if ($core_mods->enable_router) {
+			require_once("Core/System/class.abstract.controller.php");
+			require_once("Core/System/class.router.php");
+			$this->mods->router 	= new Router 		($this);
+		} else {
+			$this->mods->router 	= new Catcher 		($this);
+		}
+
+		// Modules
+		if ($core_mods->enable_modules) {
+			require_once("Core/System/class.abstract.module.php");
+			require_once("Core/System/class.modules.php");
+			$this->mods->modules 	= new Modules 		($this);
+		} else {
+			$this->mods->modules 	= new Catcher 		($this);
+		}
 
         $this->loaded = true;
 	}
