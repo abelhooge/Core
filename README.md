@@ -42,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Licensing of current contributions
 ----------------------------------
 
-Beginning on 2013-12-01, new contributions to this codebase are all licensed
+Beginning on 2015-08-26, new contributions to this codebase are all licensed
 under terms compatible with GPLv3-or-later.  FuzeWorks is currently
 transitioning older code to GPLv3-or-later, but work is not yet complete.
 
