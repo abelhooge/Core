@@ -102,6 +102,14 @@ class Modules extends Bus{
                         $CLASS->setModuleName($name);
                     }
                     if (method_exists($CLASS, 'setModuleConfig')) {
+                        // Append the config file to the module CFG (accessable through $this->cfg)
+                        if (file_exists($cfg->directory . "/" . "config.".strtolower($cfg->module_name).".php")) {
+                            $data = (object) include($cfg->directory . "/" . "config.".strtolower($cfg->module_name).".php");
+                            foreach ($data as $key => $value) {
+                                $cfg->$key = $value;
+                            }
+                        }
+
                         $CLASS->setModuleConfig($cfg);
                     }
 

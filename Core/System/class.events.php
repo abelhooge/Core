@@ -173,7 +173,15 @@ class Events extends Bus{
     // Event Preparation:
     public function buildEventRegister() {
         $event_register = array();
-        foreach ($this->modules->register as $key => $value) {
+        // Check wether there is data or not
+        $data = $this->modules->register;
+        if (is_null($data)) {
+            $this->register = array();
+            return true;
+        }
+
+        // If there is, handle it
+        foreach ($data as $key => $value) {
             if (isset($value['events'])) {
                 if (!empty($value['events'])) {
                     for ($i=0; $i < count($value['events']); $i++) { 
@@ -188,6 +196,7 @@ class Events extends Bus{
         }
 
         $this->register = $event_register;
+        return true;
     }
 
     /**

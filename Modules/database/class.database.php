@@ -66,6 +66,9 @@ class Main extends Module {
 	}
 
 	public function getPrefix() {
+		if (!$this->is_active()) {
+			$this->connect();
+		}
 		return $this->prefix;
 	}
 

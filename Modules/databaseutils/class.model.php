@@ -55,7 +55,7 @@ class Model extends Bus {
 	public function query($query, $binds = null){
 
 		if($this->config->database->debug)
-			$this->logger->log("Query: ".$query, "Database Model");
+			$this->logger->log("Manuel Query: ".$query, "Database Model");
 
 		try{
 
