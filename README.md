@@ -1,4 +1,4 @@
-TechFuze - FuzeWorks - Readme
+FuzeWorks - Readme
 ===================
 
 Version 0.0.1-DEV
@@ -50,4 +50,3 @@ Enjoy!
 ------
 
 TechFuze
-
