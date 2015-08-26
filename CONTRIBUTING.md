@@ -12,7 +12,7 @@ Please report [bugs on Gitlab][1].
 
 Patches are welcome as [merge requests on Gitlab][2].  Please include a
 Signed-off-by tag.  Note that by submitting patches with the Signed-off-by
-tag, you are giving permission to license the patch as (LICENSE TO BE DETERMINED).  See
+tag, you are giving permission to license the patch as GPLv3-or-later.  See
 [the DCO file][3] for details.
 
 [2]: http://git.techfuze.net/fuzeworks/core/merge_requests/new
