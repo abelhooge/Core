@@ -5,6 +5,6 @@ namespace FuzeWorks;
 /**
  * Abstract class Controller
  * 
- * Abstract for a Controller data representation, loads the correct parent type
+ * At this point does nothing, can be extended in the future to allow special controller functions
  */
 abstract class Controller extends Bus{}
