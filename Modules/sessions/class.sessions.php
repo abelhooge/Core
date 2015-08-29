@@ -1,14 +1,45 @@
 <?php
+/**
+ * FuzeWorks
+ *
+ * The FuzeWorks MVC PHP FrameWork
+ *
+ * Copyright (C) 2015   TechFuze
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author      TechFuze
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ * @link        http://fuzeworks.techfuze.net
+ * @since       Version 0.0.1
+ * @version     Version 0.0.1
+ */
 
 namespace Module\Sessions;
 use \FuzeWorks\Module;
 use \FuzeWorks\EventPriority;
 
 /**
- * Sessions and User Management.
- * Manages users and login requests from FuzeWorks. 
+ * Main class of the Sessions and User Management module.
+ * Manages users and login requests from FuzeWorks.
+ * @package  net.techfuze.fuzeworks.sessions
+ * @author      Abel Hoogeveen <abel@techfuze.net>
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Main extends Module {
+class Session extends Module {
 
 	/**
 	 * UDT of the current session, send to the user
@@ -24,6 +55,10 @@ class Main extends Module {
 	 */
 	private $db;
 
+	/**
+	 * Gets called upon module initialization
+	 * @access public
+	 */
 	public function onLoad() {
 		require_once($this->getmodulePath() . "/class.events.php");
 		$this->setModuleConfig($this->config->loadConfigFile('sessions', $this->getModulePath()));
@@ -42,17 +77,40 @@ class Main extends Module {
 		$sessionKey = (isset($_COOKIE[$this->cfg->cookie_name]) ? $_COOKIE[$this->cfg->cookie_name] : (isset($_REQUEST['sessionKey']) ? $_REQUEST['sessionKey'] : $sessionKey ));
 
 		// If a sessionKey is given, check it
-		if (!is_null($sessionKey)) {
+		if (is_null($sessionKey)) {
+			$data = false;
+		} else {
 			$data = $this->sessionIsValid($sessionKey, true);
-			if ($data !== false) {
-				$udt = $this->convertUserData($data);
-				if (!$this->sessionBlocked($udt)) {
-					return $this->sendUserSession($udt);
-				}
-			}
 		}
 
-		return $this->sendGuestSession();
+		$udt = null;
+
+		// Prepare for the event
+		if ($data !== false) {
+			$udt = $this->convertUserData($data);
+			$user_id = $udt['user_id'];
+			$username = $udt['user_username'];
+			$email = $udt['user_email'];
+			$guest_session = false;
+		} else {
+			$udt = $this->getGuestUdt();
+			$user_id = 0;
+			$username = 'Guest';
+			$email = 'Guest@'.$this->config->main->SITE_DOMAIN;
+			$guest_session = true;
+		}
+
+		// Fire the event
+		$event = $this->events->fireEvent(new SessionStartEvent(), $user_id, $username, $email, $udt, $guest_session);
+		if ($event->isCancelled() || $event->guest_session) {
+			return $this->sendUserSession($udt);
+		}
+
+		if ($this->sessionBlocked($event->udt)) {
+			return $this->sendUserSession($udt);
+		}
+
+		return $this->sendUserSession($event->udt);
 	}
 
 	/**
@@ -64,7 +122,19 @@ class Main extends Module {
 		if (isset($_COOKIE[$this->cfg->cookie_name])) {
 			setcookie($this->cfg->cookie_name, '', time()-3600, '/', $this->config->main->SITE_DOMAIN);
 		}
-		$udt = array(
+		$udt = $this->getGuestUdt();
+		$this->udt = $udt;
+		$this->logSessionData();
+		return $udt;
+	}
+
+	/**
+	 * Returns the standard User Data Table of a guest account
+	 * @access private
+	 * @return Array UDT
+	 */
+	private function getGuestUdt() {
+		return array(
 				'user_id' => 0,
 				'user_username' => 'Guest',
 				'username' => 'Guest',
@@ -73,9 +143,6 @@ class Main extends Module {
 				'permissions' => array('GUEST' => 'GUEST', 'LOGIN' => 'LOGIN'),
 				'session_hash' => '0'
 			);
-		$this->udt = $udt;
-		$this->logSessionData();
-		return $udt;
 	}
 
 	/**
@@ -100,7 +167,7 @@ class Main extends Module {
 	private function logSessionData() {
 		$this->logger->newLevel("Activating Session");
 		$this->logger->logInfo("<br />SessionKey: " . $this->session_hash . "<br />Username: " . $this->user_username . "<br/>Email: " . $this->user_email . "<br/>Permissions: " . implode('-', $this->permissions));
-		$this->logger->stopLevel();		
+		$this->logger->stopLevel();
 	}
 
 	/**
@@ -108,11 +175,11 @@ class Main extends Module {
 	 * @access private
 	 * @param Array SessionData
 	 * @return Array Userdata
-	 * @todo change this
+	 * @todo change this into a version that uses an external table for more user data
 	 */
 	private function convertUserData($userData) {
 		$udt = array();
-		for ($i=0; $i < count($userData); $i++) { 
+		for ($i=0; $i < count($userData); $i++) {
 			foreach ($userData[$i] as $key => $value) {
 				if (strpos($key, 'user_') === 0 || strpos($key, 'session_') === 0) {
 					$udt[$key] = $value;
@@ -147,15 +214,15 @@ class Main extends Module {
 		$prefix = $this->db->getPrefix();
 		$query = "
 			SELECT *
-			FROM ".$prefix."session_permissions AS permissions 
+			FROM ".$prefix."session_permissions AS permissions
 
-			LEFT JOIN ".$prefix."session_users AS users 
-				ON permissions.permission_user_id=users.user_id 
+			LEFT JOIN ".$prefix."session_users AS users
+				ON permissions.permission_user_id=users.user_id
 
 			LEFT JOIN ".$prefix."session_tags AS tags
-				ON permissions.permission_tag_id=tags.tag_id 
+				ON permissions.permission_tag_id=tags.tag_id
 
-			LEFT JOIN ".$prefix."session_sessions AS sessions 
+			LEFT JOIN ".$prefix."session_sessions AS sessions
 				ON permissions.permission_user_id=sessions.session_user_id
 
 			WHERE sessions.session_hash = ?
@@ -185,7 +252,6 @@ class Main extends Module {
 	 * @param String password
 	 * @param Boolean Wether to remember the session (true for 100 years, false for incremental)
 	 * @param Boolean propagate, wether the login should be propagated to the database (default true)
-	 * @todo Add ADMITTED Tag to check wether a user is allowed to log in
 	 * @return Array SessionData
 	 */
 	public function login($identifier, $password, $remember_me = false, $propagate = true) {
@@ -193,7 +259,7 @@ class Main extends Module {
 		$prefix = $this->db->getPrefix();
 		$query = "
 			SELECT *
-			FROM ".$prefix."session_users AS users 
+			FROM ".$prefix."session_users AS users
 			WHERE users.user_email = :identifier OR users.user_username = :identifier";
 		$stmnt = $this->db->prepare($query);
 		$stmnt->execute(array('identifier' => $identifier));
@@ -208,7 +274,7 @@ class Main extends Module {
 				// If correct, prepare sessionData
 				// Create Session
 				$one = uniqid();
-				$two = sha1(uniqid() . $identifier); 
+				$two = sha1(uniqid() . $identifier);
 				$three = uniqid();
 				$hash = sha1($one . $two . $three);
 
@@ -225,21 +291,65 @@ class Main extends Module {
 
 				// Add the success value
 				$sessionData['valid'] = true;
-
-				if ($propagate) {
-					$this->propagate($sessionData);
-				}
+				$valid = true;
 			} else {
 				// Password incorrect
 				$sessionData['valid'] = false;
 				$sessionData['reason'] = "PASSWORD_INCORRECT";
 				$sessionData['reason_explained'] = "Username and/or password is incorrect";
+				$valid = false;
 			}
 		} else {
 			// User not found
 			$sessionData['valid'] = false;
 			$sessionData['reason'] = "USER_NOT_FOUND";
 			$sessionData['reason_explained'] = "Username and/or password is incorrect";
+			$valid = false;
+		}
+
+		// Broadcast data with an event
+		if ($valid) {
+			// If valid, provide all required data
+			$event = $this->events->fireEvent(new SessionLoginEvent(),
+				$identifier,
+				$password,
+				$remember_me,
+				$sessionData['user_id'],
+				$sessionData['user_username'],
+				$sessionData['user_email']
+			);
+		} else {
+			// If not, provide only the identifiers
+			$event = $this->events->fireEvent(new SessionLoginEvent(), $identifier, $password, $remember_me);
+		}
+
+		// Firest check for full blown deny
+		if ($event->isCancelled()) {
+			$sessionData['valid'] = false;
+			$sessionData['reason'] = "USER_DENIED";
+			$sessionData['reason_explained'] = "The User has been denied by an internal proces";
+		}
+
+		// Then check for verification
+		if ($event->verified) {
+			$sessionData['user_id'] = $event->user_id;
+			$sessionData['user_username'] = $event->username;
+			$sessionData['username'] = $event->username;
+			$sessionData['user_email'] = $event->email;
+			$sessionData['email'] = $event->email;
+		} else {
+			// If not verified, deny access
+			$sessionData['valid'] = false;
+			if ($valid) {
+				// If denied by event, export reason
+				$sessionData['reason'] = "USER_DENIED";
+				$sessionData['reason_explained'] = "The User has been denied by an internal proces";
+			}
+		}
+
+		// Propagate if valid
+		if ($propagate) {
+			$this->propagate($sessionData);
 		}
 
 		return $sessionData;
@@ -255,14 +365,14 @@ class Main extends Module {
 		$prefix = $this->db->getPrefix();
 		// The variables to insert
 		$insert_array = array(
-			'hash' => $sessionData['hash'], 
-			'user_id' => $sessionData['user_id'], 
-			'info' => $sessionData['info'], 
-			'ip' => $sessionData['ip'], 
+			'hash' => $sessionData['hash'],
+			'user_id' => $sessionData['user_id'],
+			'info' => $sessionData['info'],
+			'ip' => $sessionData['ip'],
 			'session_start' => $sessionData['session_start']);
 
 		$query = "
-			INSERT INTO ".$prefix."session_sessions 
+			INSERT INTO ".$prefix."session_sessions
 				(session_hash,session_user_id,session_info,session_ip,session_start)
 				VALUES (:hash, :user_id, :info, :ip, :session_start)
 		";
@@ -280,11 +390,11 @@ class Main extends Module {
 
 	/**
 	 * Sign a user out of the system
-	 * 
+	 *
 	 * @access public
 	 * @param String SessionKey (optional)
 	 * @param Boolean Propagate the logout to the database (default true)
-	 * @return Boolean true on success
+	 * @return Boolean true on success, false on deny
 	 * @throws SessionException on fatal error
 	 */
 	public function logout($sessionKey = null, $propagate = true) {
@@ -296,6 +406,16 @@ class Main extends Module {
 			// Fetch the session data
 			$data = $this->sessionIsValid($sessionKey, true);
 			if ($data !== false) {
+				$username = $data[0]['user_username'];
+				$email = $data[0]['user_email'];
+				$user_id = $data[0]['user_id'];
+
+				// Then fire the event
+				$event = $this->events->fireEvent(new SessionLogoutEvent(), $user_id, $username, $email);
+				if ($event->isCancelled()) {
+					return false;
+				}
+
 				// If valid, remove the current session
 				$this->udt = null;
 				if ($propagate) {
@@ -311,18 +431,18 @@ class Main extends Module {
 						setcookie($this->cfg->cookie_name, $sessionKey, date('U') - 3600, '/', $this->config->main->SITE_DOMAIN);
 						return true;
 					}
-					
+
 					throw new SessionException("Could not log user out. Database error", 1);
 				}
 			}
 		}
-		
+
 		throw new SessionException("Could not log user out. SessionKey not found", 1);
 	}
 
 	/**
 	 * Register a new User. Features input handling
-	 * @access public 
+	 * @access public
 	 * @param String Username. Username of the new user
 	 * @param String email. Email of the new user
 	 * @param String password. Password of the new user
@@ -334,7 +454,7 @@ class Main extends Module {
 
 		$errors = [];
 		// Email
-		if (!preg_match('/^[^\W][a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*\@[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*\.[a-zA-Z]{2,4}$/',$email)) { 
+		if (!preg_match('/^[^\W][a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*\@[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*\.[a-zA-Z]{2,4}$/',$email)) {
 			// Invalid
 			$errors[] = 'Invalid Email';
 		}
@@ -350,9 +470,15 @@ class Main extends Module {
 			throw new SessionException("Could not register user. " . implode(' .', $errors), 1);
 		}
 
+		// Fire the event
+		$event = $this->events->fireEvent(new SessionRegisterEvent(), $username, $email, $password);
+		if ($event->isCancelled()) {
+			return false;
+		}
+
 		// And perform the handling
 		try {
-			return $this->createUser($username, $email, $password, true);
+			return $this->createUser($event->username, $event->email, $event->password, true);
 		} catch (SessionException $e) {
 			throw new SessionException("Could not register user. '" . $e->getMessage() . "'", 1, $e);
 		}
@@ -391,6 +517,13 @@ class Main extends Module {
 			$id = $this->mods->database->lastInsertId();
 			$stmnt2->execute(['tag_id' => 1, 'user_id' => $id]);
 
+			// And then fire the event
+			$event = $this->events->fireEvent(new SessionUserCreateEvent(), $user_id, $username, $password);
+			if ($event->isCancelled()) {
+				$this->mods->database->rollBack();
+				return false;
+			}
+
 			$this->mods->database->commit();
 
 			// After that send a registration mail
@@ -411,7 +544,6 @@ class Main extends Module {
 	 * @param Int UserID
 	 * @param Boolean Verify. Wether the user needs to verify using the email (default false)
 	 * @throws SessionException on fatal error
-	 * @todo Apply new Template Engine
 	 */
 	public function registerMail($userId, $verify = false) {
 		$udt = $this->getUsersByIds(intval($userId));
@@ -425,13 +557,16 @@ class Main extends Module {
 		$mailer->setFrom('no-reply@'.$this->config->main->SITE_DOMAIN, 'Auth Service');
 
 		// First prepare the layout manager
-		// $this->layout->setEngine('PHP');
-			
+		$this->layout->setEngine('PHP');
+
 		// Assign all variables
 		$verifyCode = $udt['user_verify_code'];
-		$verifyURL = '';
+		if (empty($this->cfg->verify_controller) && $verify) {
+			throw new SessionException("Could not send mail. No verification controller set. Please set one in the sessions config.", 1);
+		}
+		$verifyURL = $this->config->main->SITE_URL . "/" . $this->cfg->verify_controller . "?verify&code=".$verifyCode;
 
-		$event = $this->events->fireEvent(new RegisterMailEvent(), $udt, $verifyCode, $verifyURL);
+		$event = $this->events->fireEvent(new SessionRegisterMailEvent(), $udt, $verifyCode, $verifyURL);
 		if ($event->isCancelled()) {
 			$this->logger->log("Sending of Registration Mail has been cancelled");
 			return false;
@@ -441,13 +576,12 @@ class Main extends Module {
 		$udt = $event->udt;
 
 		// Assign new variables
-		$this->layout->assign('serverName', $this->config->main->SERVER_NAME);
-		$this->layout->assign('logo', $this->config->main->SITE_LOGO_URL);
+		$this->layout->assign('username', $udt['user_username']);
+		$this->layout->assign('email', $udt['user_email'] );
 
 		// More if there is a need to verify
 		if ($verify) {
 			$this->layout->assign('verifyURL', $event->verifyURL);
-			$this->layout->assign('verifyCode', $event->verifyCode);
 		}
 
 		// Check if a custom HTML should be used
@@ -466,7 +600,7 @@ class Main extends Module {
 		$mailer->send();
 		if (!empty($mailer->ErrorInfo)) {
 			// Throw Exception if something goes wrong
-			throw new SessionException("Could not send mailer. PHPMailer Error", 1);
+			throw new SessionException("Could not send mail. PHPMailer Error", 1);
 		}
 	}
 
@@ -476,27 +610,42 @@ class Main extends Module {
 	 * @param Int UserID to edit
 	 * @param String column to edit
 	 * @param Mixed value to apply
-	 * @return true on success
+	 * @return true on success or false on deny
 	 * @throws \Exception|SessionException on fatal error
 	 */
 	public function modifyUser($userId, $key, $value) {
+		// Fetch user data
 		$udt = $this->getUsersByIds($userId)[0];
-		// And fetch tag information
-		$prefix = $this->db->getPrefix();
-		$stmnt = $this->mods->database->prepare("UPDATE ".$prefix."session_users SET $key = ?");
-		$stmnt->execute([$value]);
-		if ($stmnt->rowCount() == 1) {
-			return true;
+
+		// Check if key exists
+		if (isset($udt[$key])) {
+			$from = $udt[$key];
+
+			// Then fire the event
+			$event = $this->events->fireEvent(new SessionUserModifyEvent(), $userId, $key, $value, $from);
+			if ($event->isCancelled()) {
+				return false;
+			}
+
+			// And fetch tag information
+			$prefix = $this->db->getPrefix();
+			$stmnt = $this->mods->database->prepare("UPDATE ".$prefix."session_users SET $key = ?");
+			$stmnt->execute([$value]);
+			if ($stmnt->rowCount() == 1) {
+				return true;
+			}
+
+			throw new SessionException("Could not modify user. Database error", 1);
 		}
 
-		throw new SessionException("Could not modify user. Database error", 1);
+		throw new SessionException("Could not modify user. Key does not exist", 1);
 	}
 
 	/**
 	 * Changes the password of a user
 	 * @access public
 	 * @param Int UserID to edit
-	 * @param String|null Old password of the user or nothing if trying to change as admin 
+	 * @param String|null Old password of the user or nothing if trying to change as admin
 	 * @param String New password of the user
 	 * @return true on success
 	 * @throws \Exception|SessionException on fatal error
@@ -505,11 +654,24 @@ class Main extends Module {
 		$udt = $this->getUsersByIds($userId)[0];
 		// First check if the oldPassword is correct
 		if (is_null($oldPassword) || password_verify($oldPassword, $udt['user_password'])) {
+			// Send out the event
+			$event = $this->events->fireEvent(new SessionChangePasswordEvent(),
+				$userId,
+				$udt['user_username'],
+				$oldPassword,
+				$newPassword
+			);
+
+			// Stop if cancelled
+			if ($event->isCancelled()) {
+				return false;
+			}
+
 			// Then apply the new password
-			$hash = password_hash($newPassword, PASSWORD_DEFAULT);
+			$hash = password_hash($event->newPassword, PASSWORD_DEFAULT);
 			$this->modifyUser($userId, 'user_password', $hash);
 			return true;
-		} 
+		}
 
 		throw new SessionException("Could not change password. Old password did not match", 1);
 	}
@@ -522,7 +684,21 @@ class Main extends Module {
 	 * @throws SessionException on fatal error
 	 */
 	public function suspendUser($userId) {
-		return $this->removePermission('ADMITTED', $userId, false);
+		// First get all the relevant data
+		$udt = $this->getUsersByIds($userId)[0];
+		$user_id = $udt['user_id'];
+		$username = $udt['user_username'];
+		$email = $udt['user_email'];
+
+		// Then fire the event
+		$event = $this->events->fireEvent(new SessionUserSuspendEvent(), $user_id, $username, $email);
+
+		// Cancel if denied by module
+		if ($event->isCancelled()) {
+			return false;
+		}
+
+		return $this->addPermission('BLOCKED', $userId, false);
 	}
 
 	/**
@@ -533,7 +709,21 @@ class Main extends Module {
 	 * @throws SessionException on fatal error
 	 */
 	public function unsuspendUser($userId) {
-		return $this->addPermission('ADMITTED', $userId, false);
+		// First get all the relevant data
+		$udt = $this->getUsersByIds($userId)[0];
+		$user_id = $udt['user_id'];
+		$username = $udt['user_username'];
+		$email = $udt['user_email'];
+
+		// Then fire the event
+		$event = $this->events->fireEvent(new SessionUserUnsuspendEvent(), $user_id, $username, $email);
+
+		// Cancel if denied by module
+		if ($event->isCancelled()) {
+			return false;
+		}
+
+		return $this->removePermission('BLOCKED', $userId, false);
 	}
 
 	/**
@@ -547,6 +737,14 @@ class Main extends Module {
 		// First get all relevant data
 		$udt = $this->getUsersByIds($userId)[0];
 		$userId = $udt['user_id'];
+		$username = $udt['user_username'];
+		$email = $udt['user_email'];
+
+		// Then fire an event
+		$event = $this->events->fireEvent(new SessionUserRemoveEvent(), $userId, $username, $email);
+		if ($event->isCancelled()) {
+			return false;
+		}
 
 		// Remove the active permission, effectively removing the user
 		return $this->removePermission('ACTIVE', $userId, false, true);
@@ -611,7 +809,7 @@ class Main extends Module {
 		} else {
 			if (isset($udt['permissions'][$tag]) || isset($udt['permissions']['ADMIN'])) {
 				return true;
-			}	
+			}
 		}
 
 		return false;
@@ -680,7 +878,7 @@ class Main extends Module {
 
 			return true;
 		}
-		
+
 		throw new SessionException("Could not remove permission. Database error", 1);
 	}
 
@@ -733,7 +931,7 @@ class Main extends Module {
 
 		if ($stmnt->rowCount() == 1) {
 			return true;
-		} 
+		}
 
 		throw new SessionException("Could not add permission. Database Error", 1);
 	}
@@ -743,25 +941,27 @@ class Main extends Module {
 	 * @access public
 	 * @param Array of usernames
 	 * @return Array of UDT's
-	 * @todo Support for 1 parameter (STRING)
 	 */
 	public function getUsersByName($usernames = array()) {
+		if (is_string($usernames)) {
+			$usernames = array($usernames);
+		}
 		$prefix = $this->db->getPrefix();
 		$query = "
 			SELECT *
-			FROM ".$prefix."session_permissions AS permissions 
+			FROM ".$prefix."session_permissions AS permissions
 
-			LEFT JOIN ".$prefix."session_users AS users 
-				ON permissions.permission_user_id=users.user_id 
+			LEFT JOIN ".$prefix."session_users AS users
+				ON permissions.permission_user_id=users.user_id
 
 			LEFT JOIN ".$prefix."session_tags AS tags
-				ON permissions.permission_tag_id=tags.tag_id 
+				ON permissions.permission_tag_id=tags.tag_id
 
 			WHERE users.user_username = ?
 		";
 		$stmnt = $this->mods->database->prepare($query);
 		$users = array();
-		for ($i=0; $i < count($usernames); $i++) { 
+		for ($i=0; $i < count($usernames); $i++) {
 			$username = $usernames[$i];
 			$stmnt->execute(array($username));
 			$user_data = $stmnt->fetchAll(\PDO::FETCH_ASSOC);
@@ -786,26 +986,26 @@ class Main extends Module {
 		$prefix = $this->db->getPrefix();
 		$query = "
 			SELECT *
-			FROM ".$prefix."session_permissions AS permissions 
+			FROM ".$prefix."session_permissions AS permissions
 
-			LEFT JOIN ".$prefix."session_users AS users 
-				ON permissions.permission_user_id=users.user_id 
+			LEFT JOIN ".$prefix."session_users AS users
+				ON permissions.permission_user_id=users.user_id
 
 			LEFT JOIN ".$prefix."session_tags AS tags
-				ON permissions.permission_tag_id=tags.tag_id 
+				ON permissions.permission_tag_id=tags.tag_id
 
 			WHERE users.user_id = ?
 		";
 		$stmnt = $this->mods->database->prepare($query);
 		$users = array();
-		for ($i=0; $i < count($ids); $i++) { 
+		for ($i=0; $i < count($ids); $i++) {
 			$id = $ids[$i];
 			$stmnt->execute(array($id));
 			$user_data = $stmnt->fetchAll(\PDO::FETCH_ASSOC);
 			if (!empty($user_data)) {
 				$users[] = $this->handleUserSelectData($user_data);
 			}
-		}			
+		}
 
 		return $users;
 	}
@@ -815,25 +1015,27 @@ class Main extends Module {
 	 * @access public
 	 * @param Array of emails
 	 * @return Array of UDT's
-	 * @todo Support for 1 parameter (STRING)
 	 */
 	public function getUsersByEmails($emails = array()) {
+		if (is_string($emails)) {
+			$emails = array($emails);
+		}
 		$prefix = $this->db->getPrefix();
 		$query = "
 			SELECT *
-			FROM ".$prefix."session_permissions AS permissions 
+			FROM ".$prefix."session_permissions AS permissions
 
-			LEFT JOIN ".$prefix."session_users AS users 
-				ON permissions.permission_user_id=users.user_id 
+			LEFT JOIN ".$prefix."session_users AS users
+				ON permissions.permission_user_id=users.user_id
 
 			LEFT JOIN ".$prefix."session_tags AS tags
-				ON permissions.permission_tag_id=tags.tag_id 
+				ON permissions.permission_tag_id=tags.tag_id
 
 			WHERE users.user_email = ?
 		";
 		$stmnt = $this->mods->database->prepare($query);
 		$users = array();
-		for ($i=0; $i < count($emails); $i++) { 
+		for ($i=0; $i < count($emails); $i++) {
 			$email = $emails[$i];
 			$stmnt->execute(array($email));
 			$user_data = $stmnt->fetchAll(\PDO::FETCH_ASSOC);
@@ -849,25 +1051,27 @@ class Main extends Module {
 	 * @access public
 	 * @param String Permission Tag
 	 * @return Array of UDT's
-	 * @todo Support for 1 parameter (STRING)
 	 */
 	public function getUsersByPermissions($permissionTags = array()) {
+		if (is_string($permissionTags)) {
+			$permissionTags = array($permissionTags);
+		}
 		$prefix = $this->db->getPrefix();
 		$query = "
 			SELECT *
-			FROM ".$prefix."session_permissions AS permissions 
+			FROM ".$prefix."session_permissions AS permissions
 
-			LEFT JOIN ".$prefix."session_users AS users 
-				ON permissions.permission_user_id=users.user_id 
+			LEFT JOIN ".$prefix."session_users AS users
+				ON permissions.permission_user_id=users.user_id
 
 			LEFT JOIN ".$prefix."session_tags AS tags
-				ON permissions.permission_tag_id=tags.tag_id 
+				ON permissions.permission_tag_id=tags.tag_id
 
 			WHERE tags.tag_name = ?
 		";
 		$stmnt = $this->mods->database->prepare($query);
 		$users = array();
-		for ($i=0; $i < count($permissionTags); $i++) { 
+		for ($i=0; $i < count($permissionTags); $i++) {
 			$tag = $permissionTags[$i];
 			$stmnt->execute(array($tag));
 
@@ -895,7 +1099,7 @@ class Main extends Module {
 		}
 		$user['permissions'] = array();
 
-		for ($j=0; $j < count($user_data); $j++) { 
+		for ($j=0; $j < count($user_data); $j++) {
 			$user['permissions'][ $user_data[$j]['tag_name'] ] = $user_data[$j]['tag_name'];
 		}
 		$user['username'] = $user['user_username'];
@@ -912,13 +1116,13 @@ class Main extends Module {
 	public function __get($key) {
 		return $this->udt[$key];
 	}
-
-
-
 }
 
 /**
  * Exception class for the Sessions Module
+ * @package  net.techfuze.fuzeworks.sessions
+ * @author      Abel Hoogeveen <abel@techfuze.net>
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
 class SessionException extends \Exception {}
 

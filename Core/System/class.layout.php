@@ -120,9 +120,11 @@ class Layout extends Bus {
 		// Then assign some basic variables for the template
 		$this->assigned_variables['viewDir'] = $this->config->main->SITE_URL . preg_replace('#/+#','/', substr($directory . "/", -strlen($directory . "/") ) );
 		$this->assigned_variables['siteURL'] = $this->config->main->SITE_URL;
+		$this->assigned_variables['siteLogo'] = $this->config->main->SITE_LOGO_URL;
 		$this->assigned_variables['serverName'] = $this->config->main->SERVER_NAME;
 		$this->assigned_variables['siteDomain'] = $this->config->main->SITE_DOMAIN;
 		$this->assigned_variables['adminMail'] = $this->config->main->administrator_mail;
+		$this->assigned_variables['contact'] = (array) $this->config->contact;
 
 		// Select an engine if one is not already selected
 		if (is_null($this->current_engine)) {
