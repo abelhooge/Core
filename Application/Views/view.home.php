@@ -34,12 +34,12 @@
 				       		This website is currently under development.
 				       </p>
 				       <p>
-				       		{if $adminMail == ''}
+				       		<?php if ($vars['adminMail'] == '') { ?>
 				       		For further information, please contact the website administrator</a> 
-				       		{else}
-				       		For further information, please contact <a href='mailto:{$adminMail}'>{$adminMail}</a> 
-				       		{/if}
-				       		
+				       		<?php } else { ?>
+				       		For further information, please contact <a href='mailto:<?php echo($vars['adminMail']); ?>'><?php echo($vars['adminMail']); ?></a> 
+				       		<?php } ?>
+
 				       </p>
 				    </div>
             	</div>
@@ -55,7 +55,7 @@
 		<script>
 			var currentPage = 0;
 			var currentProgress = 0;
-			
+
 			start();
 			function start() {
 				$("#contentPanel").fadeIn(500);
