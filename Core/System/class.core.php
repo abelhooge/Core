@@ -32,7 +32,9 @@ class Core {
 		$this->loadStartupFiles();
 
 		// Load Composer
-		$this->loadComposer();
+		if ($this->mods->config->core->enable_composer) {
+			$this->loadComposer();
+		}
 
 		$this->mods->modules->buildRegister();
 		$this->mods->events->buildEventRegister();
