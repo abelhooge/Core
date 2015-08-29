@@ -1,4 +1,32 @@
 <?php
+/**
+ * FuzeWorks
+ *
+ * The FuzeWorks MVC PHP FrameWork
+ *
+ * Copyright (C) 2015   TechFuze
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author      TechFuze
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ * @link        http://fuzeworks.techfuze.net
+ * @since       Version 0.0.1
+ * @version     Version 0.0.1
+ */
 
 namespace FuzeWorks;
 
@@ -6,7 +34,10 @@ namespace FuzeWorks;
  * Logger Class
  *
  * The main tool to handle errors and exceptions. Provides some tools for debugging and tracking where errors take place
- * All fatal errors get catched by this class and get displayed if configured to do so. 
+ * All fatal errors get catched by this class and get displayed if configured to do so.
+ * @package     net.techfuze.fuzeworks.core
+ * @author      Abel Hoogeveen <abel@techfuze.net>
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
 class Logger extends Bus{
 
@@ -31,7 +62,7 @@ class Logger extends Bus{
 	}
 
 	public function shutdown() {
-		// Load last error if thrown		
+		// Load last error if thrown
   		$errfile = "Unknown file";
  		$errstr = "shutdown";
  		$errno = E_CORE_ERROR;
@@ -42,8 +73,8 @@ class Logger extends Bus{
  			$errno 		= $error['type'];
  			$errfile 	= $error['file'];
  			$errline 	= $error['line'];
- 			$errstr 	= $error['message']; 
-			
+ 			$errstr 	= $error['message'];
+
 			// Log it!
  			$this->errorHandler($errno, $errstr, $errfile, $errline);
  			$this->logInfo($this->backtrace());
@@ -55,7 +86,7 @@ class Logger extends Bus{
 		}
 	}
 
- 	/** 
+ 	/**
  	 * System that redirects the errors to the appropriate logging method
  	 * @access public
  	 * @param int $type Error-type, Pre defined PHP Constant
@@ -68,10 +99,10 @@ class Logger extends Bus{
 	public function errorHandler($type = E_USER_NOTICE, $error = "Undefined Error", $errFile = null, $errLine = null, $context = null) {
  		// Check type
  		$thisType = self::getType($type);
- 		$LOG = array('type' => (!is_null($thisType) ? $thisType : "ERROR"), 
- 			'message' => (!is_null($error) ? $error : ""), 
- 			'logFile' => (!is_null($errFile) ? $errFile : ""), 
- 			'logLine' => (!is_null($errLine) ? $errLine : ""), 
+ 		$LOG = array('type' => (!is_null($thisType) ? $thisType : "ERROR"),
+ 			'message' => (!is_null($error) ? $error : ""),
+ 			'logFile' => (!is_null($errFile) ? $errFile : ""),
+ 			'logLine' => (!is_null($errLine) ? $errLine : ""),
  			'context' => (!is_null($context) ? $context : ""),
  			'runtime' => round($this->getRelativeTime(), 4));
  		$this->Logs[] = $LOG;
@@ -81,7 +112,7 @@ class Logger extends Bus{
 	 * Exception handler
 	 * Will be triggered when an uncaught exception occures. This function shows the error-message, and shuts down the script.
 	 * Please note that most of the user-defined exceptions will be caught in the router, and handled with the error-controller.
-	 * 
+	 *
 	 * @access public
 	 * @param Exception $exception The occured exception.
 	 * @return void
@@ -139,18 +170,18 @@ class Logger extends Bus{
 	    array_pop($trace); // remove call to this method
 	    $length = count($trace);
 	    $result = array();
-	    
+
 	    for ($i = 0; $i < $length; $i++)
 	    {
 	        $result[] = ($i + 1)  . ')' . substr($trace[$i], strpos($trace[$i], ' ')); // replace '#someNum' with '$i)', set the right ordering
 	    }
-	    
+
 	    return "<b>BACKTRACE: <br/>\t" . implode("<br/>", $result)."</b>";
  	}
 
  	/* =========================================LOGGING METHODS==============================================================*/
 
- 	
+
 	public function log($msg, $mod = null, $file = 0, $line = 0) {
 		$this->logInfo($msg, $mod, $file, $line);
 	}
@@ -158,76 +189,76 @@ class Logger extends Bus{
  	public function logInfo($msg, $mod = null, $file = 0, $line = 0) {
  		$LOG = array('type' => 'INFO', 
  			'message' => (!is_null($msg) ? $msg : ""),
- 			'logFile' => (!is_null($file) ? $file : ""), 
- 			'logLine' => (!is_null($line) ? $line : ""), 
+ 			'logFile' => (!is_null($file) ? $file : ""),
+ 			'logLine' => (!is_null($line) ? $line : ""),
  			'context' => (!is_null($mod) ? $mod : ""),
- 			'runtime' => round($this->getRelativeTime(), 4)); 
+ 			'runtime' => round($this->getRelativeTime(), 4));
 
  		$this->infoErrors[] = $LOG;
  		$this->Logs[] = $LOG;
  	}
 
  	public function logError($msg, $mod = null, $file = 0, $line = 0)  {
- 		$LOG = array('type' => 'ERROR', 
+ 		$LOG = array('type' => 'ERROR',
  			'message' => (!is_null($msg) ? $msg : ""),
- 			'logFile' => (!is_null($file) ? $file : ""), 
- 			'logLine' => (!is_null($line) ? $line : ""), 
+ 			'logFile' => (!is_null($file) ? $file : ""),
+ 			'logLine' => (!is_null($line) ? $line : ""),
  			'context' => (!is_null($mod) ? $mod : ""),
- 			'runtime' => round($this->getRelativeTime(), 4)); 
- 		
+ 			'runtime' => round($this->getRelativeTime(), 4));
+
  		$this->criticalErrors[] = $LOG;
  		$this->Logs[] = $LOG;
  	}
 
  	public function logWarning($msg, $mod = null, $file = 0, $line = 0)  {
- 		$LOG = array('type' => 'WARNING', 
+ 		$LOG = array('type' => 'WARNING',
  			'message' => (!is_null($msg) ? $msg : ""),
- 			'logFile' => (!is_null($file) ? $file : ""), 
- 			'logLine' => (!is_null($line) ? $line : ""), 
+ 			'logFile' => (!is_null($file) ? $file : ""),
+ 			'logLine' => (!is_null($line) ? $line : ""),
  			'context' => (!is_null($mod) ? $mod : ""),
- 			'runtime' => round($this->getRelativeTime(), 4)); 
- 		
+ 			'runtime' => round($this->getRelativeTime(), 4));
+
  		$this->warningErrors[] = $LOG;
  		$this->Logs[] = $LOG;
  	}
 
  	public function newLevel($msg, $mod = null, $file = null, $line = null) {
- 		$LOG = array('type' => 'LEVEL_START', 
+ 		$LOG = array('type' => 'LEVEL_START',
  			'message' => (!is_null($msg) ? $msg : ""),
- 			'logFile' => (!is_null($file) ? $file : ""), 
- 			'logLine' => (!is_null($line) ? $line : ""), 
+ 			'logFile' => (!is_null($file) ? $file : ""),
+ 			'logLine' => (!is_null($line) ? $line : ""),
  			'context' => (!is_null($mod) ? $mod : ""),
- 			'runtime' => round($this->getRelativeTime(), 4)); 
+ 			'runtime' => round($this->getRelativeTime(), 4));
 
  		$this->Logs[] = $LOG;
  	}
 
  	public function stopLevel($msg = null, $mod = null, $file = null, $line = null) {
- 		$LOG = array('type' => 'LEVEL_STOP', 
+ 		$LOG = array('type' => 'LEVEL_STOP',
  			'message' => (!is_null($msg) ? $msg : ""),
- 			'logFile' => (!is_null($file) ? $file : ""), 
- 			'logLine' => (!is_null($line) ? $line : ""), 
+ 			'logFile' => (!is_null($file) ? $file : ""),
+ 			'logLine' => (!is_null($line) ? $line : ""),
  			'context' => (!is_null($mod) ? $mod : ""),
- 			'runtime' => round($this->getRelativeTime(), 4)); 
+ 			'runtime' => round($this->getRelativeTime(), 4));
 
  		$this->Logs[] = $LOG;
  	}
 
  	/* =========================================OTHER METHODS==============================================================*/
 
-	/** 
+	/**
 	 * Returns a string representation of an error
 	 * Turns a PHP error-constant (or integer) into a string representation.
-	 * 
+	 *
 	 * @access public
 	 * @param int $type PHP-constant errortype (e.g. E_NOTICE).
 	 * @return string String representation
 	 */
 	public function getType($type) {
-		
+
 		switch ($type)
 		{
-			
+
 			case E_ERROR:
 				return "ERROR";
 			case E_WARNING:
@@ -259,12 +290,12 @@ class Logger extends Bus{
 			case E_DEPRECATED:
 				return "WARNING";
 		}
-		
-		return $type = 'Unknown error: '.$type;		
+
+		return $type = 'Unknown error: '.$type;
 	}
 
     public function http_error($errno = 500, $view = true){
-        
+
         $http_codes = array(
 
             400 => 'Bad Request',
@@ -323,7 +354,7 @@ class Logger extends Bus{
         }
     }
 
- 	/** 
+ 	/**
  	 * Enable error to screen logging
  	 * @access public
  	 */
@@ -331,7 +362,7 @@ class Logger extends Bus{
  		$this->print_to_screen = true;
  	}
 
- 	/** 
+ 	/**
  	 * Disable error to screen logging
  	 * @access public
  	 */

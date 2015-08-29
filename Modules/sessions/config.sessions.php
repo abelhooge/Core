@@ -28,29 +28,11 @@
  * @version     Version 0.0.1
  */
 
-namespace FuzeWorks;
+return array(
 
-/**
- * Interpret Class.
- *
- * This Model is able to automatically select a SQL database as its source.
- * @package     net.techfuze.fuzeworks.core
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- */
-class Interpret extends Model {
+    'cookie_name'       => 'FuzeCookie',
 
-    public function __construct(&$core){
-        parent::__construct($core);
+    // Should be filled in if you want email verification to work
+    'verify_controller' => '',
 
-        $this->setType('techfuze/databaseutils', 'Model');
-        $this->table    = '';
-    }
-
-    public function table($name) {
-    	$this->table = $name;
-
-    }
-}
-
-?>
+);

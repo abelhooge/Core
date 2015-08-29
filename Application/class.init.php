@@ -28,28 +28,28 @@
  * @version     Version 0.0.1
  */
 
-namespace FuzeWorks;
+namespace Application;
+use \FuzeWorks\Bus;
 
 /**
- * Interpret Class.
+ * Class init
  *
- * This Model is able to automatically select a SQL database as its source.
- * @package     net.techfuze.fuzeworks.core
+ * This class will be loaded before the a controller is loaded. Handy to do some we-need-to-do-this-all-the-time-things like setting locales or importing functions.
+ * Can also be used to authenticate users and provide all views with sessionData.
+ * Will only be loaded if the default callable is used.
+ * @package     net.techfuze.fuzeworks.application
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Interpret extends Model {
+class Init extends Bus {
 
-    public function __construct(&$core){
+	/**
+	 * Constructor
+	 *
+	 * @param \FuzeWorks\Core $core Pointer to core class
+	 */
+	public function __construct(&$core){
         parent::__construct($core);
-
-        $this->setType('techfuze/databaseutils', 'Model');
-        $this->table    = '';
-    }
-
-    public function table($name) {
-    	$this->table = $name;
-
     }
 }
 

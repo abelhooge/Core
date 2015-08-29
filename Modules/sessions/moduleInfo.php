@@ -28,29 +28,20 @@
  * @version     Version 0.0.1
  */
 
-namespace FuzeWorks;
+return array(
 
-/**
- * Interpret Class.
- *
- * This Model is able to automatically select a SQL database as its source.
- * @package     net.techfuze.fuzeworks.core
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- */
-class Interpret extends Model {
+    'module_class'    => '\Module\Sessions\Session',
+    'module_file'     => 'class.sessions.php',
+    'module_name'     => 'sessions',
 
-    public function __construct(&$core){
-        parent::__construct($core);
+    'dependencies'  => array('techfuze/database'),
 
-        $this->setType('techfuze/databaseutils', 'Model');
-        $this->table    = '';
-    }
+    'name'          => 'Sessions',
+    'description'   => 'Lightweight user and permissions system',
+    'author'        => 'TechFuze',
+    'version'       => '1.0.0.0',
+    'website'       => 'http://fuzeworks.techfuze.net/',
 
-    public function table($name) {
-    	$this->table = $name;
-
-    }
-}
-
-?>
+    'date_created'  => '23-02-2015',
+    'date_updated'  => '29-08-2015',
+);

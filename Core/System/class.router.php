@@ -1,7 +1,77 @@
 <?php
+/**
+ * FuzeWorks
+ *
+ * The FuzeWorks MVC PHP FrameWork
+ *
+ * Copyright (C) 2015   TechFuze
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author      TechFuze
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ * @link        http://fuzeworks.techfuze.net
+ * @since       Version 0.0.1
+ * @version     Version 0.0.1
+ */
 
 namespace FuzeWorks;
+use \Application\Init;
 
+/**
+ * Class Router
+ *
+ * This class handles the framework's routing. The router determines which controller should be called.
+ * The overall structure of the routing is as follows:
+ *
+ * The routes-array will hold a list of RegEx-strings. When the route-method is called, the framework will try
+ * to match the current path against all the RegEx's. When a RegEx matches, the linked callable will be called.
+ *
+ * The default route works as follows:
+ *
+ *      Let's say the visitor requests /A/B/C
+ *
+ *      A would be the 'controller' (default: home)
+ *      B would be the function to be called in the 'controller' (default: index)
+ *      C would be the first parameter
+ *
+ *      All controllers are to be placed in the /application/çontrollers-directory.
+ *
+ * But because of this RegEx-table, modules can easily listen on completely different paths. You can, for example, make
+ * a module that only triggers when /admin/<controller>/<function>/.. is accessed. Or even complexer structure are
+ * available, e.g: /webshop/product-<controller>/view/<function>.
+ *
+ * BE AWARE:
+ *
+ *      Callables are NO controllers!! By default, the 'defaultCallable' will load the correct controller from
+ *      the default controller directory. When you make custom routes, the callable will need to call your own
+ *      controllers. This means that the one callable you provide with your RegEx will be called for EVERYTHING
+ *      the RegEx matches. The names groups 'controller' and 'function' will be passed as first two arguments,
+ *      if no names groups are available; you will need to extract them yourself from the path.
+ *
+ * After the core has been loaded, the method setPath will be called with the request URI (e.g. obtained via .htaccess).
+ * That method will then call the route-method, which will call the right controller and it's method.
+ *
+ * @see Router::setPath
+ * @see Router::route
+ *
+ * @package     net.techfuze.fuzeworks.core
+ * @author      Abel Hoogeveen <abel@techfuze.net>
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ */
 class Router extends Bus{
 
     /**
@@ -169,11 +239,11 @@ class Router extends Bus{
      *
      * The path will be checked before custom routes before the default route(/controller/function/param1/param2/etc)
      * When the given RegEx matches the current routing-path, the callable will be called.
-     * 
+     *
      * The callable will be called with three arguments:
-     * 
+     *
      *      Callable($controller, $function, $parameters)
-     * 
+     *
      * These three variables will be extracted from the named groups of your RegEx. When one or more named groups are
      * not matched, they will be set to NULL. The default RegEx is:
      *
@@ -366,6 +436,10 @@ class Router extends Bus{
         $file   = 'Application/Controller/controller.'.$this->controller.'.php';
 
         $this->logger->log('Loading controller '.$class.' from file: '.$file);
+
+        // First load the Application init class, so that some important functions can be executed first.
+        require_once("Application/class.init.php");
+        $init = new Init($this->core);
 
         // Check if the file exists
         if(file_exists($file)){

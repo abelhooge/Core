@@ -1,21 +1,56 @@
 <?php
 /**
- * @author FuzeNetwork
- * @package files
-*/
+ * FuzeWorks
+ *
+ * The FuzeWorks MVC PHP FrameWork
+ *
+ * Copyright (C) 2015   TechFuze
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author      TechFuze
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ * @link        http://fuzeworks.techfuze.net
+ * @since       Version 0.0.1
+ * @version     Version 0.0.1
+ */
 
 namespace FuzeWorks;
 
-/** 
- * Event Class
- * 
- * Controls FuzeWorks Events. Events are classes that get loaded during special moments in the program.
- * These Event objects get send to so-called 'listeners', which can modify the event object, and eventually return them to invoker.
- * Typically an event process goes like this:
- * - Event get's called
- * - Event object is created
- * - Event object is send to all listeners in order of EventPriority
- * - Event is returned
+/**
+ * Class Events
+ *
+ * FuzeWorks is built in a way that almost every core-event can be manipulated by modules. This class provides various ways to hook into the core (or other modules)
+ * and manipulate the outcome of the functions. Modules and core actions can 'fire' an event and modules can 'hook' into that event. Let's take a look at the example below:
+ *
+ * If we want to add the current time at the end of each page title, we need to hook to the corresponding event. Those events are found in the 'events' directory in the system directory.
+ * The event that will be fired when the title is changing is called layoutSetTitleEvent. So if we want our module to hook to that event, we add the following to the constructor:
+ *
+ * $this->events->addListener(array($this, "onLayoutSetTitleEvent"), "layoutSetTitleEvent", EventPriority::NORMAL);
+ *
+ * This will add the function "onLayoutSetTitleEvent" of our current class ($this) to the list of listeners with priority NORMAL. So we need to add
+ * a method called onLayoutSetTitleEvent($event) it is very important to add the pointer-reference (&) or return the event, otherwise it doesn't change the event variables.
+ *
+ * If we now add the following code to our method, it will add the current time at the front of each title.
+ *
+ * $event->title = date('H:i:s ').$event->title;
+ *
+ * @package     net.techfuze.fuzeworks.core
+ * @author      Abel Hoogeveen <abel@techfuze.net>
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
 class Events extends Bus{
 

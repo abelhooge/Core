@@ -1,9 +1,9 @@
-       location / {
-                  if (!-e $request_filename){
-                    rewrite ^/(.*)$ /fw/index.php?path=$1 last;
-                  }
-        }
+location / {
+          if (!-e $request_filename){
+            rewrite ^/(.*)$ /fw/index.php?path=$1 last;
+          }
+}
 
-        location ~* (\.enc.cfg)$ {
-                    return 404;
-        }
+location ~* (\.enc.cfg)$ {
+            return 404;
+}

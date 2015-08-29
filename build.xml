@@ -1,0 +1,36 @@
+<project name="FuzeWorks" default="build" basedir=".">
+    <target name="clean">
+        <delete dir="${basedir}/build" />
+    </target>
+
+    <target name="prepare">
+        <mkdir dir="${basedir}/build/logs" />
+        <mkdir dir="${basedir}/build/clover" />
+        <mkdir dir="${basedir}/build/phpdoc" />
+    </target>
+
+    <target name="phpunit">
+        <exec dir="${basedir}" executable="php" failonerror="true">
+            <arg value="phpunit.phar"/>
+            <arg line="--configuration phpunit.xml
+                       --log-junit build/logs/phpunit.xml
+                       --coverage-clover build/logs/clover.xml
+                       --coverage-html build/clover" />
+        </exec>
+    </target>
+
+    <target name="phpdoc">
+        <exec dir="${basedir}" executable="php" failonerror="yes">
+            <arg value="apigen.phar"/>
+            <arg line="generate --source . --destination 'build/phpdoc' --exclude 'tests/*','build/*','Core/System/Smarty/*','vendor/*' "/>
+        </exec>
+    </target>
+
+    <target name="zip">
+        <exec dir="${basedir}" executable="git" failonerror="true">
+            <arg line="archive -o ${basedir}/build/fuzeworks-core.zip HEAD" />
+        </exec>
+    </target>
+
+    <target name="build" depends="clean,prepare,phpunit,phpdoc,zip" />
+</project>

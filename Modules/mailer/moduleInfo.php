@@ -28,29 +28,20 @@
  * @version     Version 0.0.1
  */
 
-namespace FuzeWorks;
+return array(
 
-/**
- * Interpret Class.
- *
- * This Model is able to automatically select a SQL database as its source.
- * @package     net.techfuze.fuzeworks.core
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- */
-class Interpret extends Model {
+    'module_class'    => '\Module\Mailer\Main',
+    'module_file'     => 'class.mailer.php',
+    'module_name'     => 'Mailer',
 
-    public function __construct(&$core){
-        parent::__construct($core);
+    'dependencies'  => array(),
 
-        $this->setType('techfuze/databaseutils', 'Model');
-        $this->table    = '';
-    }
+    'name'          => 'Mailer',
+    'description'   => 'PHPMailer wrapper for FuzeWorks',
+    'author'        => 'TechFuze',
+    'version'       => '1.0.0',
+    'website'       => 'http://fuzeworks.techfuze.net/',
 
-    public function table($name) {
-    	$this->table = $name;
-
-    }
-}
-
-?>
+    'date_created'  => '08-07-2015',
+    'date_updated'  => '08-07-2015',
+);

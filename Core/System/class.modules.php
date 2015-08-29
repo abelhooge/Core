@@ -1,6 +1,31 @@
 <?php
 /**
- * @author FuzeNetwork
+ * FuzeWorks
+ *
+ * The FuzeWorks MVC PHP FrameWork
+ *
+ * Copyright (C) 2015   TechFuze
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author      TechFuze
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ * @link        http://fuzeworks.techfuze.net
+ * @since       Version 0.0.1
+ * @version     Version 0.0.1
  */
 
 namespace FuzeWorks;
@@ -8,7 +33,9 @@ use \stdClass;
 
 /**
  * Modules Class
- * 
+ * @package     net.techfuze.fuzeworks.core
+ * @author      Abel Hoogeveen <abel@techfuze.net>
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
 class Modules extends Bus{
 
@@ -43,7 +70,7 @@ class Modules extends Bus{
                 // Check if the module is disabled
                 if (isset($cfg->meta)) {
                     throw new ModuleException("Requested mod '".$name."' could not be loaded. Not enabled", 1);
-                    return false;   
+                    return false;
                 }
 
                 // Check if the module is already loaded. If so, only return a reference, if not, load the module
@@ -59,7 +86,7 @@ class Modules extends Bus{
 
                     // Load the dependencies before the module loads
                     $deps = (isset($cfg->dependencies) ? $cfg->dependencies : array());
-                    for ($i=0; $i < count($deps); $i++) { 
+                    for ($i=0; $i < count($deps); $i++) {
                         $this->loadMod($deps[$i]);
                     }
 
@@ -76,7 +103,7 @@ class Modules extends Bus{
                     } else {
                         // Throw Exception if the file does not exist
                         throw new ModuleException("Requested mod '".$name."' could not be loaded. Class file not found", 1);
-                        return false;                           
+                        return false;
                     }
 
                     // If it is an abstract module, load an StdClass for the module address
@@ -216,7 +243,7 @@ class Modules extends Bus{
             $this->events->buildEventRegister();
         } else {
             throw new ModuleException("Could not enable module '".$name."'. Module does not exist.", 1);
-        }   
+        }
     }
 
     /**
@@ -265,7 +292,7 @@ class Modules extends Bus{
 
         // Build the module register
         $register = array();
-        for ($i=0; $i < count($mod_dirs); $i++) { 
+        for ($i=0; $i < count($mod_dirs); $i++) {
             $mod_dir = $dir . $mod_dirs[$i] . "/";
             // If a moduleInfo.php exists, load it
             if (file_exists($mod_dir . "/moduleInfo.php")) {
@@ -321,9 +348,9 @@ class Modules extends Bus{
 
         $this->register = $register;
         $this->logger->stopLevel();
-        
+
     }
 
 }
- 
+
 ?>

@@ -4,6 +4,7 @@
   'enable_models' => true,
   'enable_layout' => true,
   'enable_router' => true,
-  'enable_modules' => true
+  'enable_modules' => true,
+  'enable_composer' => true
 
 ) ;
