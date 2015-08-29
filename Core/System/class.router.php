@@ -367,6 +367,10 @@ class Router extends Bus{
 
         $this->logger->log('Loading controller '.$class.' from file: '.$file);
 
+        // First load the Application init class, so that some important functions can be executed first.
+        require_once("Application/class.init.php");
+        $init = new Init($this->core);
+
         // Check if the file exists
         if(file_exists($file)){
 
