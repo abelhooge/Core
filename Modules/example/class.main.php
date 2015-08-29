@@ -49,6 +49,14 @@ class Main extends Module {
 		// Do Something
 	}
 
+	/**
+	 * Test method that can be called
+	 * @return String Example text
+	 */
+	public function test() {
+		return "It works!";
+	}
+
 }
 
 ?>
