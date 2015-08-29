@@ -7,7 +7,7 @@ use \FuzeWorks\Event;
  *
  * Fired when the router's path is changing
  *
- * @package System\Events
+ * @package net.techfuze.fuzeworks.events
  */
 class routerSetPathEvent extends Event{
 

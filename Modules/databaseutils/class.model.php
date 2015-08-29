@@ -1,4 +1,33 @@
 <?php
+/**
+ * FuzeWorks
+ *
+ * The FuzeWorks MVC PHP FrameWork
+ *
+ * Copyright (C) 2015   TechFuze
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author      TechFuze
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ * @link        http://fuzeworks.techfuze.net
+ * @since       Version 0.0.1
+ * @version     Version 0.0.1
+ */
+
 
 namespace Module\DatabaseUtils;
 use \FuzeWorks\Module;
@@ -6,6 +35,12 @@ use \FuzeWorks\Bus;
 use \FuzeWorks\ModelServer;
 use \FuzeWorks\DatabaseException;
 
+/**
+ * Main class of the database utilities and model providers
+ * @package     net.techfuze.fuzeworks.databaseutils
+ * @author      Abel Hoogeveen <abel@techfuze.net>
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ */
 class Main extends Module implements ModelServer {
 
     public $fields  = array();
@@ -35,7 +70,11 @@ class Main extends Module implements ModelServer {
  * Models also allow custom methods to be created on them. You can use those methods to create specific operations or joins and then use the newly created method
  * everywhere in your project. The code is at one place, the usages all over your project. Isn't that great?
  *
- * @package Module\DatabaseUtils
+ * @package     net.techfuze.fuzeworks.databaseutils
+ * @author      GOScripting
+ * @copyright   Copyright (c) 2014 - 2015, GOScripting B.V. (http://goscripting.com)
+ * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ * @link        http://goframework.net
  */
 class Model extends Bus {
 
@@ -153,7 +192,6 @@ class Model extends Bus {
 	 * @return mixed
 	 */
 	public function getLastInsertId(){
-	
 		return $this->mods->database->lastInsertId();
 	}
 

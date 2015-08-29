@@ -7,7 +7,7 @@ use \FuzeWorks\Event;
  *
  * Called when a callable is about to be loaded
  *
- * @package System\Events
+ * @package net.techfuze.fuzeworks.events
  */
 class routerLoadCallableEvent extends Event{
 

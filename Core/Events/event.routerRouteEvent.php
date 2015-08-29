@@ -7,7 +7,7 @@ use \FuzeWorks\Event;
  *
  * Fired after the router has extracted the path
  *
- * @package System\Events
+ * @package net.techfuze.fuzeworks.events
  */
 class routerRouteEvent extends Event{
 
