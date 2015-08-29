@@ -313,6 +313,14 @@ class Modules extends Bus{
                         // Copy all the data into the register and enable
                         $register[$name] = (array) $cfg;
                         $this->logger->log("[ON]  '".$name."'");
+
+                        // Add all module aliases if available
+                        if (isset($cfg->aliases)) {
+                            foreach ($cfg->aliases as $alias) {
+                                $register[$alias] = (array) $cfg;
+                                $this->logger->log("[ON]  '".$alias."' (alias of '".$name."')");
+                            }
+                        }
                     } else {
                         // If not, copy all the basic data so that it can be enabled in the future
                         $cfg2 = new StdClass();
@@ -321,11 +329,27 @@ class Modules extends Bus{
                         $cfg2->meta = $cfg;
                         $register[$name] = (array)$cfg2;
                         $this->logger->log("[OFF] '".$name."'");
+
+                        // Add all module aliases if available
+                        if (isset($cfg->aliases)) {
+                            foreach ($cfg->aliases as $alias) {
+                                $register[$alias] = (array) $cfg2;
+                                $this->logger->log("[OFF]  '".$alias."' (alias of '".$name."')");
+                            }
+                        }
                     }
                 } else {
                     // Copy all the data into the register and enable
                     $register[$name] = (array) $cfg;
                     $this->logger->log("[ON]  '".$name."'");
+
+                    // Add all module aliases if available
+                    if (isset($cfg->aliases)) {
+                        foreach ($cfg->aliases as $alias) {
+                            $register[$alias] = (array) $cfg;
+                            $this->logger->log("[ON]  '".$alias."' (alias of '".$name."')");
+                        }
+                    }
                 }
             } else {
                 // If no details are specified, create a basic module
