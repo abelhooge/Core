@@ -35,10 +35,11 @@ return array(
     'module_name'     => 'Mailer',
 
     'dependencies'  => array(),
+    'aliases'       => array('techfuze/mailer'),
 
     'name'          => 'Mailer',
     'description'   => 'PHPMailer wrapper for FuzeWorks',
-    'author'        => 'TechFuze',
+    'author'        => 'core',
     'version'       => '1.0.0',
     'website'       => 'http://fuzeworks.techfuze.net/',
 

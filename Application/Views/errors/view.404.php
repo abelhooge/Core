@@ -50,7 +50,7 @@
 		<script>
 			var currentPage = 0;
 			var currentProgress = 0;
-			
+
 			start();
 			function start() {
 				$("#contentPanel").fadeIn(500);

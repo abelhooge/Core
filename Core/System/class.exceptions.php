@@ -54,6 +54,23 @@ class LayoutException extends Exception{}
  */
 class ConfigException extends Exception{}
 
+/**
+ * Class ModelException
+ * @package     net.techfuze.fuzeworks.core
+ * @author      Abel Hoogeveen <abel@techfuze.net>
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ */
+class ModelException extends Exception{}
+
+/**
+ * Class LoggerException
+ * @package     net.techfuze.fuzeworks.core
+ * @author      Abel Hoogeveen <abel@techfuze.net>
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ */
+class LoggerException extends Exception{}
+
+/**
  * Class RouterException
  * @package     net.techfuze.fuzeworks.core
  * @author      Abel Hoogeveen <abel@techfuze.net>

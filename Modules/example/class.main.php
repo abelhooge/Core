@@ -30,6 +30,8 @@
 
 namespace Module\Example;
 use \FuzeWorks\Module;
+use \FuzeWorks\Event;
+use \FuzeWorks\EventPriority;
 
 /**
  * Example module.
@@ -43,10 +45,13 @@ class Main extends Module {
 
 	/**
 	 * Loads the module and registers the events
+	 *
+	 * Every main moduleclass needs an onLoad method. This method is called first before anything else and cam be used to do some global actions.
 	 * @access public
 	 */
 	public function onLoad() {
-		// Do Something
+		// Here we register an eventListener for the ExampleEvent. See ExampleListener for more info
+		$this->events->addListener(array($this, 'exampleListener'), 'ExampleEvent', EventPriority::NORMAL);
 	}
 
 	/**
@@ -57,6 +62,58 @@ class Main extends Module {
 		return "It works!";
 	}
 
+	/**
+	 * An example listener that introduces you to the basics of event handling
+	 * @param  ExampleEvent $event  The event to listen for
+	 * @return ExampleEvent         The event after it has been handled
+	 */
+	public function exampleListener($event) {
+		$this->logger->log("Called the eventListener. This listener can now handle the event and change some data");
+		// For this listener, we only change one variable
+		$event->setVariable("New Value");
+
+		// And then we return it
+		return $event;
+	}
+
+	/**
+	 * In this example we create a simple event. This event will be created, passed around and then received in the example listener.
+	 */
+	public function createEvent() {
+		// First we log some data
+		$this->logger->log("Now creating a test event.");
+
+		// First we create the event object and some variables to assign to it
+		$eventObject = new ExampleEvent();
+		$variable = "Test Variable";
+
+		// Then we fire the event by parsing the event object and the variables into the fireEvent function.
+		$event = $this->events->fireEvent($eventObject, $variable);
+
+		// Here we can read some variables from the event
+		$result = $event->getVariable();
+
+		// And now we can do things with the data. For now we just return it
+		return $result;
+	}
+
+}
+
+class ExampleEvent extends Event {
+
+	private $var1;
+
+	public function init($variable) {
+		$this->var1 = $variable;
+	}
+
+	public function getVariable() {
+		return $this->var1;
+	}
+
+	public function setVariable($var) {
+		$this->var1 = $var;
+	}
 }
 
 ?>

@@ -28,7 +28,7 @@
  * @version     Version 0.0.1
  */
 
-namespace Module\Sessions;
+namespace Module\Users;
 use \FuzeWorks\Event;
 
 /**

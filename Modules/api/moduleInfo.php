@@ -9,10 +9,11 @@ return array(
     'dependencies'  => array(),
     'events'        => array(),
     'sections'      => array(),
+    'aliases'       => array(),
 
     'name'          => 'FuzeWorks Api Module',
     'description'   => 'A Controller server for multiple types of API\'s like REST and SOAP',
-    'author'        => 'TechFuze',
+    'author'        => 'core',
     'version'       => '1.0.0',
     'website'       => 'http://fuzeworks.techfuze.net/',
 
