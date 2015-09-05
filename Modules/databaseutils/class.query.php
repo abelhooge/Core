@@ -30,7 +30,10 @@
 
 namespace Module\DatabaseUtils;
 use \FuzeWorks\Module;
+use \FuzeWorks\Modules;
 use \FuzeWorks\DatabaseException;
+use \FuzeWorks\Config;
+use \FuzeWorks\Logger;
 
 
 /**
@@ -65,11 +68,6 @@ class Query extends Module {
      * @var null|\PDOStatement
      */
     private $sth = null;
-
-    public function __construct(&$core){
-
-        parent::__construct($core);
-    }
 
     /**
      * Default module function on creation
@@ -713,7 +711,7 @@ class Query extends Module {
      */
     public function commit(){
 
-        $this->mods->database->commit();
+        Modules::get('core/database')->commit();
 
         return $this;
     }
@@ -723,7 +721,7 @@ class Query extends Module {
      */
     public function beginTransaction(){
 
-        $this->mods->database->beginTransaction();
+        Modules::get('core/database')->beginTransaction();
 
         return $this;
     }
@@ -733,7 +731,7 @@ class Query extends Module {
      */
     public function rollback(){
 
-        $this->mods->database->rollback();
+        Modules::get('core/database')->rollback();
 
         return $this;
     }
@@ -747,12 +745,12 @@ class Query extends Module {
     public function execute(){
 
 
-        if($this->config->database->debug)
-            $this->logger->log("Generated query: ".$this->query, 'QueryBuilder');
+        if(Config::get('database')->debug)
+            Logger::log("Generated query: ".$this->query, 'QueryBuilder');
 
         try{
 
-            $this->sth = $this->mods->database->prepare($this->query);
+            $this->sth = Modules::get('core/database')->prepare($this->query);
             if(count($this->binds) === 0){
 
                 $this->sth->execute();
@@ -812,7 +810,7 @@ class Query extends Module {
      */
     public function getLastInsertId(){
 
-        return $this->mods->database->lastInsertId();
+        return Modules::get('core/database')->lastInsertId();
 
     }
 

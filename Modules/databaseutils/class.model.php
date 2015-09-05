@@ -47,16 +47,12 @@ class Main extends Module implements ModelServer {
 	public $primary = 'id';
     public $table   = '';
 
-    public function __construct(&$core){
-        parent::__construct($core);
-    }
-
     public function onLoad() {
     	require_once($this->getModulePath() . '/class.query.php');
     }
 
     public function giveModel($type) {
-    	return new Model($this->core);
+    	return new Model();
     }
 }
 
@@ -76,7 +72,7 @@ class Main extends Module implements ModelServer {
  * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
  * @link        http://goframework.net
  */
-class Model extends Bus {
+class Model {
 
 	/**
 	 * @var string The name of the database table

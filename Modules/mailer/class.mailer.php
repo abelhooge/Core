@@ -30,6 +30,7 @@
 
 namespace Module\Mailer;
 use \FuzeWorks\Module;
+use \FuzeWorks\Config;
 use \PHPMailer;
 
 /**
@@ -54,7 +55,7 @@ use \PHPMailer;
  	 * @access public
  	 */
 	public function onLoad() {
-		$this->cfg = $this->config->loadConfigFile('mailer', $this->getModulePath());
+		$this->cfg = Config::loadConfigFile('mailer', $this->getModulePath());
 	}
 
 	/**

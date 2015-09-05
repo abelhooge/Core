@@ -40,9 +40,7 @@ namespace FuzeWorks;
  */
 class Interpret extends Model {
 
-    public function __construct(&$core){
-        parent::__construct($core);
-
+    public function __construct(){
         $this->setType('techfuze/databaseutils', 'Model');
         $this->table    = '';
     }

@@ -42,29 +42,27 @@ use \PDOException;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Config extends Bus{
+class Config {
 
 	/**
 	 * Wether or not the database is active at the moment
 	 * @access public
 	 * @var Boolean true on active database
 	 */
-	public $dbActive = false;
+	public static $dbActive = false;
 
 	/**
 	 * Class Constructor
 	 * @access public
 	 * @param FuzeWorks Core Reference
 	 */
-	public function __construct(&$core) {
-		parent::__construct($core);
-	}
+	public static function init() {}
 
 	/**
 	 * All loaded Config files
 	 * @var Array of ConfigORM
 	 */
-	private $cfg = array();
+	private static $cfg = array();
 
 	/**
 	 * Loads a config file and returns it as an object
@@ -74,30 +72,30 @@ class Config extends Bus{
 	 * @throws \Exception on file not found
 	 * @return StdObject of config
 	 */
-	public function loadConfigFile($name, $directory = null) {
+	public static function loadConfigFile($name, $directory = null) {
 		$dir = (isset($directory) ? $directory : "Application/Config/");
 		$file = $dir . 'config.' . strtolower($name).".php";
 
 		// If already loaded, return a reference to the ORM
-		if (isset($this->cfg[$name])) {
-			return $cfg = &$this->cfg[$name];
+		if (isset(self::$cfg[$name])) {
+			return $cfg = self::$cfg[$name];
 		}
 
 		// Is this the real file?
 		if (file_exists($file)) {
 			// Is it just reference?
-			return $cfg = $this->cfg[$name] = new ConfigFileORM($file);
+			return $cfg = self::$cfg[$name] = new ConfigFileORM($file);
 		} else {
 			// Caught in a datastream
 			$this->core->loadMod('techfuze/database');
 			// No escape from dbactive
-			if ($this->dbActive) {
+			if (self::$dbActive) {
 				// Open your stream
 				$dborm = new ConfigDatabaseORM($this->mods->database, $name);
 				// Lookup for the success
 				if ($dborm->success) {
 					// And see
-					return $cfg = $this->cfg[$name] = $dborm;
+					return $cfg = self::$cfg[$name] = $dborm;
 				}
 			}
 
@@ -115,8 +113,8 @@ class Config extends Bus{
 	 * @param String config file name
 	 * @return StdObject of config
 	 */
-	public function __get($name) {
-		return $this->loadConfigFile($name);
+	public static function get($name) {
+		return self::loadConfigFile($name);
 	}
 }
 

@@ -30,6 +30,8 @@
 
 namespace Module\Database;
 use \FuzeWorks\Module;
+use \FuzeWorks\Config;
+use \FuzeWorks\Logger;
 use \PDO;
 use \FuzeWorks\DatabaseException;
 
@@ -52,12 +54,8 @@ class Main extends Module {
 	private $DBH;
 	public $prefix;
 
-	public function __construct(&$core) {
-		parent::__construct($core);
-	}
-
 	public function onLoad() {
-		$this->config->dbActive = true;
+		Config::$dbActive = true;
 	}
 
 	/**
@@ -68,7 +66,7 @@ class Main extends Module {
 	public function connect($config = null) {
 		// If nothing is given, connect to database from the main config, otherwise use the served configuration
 		if (is_null($config)) {
-			$db = $this->mods->config->database;
+			$db = Config::get('database');
 		} else {
 			$db = $config;
 		}
@@ -76,7 +74,7 @@ class Main extends Module {
 		if (empty($db->type) || empty($db->host)) {
 			throw (new DatabaseException('Database is not configured!'));
 		}
-		
+
 		// Get the DSN for popular types of databases or a custom DSN
 		switch (strtolower($db->type)) {
 			case 'mysql':
@@ -89,11 +87,11 @@ class Main extends Module {
 		}
 
 		try {
-			$this->mods->logger->logInfo("Connecting to '".$dsn."'", "Database");
+			Logger::logInfo("Connecting to '".$dsn."'", "Database");
 			// And create the connection
 			$this->DBH = new PDO($dsn, $db->username, $db->password, (isset($db->options) ? $db->options : null));
 			$this->DBH->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-			$this->mods->logger->logInfo("Connected to database", "Database");
+			Logger::logInfo("Connected to database", "Database");
 
 			// And set the prefix
 			$this->prefix = $db->prefix;

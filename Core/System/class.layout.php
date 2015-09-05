@@ -37,45 +37,37 @@ use \Smarty;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Layout extends Bus {
+class Layout {
 
 	/**
 	 * All assigned currently assigned to the template
 	 * @var Array Associative Assigned Variable Array
 	 */
-	private $assigned_variables = array();
-
-	/**
-	 * Initializes the core module
-	 * @param \FuzeWorks\Core &$core reference to the core
-	 */
-	public function __construct(&$core) {
-		parent::__construct($core);
-	}
+	private static $assigned_variables = array();
 
 	/**
 	 * All engines that can be used for templates
 	 * @var array of engines
 	 */
-	private $engines = array();
+	private static $engines = array();
 
 	/**
 	 * All file extensions that can be used and are bound to a template engine
 	 * @var array of names of engines
 	 */
-	private $file_extensions = array();
+	private static $file_extensions = array();
 
 	/**
 	 * Wether the template engines are already called.
 	 * @var boolean True if loaded
 	 */
-	private $engines_loaded = false;
+	private static $engines_loaded = false;
 
 	/**
 	 * The currently selected template engine
 	 * @var String name of engine
 	 */
-	private $current_engine;
+	private static $current_engine;
 
 	/**
 	 * Retrieve a template file using a string and a directory and immediatly echo it.
@@ -85,10 +77,11 @@ class Layout extends Bus {
 	 * Remember that doing so will result in an LayoutException when multiple compatible files are found.
 	 * @param  String $file      File to load
 	 * @param  string $directory Directory to load it from
+	 * @return true on success
 	 * @throws LayoutException   On error
 	 */
-	public function view($file, $directory = 'Application/Views') {
-		echo $this->get($file, $directory);
+	public static function view($file, $directory = 'Application/Views') {
+		echo self::get($file, $directory);
 		return true;
 	}
 
@@ -104,39 +97,39 @@ class Layout extends Bus {
 	 * @return String            The output of the template
 	 * @throws LayoutException   On error
 	 */
-	public function get($file, $directory = 'Application/Views') {
-		$this->logger->newLevel("Loading template file '".$file."' in '".$directory."'");
+	public static function get($file, $directory = 'Application/Views') {
+		Logger::newLevel("Loading template file '".$file."' in '".$directory."'");
 
 		// First load the template engines
-		$this->loadTemplateEngines();
+		self::loadTemplateEngines();
 
 		// First retrieve the filepath
-		if (is_null($this->current_engine)) {
-			$file = $this->getFileFromString($file, $directory, array_keys($this->file_extensions));
+		if (is_null(self::$current_engine)) {
+			$file = self::getFileFromString($file, $directory, array_keys(self::$file_extensions));
 		} else {
-			$file = $this->getFileFromString($file, $directory, $this->current_engine->getFileExtensions());
+			$file = self::getFileFromString($file, $directory, self::$current_engine->getFileExtensions());
 		}
 
 		// Then assign some basic variables for the template
-		$this->assigned_variables['viewDir'] = $this->config->main->SITE_URL . preg_replace('#/+#','/', substr($directory . "/", -strlen($directory . "/") ) );
-		$this->assigned_variables['siteURL'] = $this->config->main->SITE_URL;
-		$this->assigned_variables['siteLogo'] = $this->config->main->SITE_LOGO_URL;
-		$this->assigned_variables['serverName'] = $this->config->main->SERVER_NAME;
-		$this->assigned_variables['siteDomain'] = $this->config->main->SITE_DOMAIN;
-		$this->assigned_variables['adminMail'] = $this->config->main->administrator_mail;
-		$this->assigned_variables['contact'] = $this->config->contact->toArray();
+		self::$assigned_variables['viewDir'] = Config::get('main')->SITE_URL . preg_replace('#/+#','/', substr($directory . "/", -strlen($directory . "/") ) );
+		self::$assigned_variables['siteURL'] = Config::get('main')->SITE_URL;
+		self::$assigned_variables['siteLogo'] = Config::get('main')->SITE_LOGO_URL;
+		self::$assigned_variables['serverName'] = Config::get('main')->SERVER_NAME;
+		self::$assigned_variables['siteDomain'] = Config::get('main')->SITE_DOMAIN;
+		self::$assigned_variables['adminMail'] = Config::get('main')->administrator_mail;
+		self::$assigned_variables['contact'] = Config::get('contact')->toArray();
 
 		// Select an engine if one is not already selected
-		if (is_null($this->current_engine)) {
-			$this->current_engine = $this->getEngineFromExtension( $this->getExtensionFromFile($file) );
+		if (is_null(self::$current_engine)) {
+			self::$current_engine = self::getEngineFromExtension( self::getExtensionFromFile($file) );
 		}
 
-		$this->current_engine->setDirectory($directory);
+		self::$current_engine->setDirectory($directory);
 
-		$this->logger->stopLevel();
+		Logger::stopLevel();
 
 		// And finally run it
-		return $this->current_engine->get($file, $this->assigned_variables);
+		return self::$current_engine->get($file, self::$assigned_variables);
 	}
 
 	/**
@@ -144,9 +137,9 @@ class Layout extends Bus {
 	 * @param  String $extension File extention to look for
 	 * @return Object            Template Engine
 	 */
-	public function getEngineFromExtension($extension) {
-		if (isset($this->file_extensions[strtolower($extension)])) {
-			return $this->engines[ $this->file_extensions[strtolower($extension)]];
+	public static function getEngineFromExtension($extension) {
+		if (isset(self::$file_extensions[strtolower($extension)])) {
+			return self::$engines[ self::$file_extensions[strtolower($extension)]];
 		}
 
 		throw new LayoutException("Could not get Template Engine. No engine has corresponding file extension", 1);
@@ -157,7 +150,7 @@ class Layout extends Bus {
 	 * @param  String $fileString The path to the file
 	 * @return String             Extension of the file
 	 */
-	public function getExtensionFromFile($fileString) {
+	public static function getExtensionFromFile($fileString) {
 		return substr($fileString, strrpos($fileString, '.') + 1);
 	}
 
@@ -170,7 +163,7 @@ class Layout extends Bus {
 	 * @return String             Filepath of the template
 	 * @throws LayoutException    On error
 	 */
-	public function getFileFromString($string, $directory, $extensions = array()) {
+	public static function getFileFromString($string, $directory, $extensions = array()) {
 		$directory = preg_replace('#/+#','/',(!is_null($directory) ? $directory : "Application/Views") . "/");
 
 		if (!file_exists($directory)) {
@@ -206,7 +199,7 @@ class Layout extends Bus {
 			if (file_exists($file) && !$fileSelected) {
 				$selectedFile = $file;
 				$fileSelected = true;
-				$this->logger->log("Found matching file: '". $file . "'");
+				Logger::log("Found matching file: '". $file . "'");
 			} elseif (file_exists($file) && $fileSelected) {
 				throw new LayoutException("Could not select template. Multiple valid extensions detected. Can not choose.", 1);
 			}
@@ -214,7 +207,7 @@ class Layout extends Bus {
 
 		// And choose what to output
 		if (!$fileSelected) {
-			$this->logger->logWarning("Could not select template. No matching file found.");
+			Logger::logWarning("Could not select template. No matching file found.");
 		}
 
 		return $selectedFile;
@@ -225,24 +218,24 @@ class Layout extends Bus {
 	 * @param  String $key   Key of the variable
 	 * @param  Mixed  $value Value of the variable
 	 */
-	public function assign($key, $value) {
-		$this->assigned_variables[$key] = $value;
+	public static function assign($key, $value) {
+		self::$assigned_variables[$key] = $value;
 	}
 
 	/**
 	 * Set the title of the template
 	 * @param String $title title of the template
 	 */
-	public function setTitle($title) {
-		$this->assigned_variables['title'] = $title;
+	public static function setTitle($title) {
+		self::$assigned_variables['title'] = $title;
 	}
 
 	/**
 	 * Get the title of the template
 	 * @return String title of the template
 	 */
-	public function getTitle() {
-		return $this->assigned_variables['title'];
+	public static function getTitle() {
+		return self::$assigned_variables['title'];
 	}
 
 	/**
@@ -251,11 +244,11 @@ class Layout extends Bus {
 	 * @return boolean true on success
 	 * @throws \FuzeWorks\LayoutException on error
 	 */
-	public function setEngine($name) {
-		$this->loadTemplateEngines();
-		if (isset($this->engines[$name])) {
-			$this->current_engine = $this->engines[$name];
-			$this->logger->log('Set the Template Engine to ' . $name);
+	public static function setEngine($name) {
+		self::loadTemplateEngines();
+		if (isset(self::$engines[$name])) {
+			self::$current_engine = self::$engines[$name];
+			Logger::log('Set the Template Engine to ' . $name);
 			return true;
 		}
 		throw new LayoutException("Could not set engine. Engine does not exist", 1);
@@ -266,10 +259,10 @@ class Layout extends Bus {
 	 * @param  String $name Name of the template engine
 	 * @return Object       Object that implements \FuzeWorks\TemplateEngine
 	 */
-	public function getEngine($name) {
-		$this->loadTemplateEngines();
-		if (isset($this->engines[$name])) {
-			return $this->engines[$name];
+	public static function getEngine($name) {
+		self::loadTemplateEngines();
+		if (isset(self::$engines[$name])) {
+			return self::$engines[$name];
 		}
 		throw new LayoutException("Could not return engine. Engine does not exist", 1);
 	}
@@ -282,16 +275,16 @@ class Layout extends Bus {
 	 * @return boolean                      true on success
 	 * @throws \FuzeWorks\LayoutException   On error
 	 */
-	public function registerEngine($engineClass, $engineName, $engineFileExtensions) {
+	public static function registerEngine($engineClass, $engineName, $engineFileExtensions) {
 		// First check if the engine already exists
-		if (isset($this->engines[$engineName])) {
+		if (isset(self::$engines[$engineName])) {
 			throw new LayoutException("Could not register engine. Engine '".$engineName."' already registered", 1);
 		}
 
 		// Then check if the object is correct
 		if ($engineClass instanceof TemplateEngine) {
 			// Install it
-			$this->engines[$engineName] = $engineClass;
+			self::$engines[$engineName] = $engineClass;
 
 			// Then define for what file extensions this Template Engine will work
 			if (!is_array($engineFileExtensions)) {
@@ -300,16 +293,16 @@ class Layout extends Bus {
 
 			// Then install them
 			foreach ($engineFileExtensions as $extension) {
-				if (isset($this->file_extensions[strtolower($extension)])) {
+				if (isset(self::$file_extensions[strtolower($extension)])) {
 					throw new LayoutException("Could not register engine. File extension already bound to engine", 1);
 				}
 
 				// And add it
-				$this->file_extensions[strtolower($extension)] = $engineName;
+				self::$file_extensions[strtolower($extension)] = $engineName;
 			}
 
 			// And log it
-			$this->logger->log('Registered Template Engine: ' . $engineName);
+			Logger::log('Registered Template Engine: ' . $engineName);
 			return true;
 		}
 
@@ -319,48 +312,15 @@ class Layout extends Bus {
 	/**
 	 * Load the template engines by sending a layoutLoadEngineEvent
 	 */
-	private function loadTemplateEngines() {
-		if (!$this->engines_loaded) {
-			$this->events->fireEvent('layoutLoadEngineEvent');
+	private static function loadTemplateEngines() {
+		if (!self::$engines_loaded) {
+			Events::fireEvent('layoutLoadEngineEvent');
 			// Load the engines provided in this file
-			$this->registerEngine(new PHPEngine(), 'PHP', array('php'));
-			$this->registerEngine(new SmartyEngine(), 'Smarty', array('tpl'));
-			$this->registerEngine(new JsonEngine(), 'JSON', array('json'));
-			$this->engines_loaded = true;
+			self::registerEngine(new PHPEngine(), 'PHP', array('php'));
+			self::registerEngine(new SmartyEngine(), 'Smarty', array('tpl'));
+			self::registerEngine(new JsonEngine(), 'JSON', array('json'));
+			self::$engines_loaded = true;
 		}
-	}
-
-	/**
-	 * Retrieve a value from the template engine
-	 * @param  String $name Variable name
-	 * @return Mixed        Variable Value
-	 * @throws \FuzeWorks\LayoutException on error
-	 */
-	public function __get($name) {
-		// First load the template engines
-		$this->loadTemplateEngines();
-
-		// Retrieve value from layout engine
-		if (!is_null($this->current_engine)) {
-			return $this->current_engine->$name;
-		}
-		throw new LayoutException("Could not access Engine. Engine not loaded", 1);
-	}
-
-	/**
-	 * Set a variable in the template engine
-	 * @param String $name  Variable Name
-	 * @param Mixed  $value Variable Value
-	 * @throws \FuzeWorks\LayoutException on error
-	 */
-	public function __set($name, $value) {
-		// First load the template engines
-		$this->loadTemplateEngines();
-
-		if (!is_null($this->current_engine)) {
-			$this->current_engine->$name = $value;
-		}
-		throw new LayoutException("Could not access Engine. Engine not loaded", 1);
 	}
 
 	/**
@@ -369,13 +329,13 @@ class Layout extends Bus {
 	 * @param  Paramaters $params Parameters to be used
 	 * @return Mixed              Function output
 	 */
-	public function __call($name, $params) {
+	public static function __callStatic($name, $params) {
 		// First load the template engines
-		$this->loadTemplateEngines();
+		self::loadTemplateEngines();
 
-		if (!is_null($this->current_engine)) {
+		if (!is_null(self::$current_engine)) {
 			// Call user func array here
-			return call_user_func_array(array($this->current_engine, $name), $params);
+			return call_user_func_array(array(self::$current_engine, $name), $params);
 		}
 		throw new LayoutException("Could not access Engine. Engine not loaded", 1);
 	}
@@ -383,13 +343,13 @@ class Layout extends Bus {
 	/**
 	 * Resets the layout manager to its default state
 	 */
-	public function reset() {
-		if (!is_null($this->current_engine)) {
-			$this->current_engine->reset();
+	public static function reset() {
+		if (!is_null(self::$current_engine)) {
+			self::$current_engine->reset();
 		}
-		$this->current_engine = null;
-		$this->assigned_variables = array();
-		$this->logger->log("Reset the layout manager to its default state");
+		self::$current_engine = null;
+		self::$assigned_variables = array();
+		Logger::log("Reset the layout manager to its default state");
 	}
 }
 

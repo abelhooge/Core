@@ -39,7 +39,7 @@ namespace FuzeWorks;
  * If we want to add the current time at the end of each page title, we need to hook to the corresponding event. Those events are found in the 'events' directory in the system directory.
  * The event that will be fired when the title is changing is called layoutSetTitleEvent. So if we want our module to hook to that event, we add the following to the constructor:
  *
- * $this->events->addListener(array($this, "onLayoutSetTitleEvent"), "layoutSetTitleEvent", EventPriority::NORMAL);
+ * Events::addListener(array($this, "onLayoutSetTitleEvent"), "layoutSetTitleEvent", EventPriority::NORMAL);
  *
  * This will add the function "onLayoutSetTitleEvent" of our current class ($this) to the list of listeners with priority NORMAL. So we need to add
  * a method called onLayoutSetTitleEvent($event) it is very important to add the pointer-reference (&) or return the event, otherwise it doesn't change the event variables.
@@ -52,15 +52,11 @@ namespace FuzeWorks;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Events extends Bus{
+class Events {
 
-	private $listeners;
-    private $enabled = true;
-
-	public function __construct(&$core) {
-		parent::__construct($core);
-		$this->listeners = array();
-	}
+	private static $listeners = array();
+    private static $enabled = true;
+    private static $register;
 
     /**
      * Adds a function as listener
@@ -72,17 +68,17 @@ class Events extends Bus{
      *
      * @throws EventException
      */
-	public function addListener($callback, $eventName, $priority = EventPriority::NORMAL){
+	public static function addListener($callback, $eventName, $priority = EventPriority::NORMAL){
         if(EventPriority::getPriority($priority) == false)
             throw new Exception("Unknown priority " . $priority);
 
-        if(!isset($this->listeners[$eventName]))
-            $this->listeners[$eventName] = array();
+        if(!isset(self::$listeners[$eventName]))
+            self::$listeners[$eventName] = array();
 
-        if(!isset($this->listeners[$eventName][$priority]))
-            $this->listeners[$eventName][$priority] = array();
+        if(!isset(self::$listeners[$eventName][$priority]))
+           self::$listeners[$eventName][$priority] = array();
 
-        $this->listeners[$eventName][$priority][] = $callback;
+        self::$listeners[$eventName][$priority][] = $callback;
     }
 
     /**
@@ -95,27 +91,27 @@ class Events extends Bus{
      *
      * @throws EventException
      */
-    public function removeListener($callback, $eventName, $priority = EventPriority::NORMAL){
+    public static function removeListener($callback, $eventName, $priority = EventPriority::NORMAL){
         if(EventPriority::getPriority($priority) == false)
             throw new Exception("Unknown priority " . $priority);
 
-        if(!isset($this->listeners[$eventName]))
+        if(!isset(self::$listeners[$eventName]))
             return;
 
-        if(!isset($this->listeners[$eventName][$priority]))
+        if(!isset(self::$listeners[$eventName][$priority]))
             return;
 
-        foreach($this->listeners[$eventName][$priority] as $i => $_callback){
+        foreach(self::$listeners[$eventName][$priority] as $i => $_callback){
 
             if($_callback == $callback) {
-                unset($this->listeners[$eventName][$priority][$i]);
+                unset(self::$listeners[$eventName][$priority][$i]);
                 return;
             }
         }
     }
 
 	## EVENTS
-	public function fireEvent($input) {
+	public static function fireEvent($input) {
 		if (is_string($input)) {
 			// If the input is a string
 			$eventClass = $input;
@@ -143,75 +139,76 @@ class Events extends Bus{
 			$eventName = get_class($input);
 			$eventName = explode('\\', $eventName);
 			$eventName = end($eventName);
-			$event = $input;			
+			$event = $input;
 		} else {
 			// INVALID EVENT
 			return false;
 		}
 
-		$this->logger->newLevel("Firing Event: '".$eventName."'");
-		$this->logger->log('Initializing Event');
+		Logger::newLevel("Firing Event: '".$eventName."'");
+		Logger::log('Initializing Event');
 
 		if (func_num_args() > 1)
 			call_user_func_array(array($event, 'init'), array_slice(func_get_args(), 1));
 
         // Do not run if the event system is disabled
-        if (!$this->enabled) {
-            $this->logger->log("Event system is disabled");
-            $this->logger->stopLevel();
+        if (!self::$enabled) {
+            Logger::log("Event system is disabled");
+            Logger::stopLevel();
             return $event;
         }
 
-		$this->logger->log("Checking for Listeners");
+		Logger::log("Checking for Listeners");
 
         // Read the event register for listeners
-        $register = $this->register;
+        $register = self::$register;
         if (isset($register[$eventName])) {
-            for ($i=0; $i < count($register[$eventName]); $i++) { 
-                $this->core->loadMod($register[$eventName][$i]);
+            for ($i=0; $i < count($register[$eventName]); $i++) {
+                Modules::get($register[$eventName][$i]);
             }
         }
 
         //There are listeners for this event
-        if(isset($this->listeners[$eventName])) {
+        if(isset(self::$listeners[$eventName])) {
             //Loop from the highest priority to the lowest
             for ($priority = EventPriority::getHighestPriority(); $priority <= EventPriority::getLowestPriority(); $priority++) {
                 //Check for listeners in this priority
-                if (isset($this->listeners[$eventName][$priority])) {
-                	$listeners = $this->listeners[$eventName][$priority];
-                    $this->logger->newLevel('Found listeners with priority ' . EventPriority::getPriority($priority));
+                if (isset(self::$listeners[$eventName][$priority])) {
+                	$listeners = self::$listeners[$eventName][$priority];
+                    Logger::newLevel('Found listeners with priority ' . EventPriority::getPriority($priority));
                     //Fire the event to each listener
                     foreach ($listeners as $callback) {
                         if(!is_string($callback[0]))
-                            $this->logger->log('Firing ' . get_class($callback[0]) . '->' . $callback[1]);
+                            Logger::log('Firing ' . get_class($callback[0]) . '->' . $callback[1]);
                         else
-                            $this->logger->log('Firing ' . join('->', $callback));
-                        $this->logger->newLevel('');
+                            Logger::log('Firing ' . join('->', $callback));
+                        Logger::newLevel('');
                         try {
                             call_user_func($callback, $event);
                         } catch (ModuleException $e) {
-                            $this->error->exceptionHandler($e);
+                            Logger::exceptionHandler($e);
                         }
-                        $this->logger->stopLevel();
+                        Logger::stopLevel();
                     }
 
-                    $this->logger->stopLevel();
+                    Logger::stopLevel();
                 }
             }
         }
 
-
-		$this->logger->stopLevel();
+		Logger::stopLevel();
 		return $event;
 	}
 
     // Event Preparation:
-    public function buildEventRegister() {
+    public static function buildEventRegister() {
         $event_register = array();
+
         // Check wether there is data or not
-        $data = $this->modules->register;
+        $data = Modules::$register;
+        $data = null;
         if (is_null($data)) {
-            $this->register = array();
+            self::$register = array();
             return true;
         }
 
@@ -230,24 +227,24 @@ class Events extends Bus{
             }
         }
 
-        $this->register = $event_register;
+        self::$register = $event_register;
         return true;
     }
 
     /**
      * Enables the event system
      */
-    public function enable() {
-        $this->logger->log("Enabled the Event system");
-        $this->enabled = true;
+    public static function enable() {
+        Logger::log("Enabled the Event system");
+        self::$enabled = true;
     }
 
     /**
      * Disables the event system
      */
-    public function disable() {
-        $this->logger->log("Disabled the Event system");
-        $this->enabled = false;
+    public static function disable() {
+        Logger::log("Disabled the Event system");
+        self::$enabled = false;
     }
 }
 

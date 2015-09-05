@@ -43,7 +43,7 @@ return array(
     'abstract'      => false,
 
     // Other names for this module. Setting an alias will allow you to load the module with a different name.
-    'aliases'       => array('techfuze/example'),
+    'aliases'       => array(),
 
     // Array of modules that should be loaded before this module
     'dependencies'  => array(),

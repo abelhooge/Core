@@ -32,6 +32,8 @@ namespace Module\Example;
 use \FuzeWorks\Module;
 use \FuzeWorks\Event;
 use \FuzeWorks\EventPriority;
+use \FuzeWorks\Events;
+use \FuzeWorks\Logger;
 
 /**
  * Example module.
@@ -51,7 +53,7 @@ class Main extends Module {
 	 */
 	public function onLoad() {
 		// Here we register an eventListener for the ExampleEvent. See ExampleListener for more info
-		$this->events->addListener(array($this, 'exampleListener'), 'ExampleEvent', EventPriority::NORMAL);
+		Events::addListener(array($this, 'exampleListener'), 'ExampleEvent', EventPriority::NORMAL);
 	}
 
 	/**
@@ -68,7 +70,7 @@ class Main extends Module {
 	 * @return ExampleEvent         The event after it has been handled
 	 */
 	public function exampleListener($event) {
-		$this->logger->log("Called the eventListener. This listener can now handle the event and change some data");
+		Logger::log("Called the eventListener. This listener can now handle the event and change some data");
 		// For this listener, we only change one variable
 		$event->setVariable("New Value");
 
@@ -81,14 +83,14 @@ class Main extends Module {
 	 */
 	public function createEvent() {
 		// First we log some data
-		$this->logger->log("Now creating a test event.");
+		Logger::log("Now creating a test event.");
 
 		// First we create the event object and some variables to assign to it
 		$eventObject = new ExampleEvent();
 		$variable = "Test Variable";
 
 		// Then we fire the event by parsing the event object and the variables into the fireEvent function.
-		$event = $this->events->fireEvent($eventObject, $variable);
+		$event = Events::fireEvent($eventObject, $variable);
 
 		// Here we can read some variables from the event
 		$result = $event->getVariable();
