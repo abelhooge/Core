@@ -124,7 +124,7 @@ class Layout extends Bus {
 		$this->assigned_variables['serverName'] = $this->config->main->SERVER_NAME;
 		$this->assigned_variables['siteDomain'] = $this->config->main->SITE_DOMAIN;
 		$this->assigned_variables['adminMail'] = $this->config->main->administrator_mail;
-		$this->assigned_variables['contact'] = (array) $this->config->contact;
+		$this->assigned_variables['contact'] = $this->config->contact->toArray();
 
 		// Select an engine if one is not already selected
 		if (is_null($this->current_engine)) {
