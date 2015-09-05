@@ -318,7 +318,8 @@ class Modules extends Bus{
                         if (isset($cfg->aliases)) {
                             foreach ($cfg->aliases as $alias) {
                                 $register[$alias] = (array) $cfg;
-                                $this->logger->log("[ON]  '".$alias."' (alias of '".$name."')");
+                                unset($register[$alias]['events']);
+                                $this->logger->log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
                             }
                         }
                     } else {
@@ -334,7 +335,8 @@ class Modules extends Bus{
                         if (isset($cfg->aliases)) {
                             foreach ($cfg->aliases as $alias) {
                                 $register[$alias] = (array) $cfg2;
-                                $this->logger->log("[OFF]  '".$alias."' (alias of '".$name."')");
+                                unset($register[$alias]['events']);
+                                $this->logger->log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
                             }
                         }
                     }
@@ -347,7 +349,8 @@ class Modules extends Bus{
                     if (isset($cfg->aliases)) {
                         foreach ($cfg->aliases as $alias) {
                             $register[$alias] = (array) $cfg;
-                            $this->logger->log("[ON]  '".$alias."' (alias of '".$name."')");
+                            unset($register[$alias]['events']);
+                            $this->logger->log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
                         }
                     }
                 }
