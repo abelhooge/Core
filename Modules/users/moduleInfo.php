@@ -30,15 +30,17 @@
 
 return array(
 
-    'module_class'    => '\Module\Sessions\Session',
-    'module_file'     => 'class.sessions.php',
-    'module_name'     => 'sessions',
+    'module_class'    => '\Module\Users\Users',
+    'module_file'     => 'class.users.php',
+    'module_name'     => 'users',
 
-    'dependencies'  => array('techfuze/database'),
+    'dependencies'  => array('core/database'),
+    'aliases'       => array('techfuze/sessions'),
+    'events'        => array(),
 
-    'name'          => 'Sessions',
+    'name'          => 'Users',
     'description'   => 'Lightweight user and permissions system',
-    'author'        => 'TechFuze',
+    'author'        => 'core',
     'version'       => '1.0.0.0',
     'website'       => 'http://fuzeworks.techfuze.net/',
 

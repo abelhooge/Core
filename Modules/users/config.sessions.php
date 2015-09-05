@@ -33,6 +33,6 @@ return array(
     'cookie_name'       => 'FuzeCookie',
 
     // Should be filled in if you want email verification to work
-    'verify_controller' => '',
+    'verify_controller' => 'login',
 
 );

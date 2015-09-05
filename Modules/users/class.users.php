@@ -28,7 +28,7 @@
  * @version     Version 0.0.1
  */
 
-namespace Module\Sessions;
+namespace Module\Users;
 use \FuzeWorks\Module;
 use \FuzeWorks\EventPriority;
 
@@ -39,7 +39,7 @@ use \FuzeWorks\EventPriority;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Session extends Module {
+class Users extends Module {
 
 	/**
 	 * UDT of the current session, send to the user
@@ -768,6 +768,24 @@ class Session extends Module {
 			return $this->unsuspendUser($id);
 		} else {
 			throw new SessionException("Could not verify user. Code invalid", 1);
+		}
+	}
+
+	/**
+	 * Verify if a password matches the user
+	 * @param  Int    $userId   User ID of the user
+	 * @param  String $password Password of the user
+	 * @return true on valid, false on invalid
+	 */
+	public function verifyPassword($userId, $password) {
+		$prefix = $this->db->getPrefix();
+		$stmnt = $this->mods->database->prepare("SELECT * FROM ".$prefix."session_users WHERE user_id = ?");
+		$stmnt->execute([$userId]);
+		$data = $stmnt->fetchAll(\PDO::FETCH_ASSOC);
+		if (!empty($data)) {
+			return password_verify($password, $data[0]['user_password']);
+		} else {
+			throw new SessionException("Could not verify password. User not found", 1);
 		}
 	}
 
