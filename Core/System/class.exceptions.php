@@ -47,6 +47,13 @@ class Exception extends \Exception{}
 class LayoutException extends Exception{}
 
 /**
+ * Class ConfigException
+ * @package     net.techfuze.fuzeworks.core
+ * @author      Abel Hoogeveen <abel@techfuze.net>
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ */
+class ConfigException extends Exception{}
+
  * Class RouterException
  * @package     net.techfuze.fuzeworks.core
  * @author      Abel Hoogeveen <abel@techfuze.net>
