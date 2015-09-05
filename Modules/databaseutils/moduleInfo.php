@@ -6,13 +6,14 @@ return array(
     'module_name'     => 'DatabaseUtils',
 
     'abstract'      => false,
-    'dependencies'  => array('techfuze/database'),
+    'dependencies'  => array('core/database'),
     'events'        => array(),
     'sections'      => array(),
+    'aliases'       => array('techfuze/databaseutils'),
 
     'name'          => 'FuzeWorks Database Utilities',
     'description'   => 'Automatically build SQL queries using methods in this class',
-    'author'        => 'TechFuze',
+    'author'        => 'core',
     'version'       => '1.0.0',
     'website'       => 'http://fuzeworks.techfuze.net/',
 

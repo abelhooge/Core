@@ -38,10 +38,11 @@ return array(
     'dependencies'  => array(),
     'events'        => array(),
     'sections'      => array(),
+    'aliases'       => array('techfuze/database'),
 
     'name'          => 'FuzeWorks Database Module',
     'description'   => 'PDO Wrapper class for FuzeWorks',
-    'author'        => 'TechFuze',
+    'author'        => 'core',
     'version'       => '1.0.0',
     'website'       => 'http://fuzeworks.techfuze.net/',
 

@@ -30,24 +30,48 @@
 
 return array(
 
+    // The class name of the module. This class will be loaded upon requesting the module
     'module_class'    => 'Module\Example\Main',
+
+    // The file that will be loaded upon requesting the module
     'module_file'     => 'class.main.php',
+
+    // The name of the module. When the module is loaded it can be called throughout the framework with $this->mods->example;
     'module_name'     => 'Example',
 
+    // Wether this module is an abstract. Making this abstract will only load the file, but not the class.
     'abstract'      => false,
-    'aliases'       => array('techfuze/example'),
-    'dependencies'  => array(),
-    'events'        => array(),
-    'sections'      => array(),
 
+    // Other names for this module. Setting an alias will allow you to load the module with a different name.
+    'aliases'       => array('techfuze/example'),
+
+    // Array of modules that should be loaded before this module
+    'dependencies'  => array(),
+
+    // Events that this module listens for. When the exampleEvent is fired, this module will be loaded so the module can handle the event
+    'events'        => array('exampleEvent'),
+
+    // The name of the module as it will be logged. This does not affect usage of the module in any way
     'name'          => 'FuzeWorks Example Module',
+
+    // A description of the module.
     'description'   => 'A descriptive module that functions as an example',
+
+    // The author of the module. The author is the first part of the module name used for requesting. eg mycorp/example
     'author'        => 'MyCorp',
+
+    // The current version of the module. Will be used for looking for updates
     'version'       => '1.0.0',
+
+    // The website to look at for the module update
     'website'       => 'http://fuzeworks.techfuze.net/',
 
+    // The initial creation of the module.
     'date_created'  => '29-04-2015',
+
+    // The last update of this module
     'date_updated'  => '29-04-2015',
 
+    // Wether the module is enabled or not. If it is disabled, it can not be loaded.
     'enabled'       => true
 );
