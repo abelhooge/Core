@@ -8,7 +8,7 @@ class Example extends Model{
     public function __construct(&$core){
         parent::__construct($core);
 
-        $this->setType('techfuze/databaseutils', 'Model');
+        $this->setType('core/databaseutils', 'Model');
         $this->table    = 'example';
     }
 }

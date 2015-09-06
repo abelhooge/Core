@@ -1,4 +1,7 @@
 <?php
+use \FuzeWorks\Core;
+use \FuzeWorks\Router;
+
 /**
  * Class RouterTest
  *
@@ -8,26 +11,24 @@ class RouterTest extends CoreTestAbstract
 {
     public function testParsePath(){
 
-        $core = $this->createCore();
-
         // Act and assert
-        $core->mods->router->setPath('a/b/c/d/');
-        $this->assertEquals('a/b/c/d', $core->mods->router->getPath());
+        Router::setPath('a/b/c/d/');
+        $this->assertEquals('a/b/c/d', Router::getPath());
 
-        $core->mods->router->setPath('//a//b//c');
-        $this->assertEquals('a/b/c', $core->mods->router->getPath());
+        Router::setPath('//a//b//c');
+        $this->assertEquals('a/b/c', Router::getPath());
 
-        $core->mods->router->setPath('/');
-        $this->assertEquals('', $core->mods->router->getPath());
+        Router::setPath('/');
+        $this->assertEquals('', Router::getPath());
 
-        $core->mods->router->setPath('');
-        $this->assertEquals('', $core->mods->router->getPath());
+        Router::setPath('');
+        $this->assertEquals('', Router::getPath());
 
-        $core->mods->router->setPath(false);
-        $this->assertEquals('', $core->mods->router->getPath());
+        Router::setPath(false);
+        $this->assertEquals('', Router::getPath());
 
-        $core->mods->router->setPath(null);
-        $this->assertEquals('', $core->mods->router->getPath());
+        Router::setPath(null);
+        $this->assertEquals('', Router::getPath());
     }
 
     /**
@@ -35,27 +36,25 @@ class RouterTest extends CoreTestAbstract
      */
     public function testDoRoute(){
 
-        $core = $this->createCore();
-
         // Act
-        $core->mods->router->setPath('a/b/c/d/');
-        $core->mods->router->route(false);
+        Router::setPath('a/b/c/d/');
+        Router::route(false);
 
         // Assert
         // Whole route
-        $this->assertEquals(array('a','b',array('c','d')), array($core->mods->router->getController(), $core->mods->router->getFunction(), $core->mods->router->getParameters()));
-        $this->assertEquals('a', $core->mods->router->getController());
-        $this->assertEquals('d', $core->mods->router->getParameter(-1));
-        $this->assertEquals(null, $core->mods->router->getParameter(5));
+        $this->assertEquals(array('a','b',array('c','d')), array(Router::getController(), Router::getFunction(), Router::getParameters()));
+        $this->assertEquals('a', Router::getController());
+        $this->assertEquals('d', Router::getParameter(-1));
+        $this->assertEquals(null, Router::getParameter(5));
 
         // Parameters
-        $this->assertEquals(array('c','d'), $core->mods->router->getParameters());
-        $this->assertEquals('c', $core->mods->router->getParameter(0));
-        $this->assertEquals('d', $core->mods->router->getParameter(-1));
+        $this->assertEquals(array('c','d'), Router::getParameters());
+        $this->assertEquals('c', Router::getParameter(0));
+        $this->assertEquals('d', Router::getParameter(-1));
 
         // Function and controller
-        $this->assertEquals('a', $core->mods->router->getController());
-        $this->assertEquals('b', $core->mods->router->getFunction());
+        $this->assertEquals('a', Router::getController());
+        $this->assertEquals('b', Router::getFunction());
     }
 
     /**
@@ -63,64 +62,53 @@ class RouterTest extends CoreTestAbstract
      */
     public function testOddRoutes(){
 
-        $core = $this->createCore();
-
         // Empty path
-        $core->mods->router->setPath(null);
-        $core->mods->router->route(false);
-        $this->assertEquals(null, $core->mods->router->getController());
+        Router::setPath(null);
+        Router::route(false);
+        $this->assertEquals(null, Router::getController());
 
         // Double slashes
-        $core->mods->router->setPath('a///b');
-        $core->mods->router->route(false);
-        $this->assertEquals(array('a','b'), array($core->mods->router->getController(), $core->mods->router->getFunction()));
+        Router::setPath('a///b');
+        Router::route(false);
+        $this->assertEquals(array('a','b'), array(Router::getController(), Router::getFunction()));
 
         // Escaped path path
-        $core->mods->router->setPath('/a\/b\/c/');
-        $core->mods->router->route(false);
-        $this->assertEquals(array('a\\','b\\','c'), array($core->mods->router->getController(), $core->mods->router->getFunction(), $core->mods->router->getParameter(0)));
-        $this->assertNotEquals('a', $core->mods->router->getController());
+        Router::setPath('/a\/b\/c/');
+        Router::route(false);
+        $this->assertEquals(array('a\\','b\\','c'), array(Router::getController(), Router::getFunction(), Router::getParameter(0)));
+        $this->assertNotEquals('a', Router::getController());
     }
 
     public function testCustomRoute(){
 
-        $core = $this->createCore();
-
-        $core->mods->router->addRoute('/test1/test2/', 'callable');
-        $this->assertArraySubset(array('/test1/test2/' => 'callable'), $core->mods->router->getRoutes());
-
-        $core->mods->router->setPath('test1/test2');
-        $core->mods->router->route(false);
-        $this->assertEquals(array('test1', 'test2'), array($core->mods->router->getController(), $core->mods->router->getFunction()));
-
+        Router::addRoute('/test1\/test2/', 'callable');
+        $this->assertArraySubset(array('/test1\/test2/' => 'callable'), Router::getRoutes());
     }
 
     public function testCustomRouteWithParameters(){
 
-        $core = $this->createCore();
+        Router::addRoute('/^b\/(?P<controller>[^\/]+)\/?(?P<function>.+?)$/', 'callable');
+        Router::addRoute('/e\/(?P<function>[^\/]+)/', 'callable');
+        Router::addRoute('/b\/b$/', 'callable');
 
-        $core->mods->router->addRoute('/^b\/(?P<controller>[^\/]+)\/?(?P<function>.+?)$/', 'callable');
-        $core->mods->router->addRoute('/e\/(?P<function>[^\/]+)/', 'callable');
-        $core->mods->router->addRoute('/b\/b$/', 'callable');
+        Router::setPath('b/controller_a/function_a');
+        Router::route(false);
+        $this->assertEquals('controller_a', Router::getController());
+        $this->assertEquals('function_a', Router::getFunction());
 
-        $core->mods->router->setPath('b/controller_a/function_a');
-        $core->mods->router->route(false);
-        $this->assertEquals('controller_a', $core->mods->router->getController());
-        $this->assertEquals('function_a', $core->mods->router->getFunction());
+        Router::setPath('e/function_b/c');
+        Router::route(false);
+        $this->assertEquals(null, Router::getController());
+        $this->assertEquals('function_b', Router::getFunction());
 
-        $core->mods->router->setPath('e/function_b/c');
-        $core->mods->router->route(false);
-        $this->assertEquals(null, $core->mods->router->getController());
-        $this->assertEquals('function_b', $core->mods->router->getFunction());
+        Router::setPath('b/b');
+        Router::route(false);
+        $this->assertEquals(null, Router::getController());
+        $this->assertEquals(null, Router::getFunction());
 
-        $core->mods->router->setPath('b/b');
-        $core->mods->router->route(false);
-        $this->assertEquals(null, $core->mods->router->getController());
-        $this->assertEquals(null, $core->mods->router->getFunction());
-
-        $core->mods->router->setPath('a/b');
-        $core->mods->router->route(false);
-        $this->assertEquals('a', $core->mods->router->getController());
-        $this->assertEquals('b', $core->mods->router->getFunction());
+        Router::setPath('a/b');
+        Router::route(false);
+        $this->assertEquals('a', Router::getController());
+        $this->assertEquals('b', Router::getFunction());
     }
 }

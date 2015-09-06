@@ -54,7 +54,7 @@ namespace FuzeWorks;
  */
 class Events {
 
-	private static $listeners = array();
+	public static $listeners = array();
     private static $enabled = true;
     private static $register;
 

@@ -127,7 +127,7 @@ class Model {
 	 */
 	public function select(){
 
-		$queryBuilder = new Query($this->core);
+		$queryBuilder = new Query();
 		$queryBuilder->setTable($this->table);
         call_user_func_array(array($queryBuilder, 'select'), func_get_args());
 		$queryBuilder->from();
@@ -143,7 +143,7 @@ class Model {
 
 	public function update(){
 
-		$queryBuilder = new Query($this->core);
+		$queryBuilder = new Query();
 		$queryBuilder->setTable($this->table);
         call_user_func_array(array($queryBuilder, 'update'), func_get_args());
 
@@ -158,7 +158,7 @@ class Model {
 
 	public function delete(){
 
-		$queryBuilder = new Query($this->core);
+		$queryBuilder = new Query();
 		$queryBuilder->setTable($this->table);
         call_user_func_array(array($queryBuilder, 'delete'), func_get_args());
 
@@ -175,7 +175,7 @@ class Model {
 
 	public function insert($array){
 
-		$queryBuilder = new Query($this->core);
+		$queryBuilder = new Query();
 		$queryBuilder->setTable($this->table);
         call_user_func_array(array($queryBuilder, 'insert'), func_get_args());
 
