@@ -38,7 +38,7 @@ namespace FuzeWorks;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Module extends Bus {
+class Module {
 
 	/**
 	 * @var null|string Relative path to the module
@@ -59,15 +59,6 @@ class Module extends Bus {
 	 * @var moduleInfo object of the module
 	 */
 	protected $cfg;
-
-	/**
-	 * Constructor
-	 *
-	 * @param Core $core Pointer to the core class
-	 */
-	public function __construct(&$core){
-        parent::__construct($core);
-    }
 
 	/**
 	 * Returns the name of the module
@@ -121,7 +112,7 @@ class Module extends Bus {
     	$this->linkName = $linkName;
     }
 
-    /** 
+    /**
      * The name that is required to load itself, eg 'exampleauthor/examplemodulename' or 'techfuze/cms'
      * @access public
      * @param String module name
@@ -151,7 +142,7 @@ class Module extends Bus {
 
 		// Check if the module path is set yet
 		if ($this->getModulePath() == null) {
-			$this->logger->logWarning("Could not write module config. ModulePath is not set", get_class($this));
+			Logger::logWarning("Could not write module config. ModulePath is not set", get_class($this));
 			return false;
 		}
 

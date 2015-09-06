@@ -39,47 +39,43 @@ namespace FuzeWorks;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Models extends Bus{
+class Models {
 
-    private $models_array = array();
-    private $model_types = array();
-    private $models_loaded = false;
+    private static $models_array = array();
+    private static $model_types = array();
+    private static $models_loaded = false;
 
-    public function __construct(&$core){
-        parent::__construct($core);
-    }
-
-    public function loadModel($name, $directory = null){
+    public static function loadModel($name, $directory = null){
         // Model load event
-        $event = $this->events->fireEvent('modelLoadEvent', $name, $directory);
+        $event = Events::fireEvent('modelLoadEvent', $name, $directory);
         $directory          = ($event->directory === null ? "Application/Models" : $event->directory);
         $name               = ($event->model === null ? $name : $event->model);
 
         $file = $directory.'/model.'.$name.'.php';
-        if (isset($this->model_types[$name])) {
-            $this->logger->logInfo('Loading Model: '.get_class($this->model_types[$name]), get_class($this->model_types[$name]));
-            $this->models_array[$name] = $this->model_types[$name];
+        if (isset(self::$model_types[$name])) {
+            Logger::log('Loading Model: '.get_class(self::$model_types[$name]), get_class(self::$model_types[$name]));
+            self::$models_array[$name] = self::$model_types[$name];
         } elseif (file_exists($file)){
             require_once($file);
             $model = "\Model\\" . ucfirst($name);
-            $this->logger->logInfo('Loading Model: '.$model, $model);
-            $this->models_array[$name] = new $model($this->core);
+            Logger::log('Loading Model: '.$model, $model);
+            self::$models_array[$name] = new $model();
         } else{
-        	$this->logger->logWarning('The requested model: \''.$name.'\' could not be found. Loading empty model', 'Models');
+        	Logger::logWarning('The requested model: \''.$name.'\' could not be found. Loading empty model', 'Models');
             require_once("Core/System/Models/model.interpret.php");
-            $this->logger->logInfo('Loading Model: interprated databasemodel', 'Models');
-            $model = new Interpret($this->core);
+            Logger::log('Loading Model: interprated databasemodel', 'Models');
+            $model = new Interpret();
             $model->table($name);
-            $this->models_array[$name] = $model;
+            self::$models_array[$name] = $model;
         }
     }
 
-    public function __get($name){
-    	if (isset($this->models_array[strtolower($name)])) {
-    		return $this->models_array[strtolower($name)];
+    public static function get($name){
+    	if (isset(self::$models_array[strtolower($name)])) {
+    		return self::$models_array[strtolower($name)];
     	} else {
-    		$this->loadModel(strtolower($name));
-    		return $this->models_array[strtolower($name)];
+    		self::loadModel(strtolower($name));
+    		return self::$models_array[strtolower($name)];
     	}
     }
 }

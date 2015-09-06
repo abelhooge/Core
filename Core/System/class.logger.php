@@ -39,29 +39,27 @@ namespace FuzeWorks;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Logger extends Bus{
+class Logger {
 
- 	public $infoErrors = array();
- 	public $criticalErrors = array();
- 	public $warningErrors = array();
- 	public $Logs = array();
-  	private $print_to_screen = false;
-  	public $debug = false;
+ 	public static $infoErrors = array();
+ 	public static $criticalErrors = array();
+ 	public static $warningErrors = array();
+ 	public static $Logs = array();
+  	private static $print_to_screen = false;
+  	public static $debug = false;
 
-	public function __construct(&$core) {
-		parent::__construct($core);
-
+	public static function init() {
  		// Register the error handler
- 		if ($this->config->error->error_reporting == true) {
- 			set_error_handler(array($this, "errorHandler"), E_ALL);
- 			set_Exception_handler(array($this, "exceptionHandler"));
+ 		if (Config::get('error')->error_reporting == true) {
+ 			set_error_handler(array('\FuzeWorks\Logger', "errorHandler"), E_ALL);
+ 			set_Exception_handler(array('\FuzeWorks\Logger', "exceptionHandler"));
  			error_reporting(false);
  		}
-		$this->debug = $this->config->error->debug;
- 		$this->newLevel("Logger Initiated");
+		self::$debug = Config::get('error')->debug;
+ 		self::newLevel("Logger Initiated");
 	}
 
-	public function shutdown() {
+	public static function shutdown() {
 		// Load last error if thrown
   		$errfile = "Unknown file";
  		$errstr = "shutdown";
@@ -76,13 +74,13 @@ class Logger extends Bus{
  			$errstr 	= $error['message'];
 
 			// Log it!
- 			$this->errorHandler($errno, $errstr, $errfile, $errline);
- 			$this->logInfo($this->backtrace());
+ 			self::errorHandler($errno, $errstr, $errfile, $errline);
+ 			self::logInfo(self::backtrace());
  		}
 
-		if ($this->debug == true || $this->print_to_screen) {
-			$this->log("Parsing debug log", "Logger");
-			$this->logToScreen();
+		if (self::$debug == true || self::$print_to_screen) {
+			self::log("Parsing debug log", "Logger");
+			self::logToScreen();
 		}
 	}
 
@@ -96,7 +94,7 @@ class Logger extends Bus{
  	 * @param array context. Some of the error's relevant variables
  	 * @return void
  	 */
-	public function errorHandler($type = E_USER_NOTICE, $error = "Undefined Error", $errFile = null, $errLine = null, $context = null) {
+	public static function errorHandler($type = E_USER_NOTICE, $error = "Undefined Error", $errFile = null, $errLine = null, $context = null) {
  		// Check type
  		$thisType = self::getType($type);
  		$LOG = array('type' => (!is_null($thisType) ? $thisType : "ERROR"),
@@ -104,8 +102,8 @@ class Logger extends Bus{
  			'logFile' => (!is_null($errFile) ? $errFile : ""),
  			'logLine' => (!is_null($errLine) ? $errLine : ""),
  			'context' => (!is_null($context) ? $context : ""),
- 			'runtime' => round($this->getRelativeTime(), 4));
- 		$this->Logs[] = $LOG;
+ 			'runtime' => round(self::getRelativeTime(), 4));
+ 		self::$Logs[] = $LOG;
  	}
 
 	/**
@@ -117,7 +115,7 @@ class Logger extends Bus{
 	 * @param Exception $exception The occured exception.
 	 * @return void
 	 */
-	public function exceptionHandler($exception)
+	public static function exceptionHandler($exception)
 	{
 		$message = $exception->getMessage();
 		$code = $exception->getCode();
@@ -125,12 +123,12 @@ class Logger extends Bus{
 		$line = $exception->getLine();
 		$context = $exception->getTraceAsString();
 
-		$this->logError("Exception thrown: " . $message . " | " . $code, null, $file, $line);
+		self::logError("Exception thrown: " . $message . " | " . $code, null, $file, $line);
 	}
 
- 	public function logToScreen() {
+ 	public static function logToScreen() {
  		// Send a screenLogEvent, allows for new screen log designs
- 		$event = $this->mods->events->fireEvent('screenLogEvent');
+ 		$event = Events::fireEvent('screenLogEvent');
  		if ($event->isCancelled()) {
  			return false;
  		}
@@ -138,9 +136,9 @@ class Logger extends Bus{
  		// Otherwise just load it
         echo '<h3>FuzeWorks debug log</h3>';
         $layer = 0;
-        for($i = 0; $i < count($this->Logs); $i++){
+        for($i = 0; $i < count(self::$Logs); $i++){
 
-            $log        = $this->Logs[$i];
+            $log        = self::$Logs[$i];
             if($log['type'] == 'LEVEL_START'){
                 $layer++;
                 $color = 255-($layer*25);
@@ -161,7 +159,7 @@ class Logger extends Bus{
         }
  	}
 
- 	public function backtrace() {
+ 	public static function backtrace() {
 	    $e = new Exception();
 	    $trace = explode("\n", $e->getTraceAsString());
 	    // reverse array to make steps line up chronologically
@@ -182,66 +180,66 @@ class Logger extends Bus{
  	/* =========================================LOGGING METHODS==============================================================*/
 
 
-	public function log($msg, $mod = null, $file = 0, $line = 0) {
-		$this->logInfo($msg, $mod, $file, $line);
+	public static function log($msg, $mod = null, $file = 0, $line = 0) {
+		self::logInfo($msg, $mod, $file, $line);
 	}
 
- 	public function logInfo($msg, $mod = null, $file = 0, $line = 0) {
- 		$LOG = array('type' => 'INFO', 
+ 	public static function logInfo($msg, $mod = null, $file = 0, $line = 0) {
+ 		$LOG = array('type' => 'INFO',
  			'message' => (!is_null($msg) ? $msg : ""),
  			'logFile' => (!is_null($file) ? $file : ""),
  			'logLine' => (!is_null($line) ? $line : ""),
  			'context' => (!is_null($mod) ? $mod : ""),
- 			'runtime' => round($this->getRelativeTime(), 4));
+ 			'runtime' => round(self::getRelativeTime(), 4));
 
- 		$this->infoErrors[] = $LOG;
- 		$this->Logs[] = $LOG;
+ 		self::$infoErrors[] = $LOG;
+ 		self::$Logs[] = $LOG;
  	}
 
- 	public function logError($msg, $mod = null, $file = 0, $line = 0)  {
+ 	public static function logError($msg, $mod = null, $file = 0, $line = 0)  {
  		$LOG = array('type' => 'ERROR',
  			'message' => (!is_null($msg) ? $msg : ""),
  			'logFile' => (!is_null($file) ? $file : ""),
  			'logLine' => (!is_null($line) ? $line : ""),
  			'context' => (!is_null($mod) ? $mod : ""),
- 			'runtime' => round($this->getRelativeTime(), 4));
+ 			'runtime' => round(self::getRelativeTime(), 4));
 
- 		$this->criticalErrors[] = $LOG;
- 		$this->Logs[] = $LOG;
+ 		self::$criticalErrors[] = $LOG;
+ 		self::$Logs[] = $LOG;
  	}
 
- 	public function logWarning($msg, $mod = null, $file = 0, $line = 0)  {
+ 	public static function logWarning($msg, $mod = null, $file = 0, $line = 0)  {
  		$LOG = array('type' => 'WARNING',
  			'message' => (!is_null($msg) ? $msg : ""),
  			'logFile' => (!is_null($file) ? $file : ""),
  			'logLine' => (!is_null($line) ? $line : ""),
  			'context' => (!is_null($mod) ? $mod : ""),
- 			'runtime' => round($this->getRelativeTime(), 4));
+ 			'runtime' => round(self::getRelativeTime(), 4));
 
- 		$this->warningErrors[] = $LOG;
- 		$this->Logs[] = $LOG;
+ 		self::$warningErrors[] = $LOG;
+ 		self::$Logs[] = $LOG;
  	}
 
- 	public function newLevel($msg, $mod = null, $file = null, $line = null) {
+ 	public static function newLevel($msg, $mod = null, $file = null, $line = null) {
  		$LOG = array('type' => 'LEVEL_START',
  			'message' => (!is_null($msg) ? $msg : ""),
  			'logFile' => (!is_null($file) ? $file : ""),
  			'logLine' => (!is_null($line) ? $line : ""),
  			'context' => (!is_null($mod) ? $mod : ""),
- 			'runtime' => round($this->getRelativeTime(), 4));
+ 			'runtime' => round(self::getRelativeTime(), 4));
 
- 		$this->Logs[] = $LOG;
+ 		self::$Logs[] = $LOG;
  	}
 
- 	public function stopLevel($msg = null, $mod = null, $file = null, $line = null) {
+ 	public static function stopLevel($msg = null, $mod = null, $file = null, $line = null) {
  		$LOG = array('type' => 'LEVEL_STOP',
  			'message' => (!is_null($msg) ? $msg : ""),
  			'logFile' => (!is_null($file) ? $file : ""),
  			'logLine' => (!is_null($line) ? $line : ""),
  			'context' => (!is_null($mod) ? $mod : ""),
- 			'runtime' => round($this->getRelativeTime(), 4));
+ 			'runtime' => round(self::getRelativeTime(), 4));
 
- 		$this->Logs[] = $LOG;
+ 		self::$Logs[] = $LOG;
  	}
 
  	/* =========================================OTHER METHODS==============================================================*/
@@ -254,7 +252,7 @@ class Logger extends Bus{
 	 * @param int $type PHP-constant errortype (e.g. E_NOTICE).
 	 * @return string String representation
 	 */
-	public function getType($type) {
+	public static function getType($type) {
 
 		switch ($type)
 		{
@@ -294,7 +292,7 @@ class Logger extends Bus{
 		return $type = 'Unknown error: '.$type;
 	}
 
-    public function http_error($errno = 500, $view = true){
+    public static function http_error($errno = 500, $view = true){
 
         $http_codes = array(
 
@@ -333,8 +331,8 @@ class Logger extends Bus{
             511 => 'Network Authentication Required'
         );
 
-        $this->logError('HTTP-error '.$errno.' called', 'Logger');
-        $this->logInfo('Sending header HTTP/1.1 '.$errno.' '.$http_codes[$errno], 'Logger', __FILE__, __LINE__);
+        self::logError('HTTP-error '.$errno.' called', 'Logger');
+        self::log('Sending header HTTP/1.1 '.$errno.' '.$http_codes[$errno], 'Logger', __FILE__, __LINE__);
         header('HTTP/1.1 '.$errno.' '.$http_codes[$errno]);
 
 		// Do we want the error-view with it?
@@ -342,11 +340,11 @@ class Logger extends Bus{
 			return;
 
         $view = 'errors/'.$errno;
-        $this->logger->log('Loading view '.$view);
+        self::log('Loading view '.$view);
 
         try{
 
-            $this->layout->view($view);
+            Layout::view($view);
         }catch(LayoutException $exception){
 
             // No error page could be found, just echo the result
@@ -358,19 +356,19 @@ class Logger extends Bus{
  	 * Enable error to screen logging
  	 * @access public
  	 */
- 	public function enable() {
- 		$this->print_to_screen = true;
+ 	public static function enable() {
+ 		self::$print_to_screen = true;
  	}
 
  	/**
  	 * Disable error to screen logging
  	 * @access public
  	 */
- 	public function disable() {
- 		$this->print_to_screen = false;
+ 	public static function disable() {
+ 		self::$print_to_screen = false;
  	}
 
-  	private function getRelativeTime() {
+  	private static function getRelativeTime() {
  		$startTime = STARTTIME;
  		$time = microtime(true) - $startTime;
  		return $time;

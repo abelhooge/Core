@@ -46,122 +46,86 @@ class Core {
 	 * @access public
 	 * @var String Framework version
 	 */
-	public $version = "0.0.1";
-    private $loaded = false;
-   	public $mods;
+	public static $version = "0.0.1";
 
-	## START/STOP
-	public function init() {
+    /**
+     * @var bool Whether the files has been loaded
+     */
+    private static $loaded = false;
+
+	/**
+	 * Initializes the core
+	 *
+	 * @throws \Exception
+	 */
+	public static function init() {
+		// Defines the time the framework starts. Used for timing functions in the framework
 		if (!defined('STARTTIME')) {
 			define('STARTTIME', microtime(true));
 		}
+
 		// Load basics
 		ignore_user_abort(true);
-		register_shutdown_function(array($this, "shutdown"));
+		register_shutdown_function(array('\FuzeWorks\Core', "shutdown"));
 
 		// Load core functionality
-		$this->loadStartupFiles();
+		self::loadStartupFiles();
 
-		// Load Composer
-		if ($this->mods->config->core->enable_composer) {
-			$this->loadComposer();
-		}
+		Logger::init();
 
-		$this->mods->modules->buildRegister();
-		$this->mods->events->buildEventRegister();
+		Modules::buildRegister();
+		Events::buildEventRegister();
 
 		// And initialize the router paths
-		$this->mods->router->init();
+		Router::init();
 
-		$event = $this->mods->events->fireEvent('coreStartEvent');
+		// Load Composer
+		if (Config::get('core')->enable_composer) {
+			self::loadComposer();
+		}
+
+		$event = Events::fireEvent('coreStartEvent');
 		if ($event->isCancelled()) {
 			return true;
 		}
 	}
 
-	public function loadStartupFiles($config = array()) {
-		if ($this->loaded)
+	public static function loadStartupFiles($config = array()) {
+		if (self::$loaded)
 			return;
 
 		// Load core abstracts
-		require_once("Core/System/class.abstract.bus.php");
-		require_once("Core/System/class.catcher.php");
 		require_once("Core/System/class.exceptions.php");
 		require_once("Core/System/class.abstract.event.php");
 
 		// Load the core classes
 		require_once("Core/System/class.config.php");
+		require_once("Core/System/class.abstract.eventPriority.php");
+		require_once("Core/System/class.events.php");
+		require_once("Core/System/class.logger.php");
+		require_once("Core/System/class.abstract.model.php");
+		require_once("Core/System/class.models.php");
+		require_once("Core/System/class.layout.php");
+		require_once("Core/System/class.abstract.controller.php");
+		require_once("Core/System/class.router.php");
+		require_once("Core/System/class.abstract.module.php");
+		require_once("Core/System/class.modules.php");
 
 		// Create the module holder
-		$this->mods->config	   		= new Config 		($this);
-		$core_mods = $this->mods->config->core;
+		new Config();
+		new Events();
+		new Logger();
+		new Models();
+		new Layout();
+		new Router();
+		new Modules();
 
-		// Events
-		if ($core_mods->enable_events) {
-			require_once("Core/System/class.abstract.eventPriority.php");
-			require_once("Core/System/class.events.php");
-			$this->mods->events 	= new Events 		($this);
-		} else {
-			$this->mods->events 	= new EventsCatcher ($this);
-		}
-
-		// Logger
-		if ($core_mods->enable_logger) {
-			require_once("Core/System/class.logger.php");
-			$this->mods->logger 	= new Logger 		($this);
-		} else {
-			$this->mods->logger 	= new Catcher 		($this);
-		}
-
-		// Models
-		if ($core_mods->enable_models) {
-			require_once("Core/System/class.abstract.model.php");
-			require_once("Core/System/class.models.php");
-			$this->mods->models 	= new Models 		($this);
-		} else {
-			$this->mods->models 	= new Catcher 		($this);
-		}
-
-		// Layout
-		if ($core_mods->enable_layout) {
-			require_once("Core/System/class.layout.php");
-			$this->mods->layout 	= new Layout 		($this);
-		} else {
-			$this->mods->layout 	= new Catcher 		($this);
-		}
-
-		// Router
-		if ($core_mods->enable_router) {
-			require_once("Core/System/class.abstract.controller.php");
-			require_once("Core/System/class.router.php");
-			$this->mods->router 	= new Router 		($this);
-		} else {
-			$this->mods->router 	= new Catcher 		($this);
-		}
-
-		// Modules
-		if ($core_mods->enable_modules) {
-			require_once("Core/System/class.abstract.module.php");
-			require_once("Core/System/class.modules.php");
-			$this->mods->modules 	= new Modules 		($this);
-		} else {
-			$this->mods->modules 	= new Catcher 		($this);
-		}
-
-        $this->loaded = true;
+        self::$loaded = true;
 	}
 
-	public function shutdown() {
-		$this->mods->events->fireEvent('coreShutdownEvent');
-		$this->mods->logger->shutdown();
-	}
-
-	public function loadMod($name) {
-		return $this->mods->modules->loadMod($name);
-	}
-
-	public function addMod($moduleInfo_file) {
-		return $this->mods->modules->addModule($moduleInfo_file);
+	public static function shutdown() {
+		Events::fireEvent('coreShutdownEvent');
+		Logger::shutdown();
 	}
 
 	/**
@@ -169,7 +133,7 @@ class Core {
 	 * @access private
 	 * @param String directory of composer autoload file (optional)
 	 */
-	private function loadComposer($file = "vendor/autoload.php") {
+	private static function loadComposer($file = "vendor/autoload.php") {
 		if (file_exists($file)) {
 			require($file);
 		}

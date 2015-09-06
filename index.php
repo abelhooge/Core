@@ -28,13 +28,17 @@
  * @version     Version 0.0.1
  */
 
+use \FuzeWorks\Core;
+use \FuzeWorks\Router;
+
 // Include framework
 require_once( dirname(__FILE__) . "/Core/System/class.core.php");
 
 // Load it
-$core = new \FuzeWorks\Core();
-$core->init();
-$core->mods->router->setPath( (isset($_GET['path']) ? $_GET['path'] : null)   );
-$core->mods->router->route();
+new Core();
+Core::init();
+
+Router::setPath( (isset($_GET['path']) ? $_GET['path'] : null)   );
+Router::route();
 
 ?>

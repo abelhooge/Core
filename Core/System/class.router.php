@@ -48,7 +48,7 @@ use \Application\Init;
  *      B would be the function to be called in the 'controller' (default: index)
  *      C would be the first parameter
  *
- *      All controllers are to be placed in the /application/çontrollers-directory.
+ *      All controllers are to be placed in the /Application/controller-directory.
  *
  * But because of this RegEx-table, modules can easily listen on completely different paths. You can, for example, make
  * a module that only triggers when /admin/<controller>/<function>/.. is accessed. Or even complexer structure are
@@ -72,60 +72,52 @@ use \Application\Init;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Router extends Bus{
+class Router{
 
     /**
      * @var null|string The provided path
      */
-    private $path       = null;
+    private static $path        = null;
 
     /**
      * @var array Routes
      */
-    private $routes     = array();
-
-	/**
-	 * @var null|mixed The callable
-	 */
-	private  $callable  = null;
+    private static $routes      = array();
 
     /**
-	 * @var null|string The controller object
-	 */
-	private  $controller= null;
+     * @var null|mixed The callable
+     */
+    private static $callable    = null;
 
-	/**
-	 * @var null|string The extracted controller's function name
-	 */
-	private  $function  = null;
+    /**
+     * @var null|string The extracted controller's name
+     */
+    private static $controller  = null;
 
-	/**
-	 * @var array The extracted parameters
-	 */
-	private $parameters = array();
+    /**
+     * @var null|string The extracted controller's function name
+     */
+    private static $function    = null;
+
+    /**
+     * @var array The extracted parameters
+     */
+    private static $parameters  = array();
 
     /**
      * The constructor adds the default route to the routing table
-     *
-     * @param Core $core Reference to the core object
      */
-    public function __construct(&$core){
-        parent::__construct($core);
-    }
+    public static function init(){
 
-    /**
-     * Add the default routes to the routing table
-     */
-    public function init() {
-        foreach($this->config->routes as $route => $callable){
+        foreach(Config::get('routes') as $route => $callable){
 
             if(is_int($route)) {
 
                 $route    = $callable;
-                $callable = array($this, 'defaultCallable');
+                $callable = array('\FuzeWorks\Router', 'defaultCallable');
             }
 
-            $this->addRoute($route, $callable, false);
+            self::addRoute($route, $callable, false);
         }
     }
 
@@ -134,85 +126,86 @@ class Router extends Bus{
      *
      * @return bool|string
      */
-    public function getPath(){
+    public static function getPath(){
 
-        return $this->path;
+        return self::$path;
     }
 
     /**
      * Returns an array with all the routes
      * @return array
      */
-    public function getRoutes(){
+    public static function getRoutes(){
 
-        return $this->routes;
+        return self::$routes;
     }
 
     /**
      * Returns the currently loaded callable
      * @return null|callable
      */
-    public function getCallable(){
+    public static function getCallable(){
 
-        return $this->callable;
+        return self::$callable;
     }
 
     /**
-     * Returns the active controller
+     * Returns the active controller's name
      *
-     * @return null|Controller The controller object
+     * @return null|string
      */
-    public function getController() {
+    public static function getController() {
 
-        return $this->controller;
+        return self::$controller;
     }
 
     /**
-     * Returns the name of the function
+     * Returns the name of the active controller's function
      *
      * @return null|string The name of the function
      */
-    public function getFunction() {
+    public static function getFunction() {
 
-        return $this->function;
+        return self::$function;
     }
 
-	/**
-	 * Returns the routing parameters
-	 *
-	 * @return array
-	 */
-	public function getParameters(){
+    /**
+     * Returns the routing parameters
+     *
+     * @return array
+     */
+    public static function getParameters(){
 
-		return $this->parameters;
+        return self::$parameters;
     }
 
-	/**
-	 * Returns the routing parameter at given index
-	 *
-	 * @param int $index
-	 * @return array
-	 */
-	public function getParameter($index = 0){
+    /**
+     * Returns the routing parameter at given index
+     *
+     * @param int $index
+     * @return array
+     */
+    public static function getParameter($index = 0){
 
-		$parameters = $this->parameters;
+        $parameters = self::$parameters;
         $index      = ($index >= 0 ? $index : count($parameters)+$index);
 
         if(isset($parameters[$index]))
             return $parameters[$index];
 
         return null;
-	}
+    }
 
-	/**
-	 * Set the current routing path
-	 *
-	 * @param string $path The routing path (e.g. a/b/c/d/e)
-	 * @return bool|string
-	 */
-	public function setPath($path){
+    /**
+     * Set the current routing path
+     *
+     * @param string $path The routing path (e.g. a/b/c/d/e)
+     * @return bool|string
+     */
+    public static function setPath($path){
+
         // Fire the event to notify our modules
-        $event = $this->events->fireEvent('routerSetPathEvent', $path);
+        $event = Events::fireEvent('routerSetPathEvent', $path);
 
         // The event has been cancelled
         if($event->isCancelled()){
@@ -220,30 +213,56 @@ class Router extends Bus{
             return false;
         }
 
-		// Remove double slashes
-		$event->path = preg_replace('@[/]+@', '/', $event->path);
+        // Remove double slashes
+        $path = preg_replace('@[/]+@', '/', $path);
 
-		// Remove first slash
-		if(substr($event->path, 0, 1) == '/')
-			$event->path = substr($event->path, 1);
+        // Remove first slash
+        if(substr($path, 0, 1) == '/')
+            $path = substr($path, 1);
 
         // Remove trailing slash
-        if(substr($event->path, -1, 1) == '/')
-            $event->path = substr($event->path, 0, strlen($event->path)-1);
+        if(substr($path, -1, 1) == '/')
+            $path = substr($path, 0, strlen($path)-1);
 
-		return $this->path = $event->path;
-	}
+        return self::$path = $path;
+    }
+
+    /**
+     * Set the controller name
+     *
+     * Until we decide what to do with name giving of controllers/functions,
+     * this function stays here.
+     *
+     * @param string $controller the name of the controller
+     */
+    public static function setController($controller){
+
+        self::$controller = $controller;
+    }
+
+    /**
+     * Set the function name
+     *
+     * Until we decide what to do with name giving of controllers/functions,
+     * this function stays here.
+     *
+     * @param string $function the name of the controller
+     */
+    public static function setFunction($function){
+
+        self::$function = $function;
+    }
 
     /**
      * Add a route
      *
      * The path will be checked before custom routes before the default route(/controller/function/param1/param2/etc)
      * When the given RegEx matches the current routing-path, the callable will be called.
-     *
+     * 
      * The callable will be called with three arguments:
-     *
+     * 
      *      Callable($controller, $function, $parameters)
-     *
+     * 
      * These three variables will be extracted from the named groups of your RegEx. When one or more named groups are
      * not matched, they will be set to NULL. The default RegEx is:
      *
@@ -279,14 +298,14 @@ class Router extends Bus{
      * @param callable $callable The callable to execute
      * @param bool $prepend Whether or not to insert at the beginning of the routing table
      */
-    public function addRoute($route, $callable, $prepend = true){
+    public static function addRoute($route, $callable, $prepend = true){
 
         if($prepend)
-            $this->routes = array($route => $callable) + $this->routes;
+            self::$routes = array($route => $callable) + self::$routes;
         else
-            $this->routes[$route] = $callable;
+            self::$routes[$route] = $callable;
 
-        $this->logger->log('Route added at '.($prepend ? 'top' : 'bottom').': "'.$route.'"');
+        Logger::log('Route added at '.($prepend ? 'top' : 'bottom').': "'.$route.'"');
     }
 
     /**
@@ -294,30 +313,23 @@ class Router extends Bus{
      *
      * @param $route string The route to remove
      */
-    public function removeRoute($route){
+    public static function removeRoute($route){
 
-        unset($this->routes[$route]);
+        unset(self::$routes[$route]);
 
-        $this->logger->log('Route removed: '.$route);
+        Logger::log('Route removed: '.$route);
     }
 
     /**
-	 * Extracts the routing path to controller, function and parameters
-	 *
-	 * @param boolean $loadCallable Immediate load the callable after routing
-	 */
-	public function route($loadCallable = true)
+     * Extracts the routing path to controller, function and parameters
+     *
+     * @TODO: $loadCallable might not be needed anymore
+     * @param boolean $loadCallable Immediate load the callable when it's route matches
+     */
+    public static function route($loadCallable = true)
     {
-        // Default values
-        $callable = null;
-        $args     = array();
-
-        $controller = null;
-        $function   = null;
-        $parameters = null;
-
         // Fire the event to notify our modules
-        $event = $this->events->fireEvent('routerRouteEvent', $this->routes, $loadCallable);
+        $event = Events::fireEvent('routerRouteEvent', self::$routes, $loadCallable);
 
         // The event has been cancelled
         if($event->isCancelled()){
@@ -326,96 +338,87 @@ class Router extends Bus{
         }
 
         // Assign everything to the object to make it accessible, but let modules check it first
-        $this->routes = $event->routes;
-        $loadCallable = $event->loadCallable;
+        //self::$routes = $event->routes;
+        //$loadCallable = $event->loadCallable;
 
         //Check the custom routes
-        foreach ($this->routes as $r => $c) {
+        foreach (self::$routes as $r => $c) {
 
             //A custom route is found
-            if(preg_match($r, $this->path, $matches)) {
+            if(preg_match($r, self::$path, $matches)) {
 
-                $controller = !empty($matches['controller']) ? $matches['controller']               : null;
-                $function   = !empty($matches['function'])   ? $matches['function']                 : null;
-                $parameters = !empty($matches['parameters']) ? explode('/', $matches['parameters']) : null;
+                self::$controller = !empty($matches['controller']) ? $matches['controller']               : null;
+                self::$function   = !empty($matches['function'])   ? $matches['function']                 : null;
+                self::$parameters = !empty($matches['parameters']) ? explode('/', $matches['parameters']) : null;
 
-                $this->logger->log('Route matched: '.$r);
+                Logger::log('Route matched: '.$r);
 
-                $callable = $c;
-                break;
+                self::$callable   = $c;
+                if(!$loadCallable || !self::loadCallable())
+                    break;
             }
         }
 
-        $this->callable   = $callable;
-        $this->controller = $controller;
-        $this->function   = $function;
-        $this->parameters = $parameters;
-
         // Check if we found a callable anyway
-        if($this->callable === null){
+        if(self::$callable === null){
 
-            $this->logger->logWarning('No routes found for given path: "'.$this->path.'"', 'Router');
-            $this->logger->http_error(404);
+            Logger::log('No routes found for given path: "'.self::$path.'"', E_WARNING);
+            Logger::http_error(404);
             return;
         }
+    }
 
-        if($loadCallable)
-            $this->loadCallable();
-	}
+    /**
+     * Load and execute the callable
+     *
+     * @return boolean Whether or not the callable was satisfied
+     */
+    public static function loadCallable(){
 
-	/**
-	 * Load and execute the callable
-	 */
-	public function loadCallable(){
-
-        $this->logger->newLevel('Loading callable');
+        Logger::newLevel('Loading callable');
 
         // Fire the event to notify our modules
-        $event = $this->events->fireEvent('routerLoadCallableEvent', $this->callable, $this->controller, $this->function, $this->parameters);
+        $event = Events::fireEvent('routerLoadCallableEvent', self::$callable, self::$controller, self::$function, self::$parameters);
 
         // The event has been cancelled
-        if($event->isCancelled()){
+        if($event->isCancelled())
+            return false;
 
-            return;
-        }
+        if(!is_callable(self::$callable))
+        if(isset(self::$callable['controller'])) {
 
-        // Assign everything to the object to make it accessible, but let modules check it first
-        $this->callable   = $event->callable;
-        $this->controller = $event->controller;
-        $this->function   = $event->function;
-        $this->parameters = $event->parameters;
+            self::$controller = isset(self::$callable['controller']) ? self::$callable['controller'] : self::$controller;
+            self::$function   = isset(self::$callable['function'])   ? self::$callable['function']   : self::$function;
+            self::$parameters = isset(self::$callable['parameters']) ? self::$callable['parameters'] : self::$parameters;
 
-        if(!is_callable($this->callable))
-        if(isset($this->callable['controller'])) {
-
-            $this->controller = isset($this->callable['controller']) ? $this->callable['controller'] : $this->controller;
-            $this->function   = isset($this->callable['function'])   ? $this->callable['function']   : $this->function;
-            $this->parameters = isset($this->callable['parameters']) ? $this->callable['parameters'] : $this->parameters;
-
-            $this->callable = array($this, 'defaultCallable');
+            self::$callable = array('\FuzeWorks\Router', 'defaultCallable');
         }else{
 
-            $this->logger->log('The given callable is not callable!', E_ERROR);
-            $this->error->http_error(500);
-            $this->logger->stopLevel();
-            return;
+            Logger::log('The given callable is not callable!', E_ERROR);
+            Logger::http_error(500);
+            Logger::stopLevel();
+            return true;
         }
 
         $args = array(
-            $this->controller,
-            $this->function,
-            $this->parameters,
+            self::$controller,
+            self::$function,
+            self::$parameters,
         );
 
-        $this->logger->newLevel('Calling Callable');
-        $this->logger->log('Controller: '.  ($args[0] === null ? 'null' : $args[0]));
-        $this->logger->log('Function: '.    ($args[1] === null ? 'null' : $args[1]));
-        $this->logger->log('Parameters: '.  (empty($args[2])   ? '[]'   : implode(', ',$args[2])));
-        $this->logger->stopLevel();
+        Logger::newLevel('Calling callable');
+        Logger::log('Controller: '.  ($args[0] === null ? 'null' : $args[0]));
+        Logger::log('Function: '.    ($args[1] === null ? 'null' : $args[1]));
+        Logger::log('Parameters: '.  (empty($args[2])   ? '[]'   : implode(', ',$args[2])));
+        Logger::stopLevel();
 
-        call_user_func_array($this->callable, $args);
+        $skip = call_user_func_array(self::$callable, $args) === false;
 
-        $this->logger->stopLevel();
+        if($skip)
+            Logger::log('Callable not satisfied, skipping to next callable');
+
+        Logger::stopLevel();
+        return $skip;
     }
 
     /**
@@ -424,22 +427,18 @@ class Router extends Bus{
      * This callable will do the 'old skool' routing. It will load the controllers from the controller-directory
      * in the application-directory.
      */
-    public function defaultCallable(){
+    public static function defaultCallable(){
 
-        $this->logger->log('Default callable called!');
+        Logger::log('Default callable called!');
 
-        $this->controller = $this->controller === null ? $this->config->main->default_controller : $this->controller;
-        $this->function   = $this->function   === null ? $this->config->main->default_function   : $this->function;
+        self::$controller = self::$controller === null ? Config::get('main')->default_controller : self::$controller;
+        self::$function   = self::$function   === null ? Config::get('main')->default_function   : self::$function;
 
         // Construct file paths and classes
-        $class  = '\Controller\\'.ucfirst($this->controller);
-        $file   = 'Application/Controller/controller.'.$this->controller.'.php';
+        $class  = '\Controller\\'.ucfirst(self::$controller);
+        $file   = 'Application/Controller/controller.'.self::$controller.'.php';
 
-        $this->logger->log('Loading controller '.$class.' from file: '.$file);
-
-        // First load the Application init class, so that some important functions can be executed first.
-        require_once("Application/class.init.php");
-        $init = new Init($this->core);
+        Logger::log('Loading controller '.$class.' from file: '.$file);
 
         // Check if the file exists
         if(file_exists($file)){
@@ -447,24 +446,24 @@ class Router extends Bus{
             if(!class_exists($class))
                 require $file;
 
-            $this->callable = new $class($this->core);
+            self::$callable = new $class();
 
             // Check if method exists or if there is a caller function
-            if(method_exists($this->callable, $this->function) || method_exists($this->callable, '__call')){
+            if(method_exists(self::$callable, self::$function) || method_exists(self::$callable, '__call')){
 
                 // Execute the function on the controller
-                $this->callable->{$this->function}($this->parameters);
+                self::$callable->{self::$function}(self::$parameters);
             }else{
 
                 // Function could not be found
-                $this->logger->log('Could not find function '.$this->function.' on controller '.$class);
-                $this->logger->http_error(404);
+                Logger::log('Could not find function '.self::$function.' on controller '.$class);
+                Logger::http_error(404);
             }
         }else{
 
             // Controller could not be found
-            $this->logger->log('Could not find controller '.$class);
-            $this->logger->http_error(404);
+            Logger::log('Could not find controller '.$class);
+            Logger::http_error(404);
         }
     }
 }

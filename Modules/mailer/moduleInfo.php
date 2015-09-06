@@ -35,7 +35,7 @@ return array(
     'module_name'     => 'Mailer',
 
     'dependencies'  => array(),
-    'aliases'       => array('techfuze/mailer'),
+    'aliases'       => array(),
 
     'name'          => 'Mailer',
     'description'   => 'PHPMailer wrapper for FuzeWorks',

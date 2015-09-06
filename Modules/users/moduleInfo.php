@@ -35,7 +35,7 @@ return array(
     'module_name'     => 'users',
 
     'dependencies'  => array('core/database'),
-    'aliases'       => array('techfuze/sessions'),
+    'aliases'       => array(),
     'events'        => array(),
 
     'name'          => 'Users',

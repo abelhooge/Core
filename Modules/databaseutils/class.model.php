@@ -47,16 +47,12 @@ class Main extends Module implements ModelServer {
 	public $primary = 'id';
     public $table   = '';
 
-    public function __construct(&$core){
-        parent::__construct($core);
-    }
-
     public function onLoad() {
     	require_once($this->getModulePath() . '/class.query.php');
     }
 
     public function giveModel($type) {
-    	return new Model($this->core);
+    	return new Model();
     }
 }
 
@@ -76,7 +72,7 @@ class Main extends Module implements ModelServer {
  * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
  * @link        http://goframework.net
  */
-class Model extends Bus {
+class Model {
 
 	/**
 	 * @var string The name of the database table
@@ -131,7 +127,7 @@ class Model extends Bus {
 	 */
 	public function select(){
 
-		$queryBuilder = new Query($this->core);
+		$queryBuilder = new Query();
 		$queryBuilder->setTable($this->table);
         call_user_func_array(array($queryBuilder, 'select'), func_get_args());
 		$queryBuilder->from();
@@ -147,7 +143,7 @@ class Model extends Bus {
 
 	public function update(){
 
-		$queryBuilder = new Query($this->core);
+		$queryBuilder = new Query();
 		$queryBuilder->setTable($this->table);
         call_user_func_array(array($queryBuilder, 'update'), func_get_args());
 
@@ -162,7 +158,7 @@ class Model extends Bus {
 
 	public function delete(){
 
-		$queryBuilder = new Query($this->core);
+		$queryBuilder = new Query();
 		$queryBuilder->setTable($this->table);
         call_user_func_array(array($queryBuilder, 'delete'), func_get_args());
 
@@ -179,7 +175,7 @@ class Model extends Bus {
 
 	public function insert($array){
 
-		$queryBuilder = new Query($this->core);
+		$queryBuilder = new Query();
 		$queryBuilder->setTable($this->table);
         call_user_func_array(array($queryBuilder, 'insert'), func_get_args());
 

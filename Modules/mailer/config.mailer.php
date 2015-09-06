@@ -33,7 +33,7 @@ return array(
 		# Sendmail Settings
 		'sendmail_enabled'	=> true,
 
-		# SMTP Settings 
+		# SMTP Settings
 		'smtp_enabled' 		=> false,
 		'smtp_host'			=> '',
 		'smtp_port'			=> 25,

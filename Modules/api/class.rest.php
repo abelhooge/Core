@@ -5,10 +5,6 @@ use \FuzeWorks\Module;
 
 class RestApi extends Module {
 
-    public function __construct(&$core){
-        parent::__construct($core);
-    }
-
     public function onLoad() {}
 
     /**

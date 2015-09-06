@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Class CoreTest
  *
@@ -8,13 +9,12 @@ class CoreTest extends CoreTestAbstract
 {
 	public function testCanLoadStartupFiles(){
 
-		$core = $this->createCore();
-
 		// Assert
-		$this->assertInstanceOf('\FuzeWorks\Config', $core->mods->config);
-		$this->assertInstanceOf('\FuzeWorks\Logger', $core->mods->logger);
-		$this->assertInstanceOf('\FuzeWorks\Events', $core->mods->events);
-		$this->assertInstanceOf('\FuzeWorks\Layout', $core->mods->layout);
-		$this->assertInstanceOf('\FuzeWorks\Models', $core->mods->models);
+		$this->assertTrue(class_exists('\FuzeWorks\Config'));
+		$this->assertTrue(class_exists('\FuzeWorks\Logger'));
+		$this->assertTrue(class_exists('\FuzeWorks\Events'));
+		$this->assertTrue(class_exists('\FuzeWorks\Router'));
+		$this->assertTrue(class_exists('\FuzeWorks\Layout'));
+		$this->assertTrue(class_exists('\FuzeWorks\Models'));
 	}
 }

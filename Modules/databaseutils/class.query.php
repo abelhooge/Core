@@ -30,7 +30,10 @@
 
 namespace Module\DatabaseUtils;
 use \FuzeWorks\Module;
+use \FuzeWorks\Modules;
 use \FuzeWorks\DatabaseException;
+use \FuzeWorks\Config;
+use \FuzeWorks\Logger;
 
 
 /**
@@ -47,14 +50,9 @@ use \FuzeWorks\DatabaseException;
 class Query extends Module {
 
     /**
-     * @var string The string containing the query
+     * @var array An array containing all the counted functions
      */
-    private $query = '';
-
-    /**
-     * @var array The binds corresponding to the query
-     */
-    private $binds = array();
+    private $functions = array();
 
     /**
      * @var null|string The table used
@@ -66,55 +64,69 @@ class Query extends Module {
      */
     private $sth = null;
 
-    public function __construct(&$core){
-
-        parent::__construct($core);
-    }
-
     /**
-     * Default module function on creation
+     * @param string $table The string to set as a table, optional
      */
-    public function onLoad() {}
+    public function __construct($table = ''){
 
+        if($table != '')
+            $this->setTable($table);
+    }
     /**
      * Each argument is another field to select
      *
+     * @param string $field,... The field to select, if no field is given, all fields(*) will be selected
      * @return $this
      */
-    public function select()
-    {
-        $this->query .= 'SELECT ' . (func_num_args() == 0 ? '*' : '`' . implode("`, `", func_get_args()) . '`');
 
-        return $this;
+    public function select($field = '*'){
+
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
+
+    private function internalSelect($field = '*')
+    {
+        return array(
+            'sql'=> 'SELECT ' . ($field == '*' ? '*' :  implode(", ", func_get_args()) . ''),
+            'binds' => null
+        );
     }
 
     /**
      * From
      *
-     * @param ...$table null|string The table, if it is null, the table set with setTable() will be used
+     * @param $table,... null|string The table, if it is null, the table set with setTable() will be used
      * @return $this
      * @throws Exception
      */
-    public function from()
+    public function from($table = null){
+
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
+
+    private function internalFrom($table = null)
     {
         $tables = func_get_args();
 
-        $this->query .= ' FROM ';
+        $query = 'FROM ';
 
         if(count($tables) == 0)
-            $tables[] = "`$this->table`";
+            $tables[] = "$this->table";
 
         else foreach($tables as $i => $t) {
 
             if ($t == '' && $this->table == '')
                 throw new Exception("No table given");
 
-            $tables[$i] = strpos($t, ' ') === false ? "`$t`" : '`'.implode('` ', explode(' ', $t));
+            $tables[$i] = strpos($t, ' ') === false ? "$t" : ''.implode(' ', explode(' ', $t));
         }
 
-        $this->query .= implode(', ', $tables);
+        $query .= implode(', ', $tables);
 
-        return $this;
+        return array(
+            'sql' => $query,
+            'binds' => null
+        );
     }
 
     /**
@@ -127,6 +139,11 @@ class Query extends Module {
      */
     public function join($table, $type = ''){
 
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
+
+    private function internalJoin($table, $type = ''){
+
         if($table === '') {
 
             if ($this->table == '')
@@ -135,12 +152,17 @@ class Query extends Module {
             $table = $this->table;
         }
 
+        $query = '';
+
         if($type != '')
-            $this->query .= ' '.$type;
+            $query .= $type . ' ';
 
-        $this->query .= ' JOIN ' . (strpos($table, ' ') === false ? "`$table`" : '`'.implode('` ', explode(' ', $table)));
+        $query .= 'JOIN ' . (strpos($table, ' ') === false ? "$table" : ''.implode(' ', explode(' ', $table)));
 
-        return $this;
+        return array(
+            'sql' => $query,
+            'binds' => null
+        );
     }
 
     /**
@@ -195,234 +217,138 @@ class Query extends Module {
     /**
      * Where
      *
-     * @param string $field Field name, or raw SQL
+     * @param string|null $field Field name, or raw SQL, If this is left empty, only the $type will be added to the query
      * @param string $arg2, The value of the field, or an operator in which case the value is pushed to $arg3
      * @param null|string $arg3 The value of the field when $arg2 is used for an operator
      * @param string $type Whether this is an WHERE or ON operation
      * @return $this
      */
-    public function where($field, $arg2 = null, $arg3 = null, $type = 'WHERE'){
+    public function where($field = null, $arg2 = null, $arg3 = null, $type = 'WHERE'){
+
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
+
+    private function internalWhere($field = null, $arg2 = null, $arg3 = null, $type = 'WHERE'){
+
+        if($field == null)
+            return array('sql' => $type, 'binds' => array());
 
         if($arg2 === null)
-            return $this->sql(' '.$type.' '.$field);
+            return $this->internalSql($type . ' '.$field);
 
         //The value is the second parameter, unless the second parameter is an operator, in which case it's the third
         $value = ($arg3 == null ? $arg2 : $arg3);
         //If the third parameter is not given, the default operator should be used
         $operator = strtoupper($arg3 == null ? "=" : $arg2);
 
-        $field = $this->formatField($field);
+        $query = '';
+        $binds = array();
 
         switch($operator){
 
             case 'IN':
 
-                $this->query .= ' '.$type.' '.$field.' IN (';
+                $query .= $type . ($type == '' ? '' : ' ') . $field.' IN (';
 
-                foreach($value as $k => $v){
+                if(is_array($value)) {
+                    foreach ($value as $k => $v) {
 
-                    $this->query .= '?,';
-                    $this->binds[] = $v;
+                        $query .= '?,';
+                        $binds[] = $v;
+                    }
+
+                    //Remove the trailing comma and close it
+                    $query = rtrim($query, ",") . ')';
+
+                }elseif(get_class($value) == 'System\Core\Query'){
+
+
+                    /** @var Query $value */
+                    $data = $this->internalSql($value->getSql(), $value->getBinds());
+                    $query .= $data['sql'] . ')';
+                    $binds = array_merge($binds, $data['binds']);
                 }
-
-                //Remove the trailing comma and close it
-                $this->query = rtrim($this->query, ",") . ')';
-
                 break;
 
             case 'BETWEEN':
 
-                $this->query .= ' '.$type.' '.$field.' BETWEEN ? AND ?';
-                $this->binds[] = $value[0];
-                $this->binds[] = $value[1];
+                $query .= $type . ($type == '' ? '' : ' ') . $field.' BETWEEN ? AND ?';
+                $binds[] = $value[0];
+                $binds[] = $value[1];
 
                 break;
 
             default:
 
-                $this->query .= ' '.$type.' '.$field.' ' . $operator . ' ?';
-                $this->binds[] = $value;
+                $query .= $type . ($type == '' ? '' : ' ') . $field.' ' . $operator . ' ?';
+                $binds[] = $value;
 
                 break;
         }
-        return $this;
+
+        return array(
+            'sql' => $query,
+            'binds' => $binds
+        );
+    }
+
+
+    /**
+     *And, keep in mind this is only the OR statement. For A = B call ->where
+     * @return array
+     */
+    private function internalOr(){
+
+        return array(
+            'sql' => 'OR',
+            'binds' => array()
+        );
     }
 
     /**
-     * Where open. Is the start of WHERE(....). To end this call ->close()
-     *
-     * @param string $field Field name, or raw SQL
-     * @param $arg2 string, The value of the field, or an operator in which case the value is pushed to $arg3
-     * @param null|string $arg3 The value of the field when $arg2 is used for an operator
+     * And, keep in mind this is only the AND statement. For A = B call ->where
+     * @return array
+     */
+    private function internalAnd(){
+
+        return array(
+            'sql' => 'AND',
+            'binds' => array()
+        );
+    }
+
+    /**
+     * An opening bracket
      * @return $this
      */
-    public function where_open($field, $arg2, $arg3 = null){
+    public function open(){
 
-        $old = $this->query;
-        $this->where($field, $arg2, $arg3);
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
 
-        //Replace the WHERE with WHERE (
-        $this->query =  $old . ' WHERE (' . substr($this->query, strlen($old) + 7);
+    private function internalOpen(){
 
-        return $this;
+        return array(
+            'sql' => '(',
+            'binds' => ''
+        );
     }
 
     /**
-     * Or, this function should be called after ->where() or ->having(). Please use ->or as an alias instead of ->_or()
-     *
-     * @param string $field Field name, or raw SQL
-     * @param $arg2 string, The value of the field, or an operator in which case the value is pushed to $arg3
-     * @param null|string $arg3 The value of the field when $arg2 is used for an operator
-     * @return $this
-     */
-    private function _or($field, $arg2 = null, $arg3 = null){
-
-        if($arg2 === null)
-            return $this->sql(' OR '.$field);
-
-        //The value is the second paramter, unless the second parameter is an operator, in which case it's the third
-        $value = ($arg3 == null ? $arg2 : $arg3);
-        //If the third parameter is not given, the default operator should be used
-        $operator = strtoupper($arg3 == null ? "=" : $arg2);
-
-        $field = $this->formatField($field);
-
-        switch($operator){
-
-            case 'IN':
-
-                $this->query .= ' OR ' . $field .' IN (';
-
-                foreach($value as $k => $v){
-
-                    $this->query .= '?,';
-                    $this->binds[] = $v;
-                }
-
-                //Remove the trailing comma and close it
-                $this->query = rtrim($this->query, ",") . ')';
-
-
-                break;
-
-            case 'BETWEEN':
-
-                $this->query .= ' OR ' . $field .' BETWEEN ? AND ?';
-                $this->binds[] = $value[0];
-                $this->binds[] = $value[1];
-
-                break;
-
-            default:
-
-                $this->query .= ' OR ' . $field .' ' . $operator . ' ?';
-                $this->binds[] = $value;
-
-                break;
-        }
-        return $this;
-    }
-
-    /**
-     * Or open. Is the start of OR(....). To end this call ->close()
-     *
-     * @param string $field Field name, or raw SQL
-     * @param $arg2 string, The value of the field, or an operator in which case the value is pushed to $arg3
-     * @param null|string $arg3 The value of the field when $arg2 is used for an operator
-     * @return $this
-     */
-    public function or_open($field, $arg2, $arg3 = null){
-
-        $old = $this->query;
-        $this->_or($field, $arg2, $arg3);
-        //Replace the OR with OR (
-        $this->query =  $old . ' OR (' . substr($this->query, strlen($old) + 4);
-
-        return $this;
-    }
-
-    /**
-     * And, this function should be called after ->where() or ->having(). Please use ->and as an alias instead of ->_and()
-     *
-     * @param string $field Field name, or raw SQL
-     * @param $arg2 string, The value of the field, or an operator in which case the value is pushed to $arg3
-     * @param null|string $arg3 The value of the field when $arg2 is used for an operator
-     * @return $this
-     */
-    private function _and($field, $arg2 = null, $arg3 = null){
-
-        if($arg2 === null)
-            return $this->sql(' AND '.$field);
-
-        //The value is the second paramter, unless the second parameter is an operator, in which case it's the third
-        $value = ($arg3 == null ? $arg2 : $arg3);
-        //If the third parameter is not given, the default operator should be used
-        $operator = strtoupper($arg3 == null ? "=" : $arg2);
-
-        $field = $this->formatField($field);
-
-        switch($operator){
-
-            case 'IN':
-
-                $this->query .= ' AND ' . $field .' IN (';
-
-                foreach($value as $k => $v){
-
-                    $this->query .= '?,';
-                    $this->binds[] = $v;
-                }
-
-                //Remove the trailing comma and close it
-                $this->query = rtrim($this->query, ",") . ')';
-
-
-                break;
-
-            case 'BETWEEN':
-
-                $this->query .= ' AND ' . $field .' BETWEEN ? AND ?';
-                $this->binds[] = $value[0];
-                $this->binds[] = $value[1];
-
-                break;
-
-            default:
-
-                $this->query .= ' AND ' . $field .' ' . $operator . ' ?';
-                $this->binds[] = $value;
-
-                break;
-        }
-        return $this;
-    }
-
-    /**
-     * And open. Is the start of AND(....). To end this call ->close()
-     *
-     * @param $field
-     * @param $arg2 string, The value of the field, or an operator in which case the value is pushed to $arg3
-     * @param null|string $arg3 The value of the field when $arg2 is used for an operator
-     * @return $this
-     */
-    public function and_open($field, $arg2, $arg3 = null){
-
-        $old = $this->query;
-        $this->_and($field, $arg2, $arg3);
-        //Replace the AND with AND (
-        $this->query =  $old . ' AND (' . substr($this->query, strlen($old) + 5);
-
-        return $this;
-    }
-
-    /**
-     * Closes and ->where_open() or ->having_open()
+     * A closing bracket
      * @return $this
      */
     public function close(){
 
-        $this->query .= ')';
-        return $this;
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
+
+    private function internalClose(){
+
+        return array(
+            'sql' => ')',
+            'binds' => null
+        );
     }
 
     /**
@@ -430,16 +356,22 @@ class Query extends Module {
      *
      * Each argument is another order. If you put a minus in front of the name, the order will be DESC instead of ASC
      *
+     * @param string $field,... The field to order by, add a minus in front of the name and the order will be DESC
      * @return $this
      */
-    public function order(){
+    public function order($field){
 
-        $this->query .= ' ORDER BY';
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
+
+    private function internalOrder($field){
+
+        $query = 'ORDER BY';
 
         foreach(func_get_args() as $field){
 
-            if(substr($this->query, -2) != 'BY')
-                $this->query .= ",";
+            if(substr($query, -2) != 'BY')
+                $query .= ",";
 
             $mode = 'ASC';
 
@@ -450,12 +382,49 @@ class Query extends Module {
 
             }
 
-            $field = $this->formatField($field);
-
-            $this->query .= ' ' . $field . ' ' . $mode;
+            $query .= ' ' . $field . ' ' . $mode;
         }
 
-        return $this;
+        return array(
+            'sql' => $query,
+            'binds' => null
+        );
+    }
+
+    /**
+     * Group by
+     *
+     * Each argument is another field to group by.
+     *
+     * @param string $field,... The field to group by
+     * @return $this
+     */
+    public function groupBy($field){
+
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
+
+    private function internalGroupBy($field){
+
+        $query = 'GROUP BY ';
+
+        $first = true;
+
+        foreach(func_get_args() as $field){
+
+            if(!$first){
+                $query .= ', ';
+            }
+
+            $first = false;
+
+            $query .= $field;
+        }
+
+        return array(
+            'sql' => $query,
+            'binds' => null,
+        );
     }
 
     /**
@@ -467,9 +436,15 @@ class Query extends Module {
      */
     public function limit($limit, $offset = 0){
 
-        $this->query .= ' LIMIT ' . $offset . ', ' . $limit;
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
 
-        return $this;
+    private function internalLimit($limit, $offset = 0){
+
+        return array(
+            'sql' => 'LIMIT ' . $offset . ', ' . $limit,
+            'binds' => null
+        );
     }
 
     /**
@@ -480,68 +455,9 @@ class Query extends Module {
      * @param null|string $arg3 The value of the field when $arg2 is used for an operator
      * @return $this
      */
-    public function having($field, $arg2, $arg3 = null){
+    public function having($field = null, $arg2 = null, $arg3 = null){
 
-        //The value is the second paramter, unless the second parameter is an operator, in which case it's the third
-        $value = ($arg3 == null ? $arg2 : $arg3);
-        //If the third parameter is not given, the default operator should be used
-        $operator = strtoupper($arg3 == null ? "=" : $arg2);
-
-        $field = $this->formatField($field);
-
-        switch($operator){
-
-            case 'IN':
-
-                $this->query .= ' HAVING ' . $field .' IN (';
-
-                foreach($value as $k => $v){
-
-                    $this->query .= '?,';
-                    $this->binds[] = $v;
-                }
-
-                //Remove the trailing comma and close it
-                $this->query = rtrim($this->query, ",") . ')';
-
-
-                break;
-
-            case 'BETWEEN':
-
-                $this->query .= ' HAVING ' . $field .' BETWEEN ? AND ?';
-                $this->binds[] = $value[0];
-                $this->binds[] = $value[1];
-
-                break;
-
-            default:
-
-                $this->query .= ' HAVING ' . $field .' ' . $operator . ' ?';
-                $this->binds[] = $value;
-
-                break;
-        }
-        return $this;
-    }
-
-    /**
-     * Having open. Is the start of HAVING(....). To end this call ->close()
-     *
-     * @param $field
-     * @param $arg2 string, The value of the field, or an operator in which case the value is pushed to $arg3
-     * @param null|string $arg3 The value of the field when $arg2 is used for an operator
-     * @return $this
-     */
-
-    public function having_open($field, $arg2, $arg3 = null){
-
-        $old = $this->query;
-        $this->having($field, $arg2, $arg3);
-        //Replace the WHERE with WHERE (
-        $this->query =  $old . ' HAVING (' . substr($this->query, strlen($old) + 8);
-
-        return $this;
+       return $this->where($field, $arg2, $arg3, 'HAVING');
     }
 
     /**
@@ -551,8 +467,12 @@ class Query extends Module {
      * @return $this
      * @throws Exception
      */
+    public function update($table = ''){
 
-    public function update($table = '')
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
+
+    private function internalUpdate($table = '')
     {
         if($table === ''){
 
@@ -562,9 +482,10 @@ class Query extends Module {
             $table = $this->table;
         }
 
-        $this->query .= 'UPDATE `' . $table . '`';
-
-        return $this;
+        return array(
+            'sql' => 'UPDATE ' . $table,
+            'binds' => array()
+        );
     }
 
     /**
@@ -573,27 +494,36 @@ class Query extends Module {
      * @param $data array|string Key value, $field => $value or raw SQL
      * @return $this
      */
-    public function set($data)
+    public function set($data){
+
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
+
+    private function internalSet($data)
     {
         if(is_string($data))
-            return $this->sql(' SET '.$data);
+            return $this->internalSql('SET '.$data);
 
-        $this->query .= ' SET';
+        $query = 'SET';
+        $binds = array();
 
         $first = true;
 
         foreach($data as $field => $value){
 
             if(!$first)
-                $this->query .= ',';
+                $query .= ',';
 
             $first = false;
-            $this->query .= ' `' . $field . '`=?';
+            $query .= ' ' . $field . '=?';
 
-            $this->binds[] = $value;
+            $binds[] = $value;
         }
 
-        return $this;
+        return array(
+            'sql' => $query,
+            'binds' => $binds
+        );
     }
 
     /**
@@ -601,12 +531,17 @@ class Query extends Module {
      *
      * @return $this
      */
-    public function delete()
+    public function delete(){
+
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
+
+    private function internalDelete()
     {
-
-        $this->query .= 'DELETE';
-
-        return $this;
+        return array(
+            'sql' => 'DELETE',
+            'binds' => array()
+        );
     }
 
     /**
@@ -619,6 +554,11 @@ class Query extends Module {
      */
     public function insert($array, $table = ''){
 
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
+
+    private function internalInsert($array, $table = ''){
+
         if($table === ''){
 
             if($this->table == '')
@@ -627,66 +567,153 @@ class Query extends Module {
             $table = $this->table;
         }
 
+        $query = '';
+        $binds = array();
+
         //Implode the array to get a list with the fields
-        $this->query .= 'INSERT INTO `' . $table . '` (`' . implode('`,`', array_keys($array)) . '`) VALUES (';
+        $query .= 'INSERT INTO ' . $table . ' (' . implode(',', array_keys($array)) . ') VALUES (';
 
         //Add all the values as ? and add them to the binds
         foreach($array as $field => $value){
-            $this->query .= '?,';
+            $query .= '?,';
 
-            $this->binds[] = $value;
+            $binds[] = $value;
         }
 
-        $this->query = rtrim($this->query, ',') . ')';
+        $query = rtrim($query, ',') . ')';
 
-        return $this;
+        return array(
+            'sql' => $query,
+            'binds' => $binds
+        );
+    }
+
+    /**
+     * Replace
+     *
+     * @param $array array Key value, $field => $value
+     * @param $table string|null Table name, if it is null, the table set with setTable() will be used
+     * @return $this
+     * @throws Exception
+     */
+    public function replace($array, $table = ''){
+
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
+
+    private function internalReplace($array, $table = ''){
+
+        if($table === ''){
+
+            if($this->table == '')
+                throw new DatabaseException("No table given");
+
+            $table = $this->table;
+        }
+
+        $query = '';
+        $binds = array();
+
+        //Implode the array to get a list with the fields
+        $query .= 'REPLACE INTO ' . $table . ' (' . implode(',', array_keys($array)) . ') VALUES (';
+
+        //Add all the values as ? and add them to the binds
+        foreach($array as $field => $value){
+            $query .= '?,';
+
+            $binds[] = $value;
+        }
+
+        $query = rtrim($query, ',') . ')';
+
+        return array(
+            'sql' => $query,
+            'binds' => $binds
+        );
     }
 
     /**
      * Add raw SQL to the query string
      *
      * @param string $sql The SQL to add
-     * @return string
+     * @param array $binds The optional binds to add
+     * @return $this
      */
-    public function sql($sql){
+    public function sql($sql, $binds = array()){
 
-        $this->query .= $sql;
+        return $this->__call(__FUNCTION__, func_get_args());
+    }
 
-        return $this;
+    private function internalSql($sql, $binds = array()){
+
+        return array(
+            'sql' => $sql,
+            'binds' => $binds
+        );
     }
 
     /**
-     * Formats the given field
-     *
-     * @param string $field The field to format
-     * @return string The formatted field
+     * Builds The SQL query and its binds.
+     * @return array
      */
-    private function formatField($field){
+    public function build(){
 
-        if(strpos($field, '.') === false)
-            $field = "`$field`";
+        $sql = array();
+        $binds = array();
 
-        return $field;
+        foreach($this->functions as $i => $function){
+
+            //The current function is a WHERE or HAVING,
+            //and it after a or, and or open, this means we do not have to
+            //add the WHERE/HAVING statement again
+            if((
+                    $function['name'] == 'internalWhere'  ||
+                    $function['name'] == 'internalHaving'
+                )&&
+                (
+                    $this->functions[$i - 1]['name'] == 'internalOpen' ||
+                    $this->functions[$i - 1]['name'] == 'internalAnd' ||
+                    $this->functions[$i - 1]['name'] == 'internalOr'
+                )){
+
+                if(!isset($function['arguments'][2]))
+                    $function['arguments'][2] = null;
+
+                $function['arguments'][3] = '';
+            }
+
+
+            $data = call_user_func_array(array($this, $function['name']), $function['arguments']);
+
+            $sql[] = $data['sql'];
+
+            if($data['binds'] != null)
+                $binds = array_merge($binds, $data['binds']);
+        }
+
+        return array(
+            'sql' => implode(' ', $sql),
+            'binds' => $binds
+        );
     }
-
     /**
-     * Returns the query
-     *
-     * @return string
-     */
-    public function getQuery(){
-
-        return $this->query;
-    }
-
-    /**
-     * Return the binds that corresponds with the binds
+     * Returns the query as an array
      *
      * @return array
      */
+    public function getSql(){
+
+        return $this->build()['sql'];
+    }
+
+    /**
+     * Return the built SQL query
+     *
+     * @return string
+     */
     public function getBinds(){
 
-        return $this->binds;
+        return $this->build()['binds'];
     }
 
     /**
@@ -713,7 +740,7 @@ class Query extends Module {
      */
     public function commit(){
 
-        $this->mods->database->commit();
+        Modules::get('core/database')->commit();
 
         return $this;
     }
@@ -723,7 +750,7 @@ class Query extends Module {
      */
     public function beginTransaction(){
 
-        $this->mods->database->beginTransaction();
+        Modules::get('core/database')->beginTransaction();
 
         return $this;
     }
@@ -733,7 +760,7 @@ class Query extends Module {
      */
     public function rollback(){
 
-        $this->mods->database->rollback();
+        Modules::get('core/database')->rollback();
 
         return $this;
     }
@@ -747,18 +774,18 @@ class Query extends Module {
     public function execute(){
 
 
-        if($this->config->database->debug)
-            $this->logger->log("Generated query: ".$this->query, 'QueryBuilder');
+        if(Config::get('database')->debug)
+            Logger::log(get_class($this).': '.$this->getSql());
 
         try{
 
-            $this->sth = $this->mods->database->prepare($this->query);
-            if(count($this->binds) === 0){
+            $this->sth = Modules::get('core/database')->getConnection()->prepare($this->getSql());
+            if(count($this->getBinds()) === 0){
 
                 $this->sth->execute();
             }else{
 
-                $this->sth->execute($this->binds);
+                $this->sth->execute($this->getBinds());
             }
         }catch (\PDOException $e) {
 
@@ -768,30 +795,23 @@ class Query extends Module {
         return $this;
     }
 
+
     /**
-     * Returns the results of the query as an associative array. ->execute() must be called first.
+     * Returns the results of the query in the given type. All the arguments of this function will be passed onto
+     * fetchAll
+     * @param int $type The default type is \PDO::FETCH_ASSOC, all the types that are possible for fetchAll() are valid
      * @return array
      * @throws DatabaseException
      */
-    public function getArray(){
+    public function getResults($type = \PDO::FETCH_ASSOC){
 
         if(!isset($this->sth))
             $this->execute();
 
-        return $this->sth->fetchAll(\PDO::FETCH_ASSOC);
-    }
-
-    /**
-     * Returns the results of the query as an array containing objects. ->execute() must be called first.
-     * @return object[]
-     * @throws DatabaseException
-     */
-    public function getObject(){
-
-        if(!isset($this->sth))
-            $this->execute();
-
-        return $this->sth->fetchAll(\PDO::FETCH_OBJ);
+        return call_user_func_array(array(
+            $this->sth,
+            'fetchAll'
+        ), func_get_args());
     }
 
     /**
@@ -812,26 +832,30 @@ class Query extends Module {
      */
     public function getLastInsertId(){
 
-        return $this->mods->database->lastInsertId();
+        return Modules::get('core/database')->getConnection()->lastInsertId();
 
     }
 
     /**
-     * PHP does not allow to use "or" and "and" as function name, by using __call we can redirect them to _or and _and
+     * All the called functions are saved in an array, so when build is called, the query is built from all the functions
      *
      * @param $name string
      * @param $arguments array
-     * @return mixed
+     * @return $this
+     * @throws DatabaseException
      */
     public function __call($name, $arguments){
 
-        switch($name){
+        $name = "internal" . ucfirst($name);
 
-            case "or":
-                return call_user_func_array(array($this, "_or"), $arguments);
+        if(!method_exists($this, $name))
+            throw new DatabaseException('Unknown function "' . $name . '"');
 
-            case "and":
-                return call_user_func_array(array($this, "_and"), $arguments);
-        }
+        $this->functions[] = array(
+            'name' => $name,
+            'arguments' => $arguments
+        );
+
+        return $this;
     }
 }

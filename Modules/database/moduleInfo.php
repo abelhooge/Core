@@ -38,7 +38,7 @@ return array(
     'dependencies'  => array(),
     'events'        => array(),
     'sections'      => array(),
-    'aliases'       => array('techfuze/database'),
+    'aliases'       => array(),
 
     'name'          => 'FuzeWorks Database Module',
     'description'   => 'PDO Wrapper class for FuzeWorks',

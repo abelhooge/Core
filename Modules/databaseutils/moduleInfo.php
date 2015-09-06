@@ -9,7 +9,7 @@ return array(
     'dependencies'  => array('core/database'),
     'events'        => array(),
     'sections'      => array(),
-    'aliases'       => array('techfuze/databaseutils'),
+    'aliases'       => array(),
 
     'name'          => 'FuzeWorks Database Utilities',
     'description'   => 'Automatically build SQL queries using methods in this class',

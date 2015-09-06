@@ -31,6 +31,11 @@
 namespace Module\Users;
 use \FuzeWorks\Module;
 use \FuzeWorks\EventPriority;
+use \FuzeWorks\Config;
+use \FuzeWorks\Modules;
+use \FuzeWorks\Events;
+use \FuzeWorks\Logger;
+use \FuzeWorks\Layout;
 
 /**
  * Main class of the Sessions and User Management module.
@@ -61,8 +66,8 @@ class Users extends Module {
 	 */
 	public function onLoad() {
 		require_once($this->getmodulePath() . "/class.events.php");
-		$this->setModuleConfig($this->config->loadConfigFile('sessions', $this->getModulePath()));
-		$this->db = &$this->mods->database;
+		$this->setModuleConfig(Config::loadConfigFile('sessions', $this->getModulePath()));
+		$this->db = Modules::get('core/database');
 	}
 
 	/**
@@ -96,12 +101,12 @@ class Users extends Module {
 			$udt = $this->getGuestUdt();
 			$user_id = 0;
 			$username = 'Guest';
-			$email = 'Guest@'.$this->config->main->SITE_DOMAIN;
+			$email = 'Guest@'.Config::get('main')->SITE_DOMAIN;
 			$guest_session = true;
 		}
 
 		// Fire the event
-		$event = $this->events->fireEvent(new SessionStartEvent(), $user_id, $username, $email, $udt, $guest_session);
+		$event = Events::fireEvent(new SessionStartEvent(), $user_id, $username, $email, $udt, $guest_session);
 		if ($event->isCancelled() || $event->guest_session) {
 			return $this->sendUserSession($udt);
 		}
@@ -120,7 +125,7 @@ class Users extends Module {
 	 */
 	private function sendGuestSession() {
 		if (isset($_COOKIE[$this->cfg->cookie_name])) {
-			setcookie($this->cfg->cookie_name, '', time()-3600, '/', $this->config->main->SITE_DOMAIN);
+			setcookie($this->cfg->cookie_name, '', time()-3600, '/', Config::get('main')->SITE_DOMAIN);
 		}
 		$udt = $this->getGuestUdt();
 		$this->udt = $udt;
@@ -138,8 +143,8 @@ class Users extends Module {
 				'user_id' => 0,
 				'user_username' => 'Guest',
 				'username' => 'Guest',
-				'user_email' => 'Guest@'.$this->config->main->SITE_DOMAIN,
-				'email' => 'Guest@'.$this->config->main->SITE_DOMAIN,
+				'user_email' => 'Guest@'.Config::get('main')->SITE_DOMAIN,
+				'email' => 'Guest@'.Config::get('main')->SITE_DOMAIN,
 				'permissions' => array('GUEST' => 'GUEST', 'LOGIN' => 'LOGIN'),
 				'session_hash' => '0'
 			);
@@ -165,9 +170,9 @@ class Users extends Module {
 	 * @access private
 	 */
 	private function logSessionData() {
-		$this->logger->newLevel("Activating Session");
-		$this->logger->logInfo("<br />SessionKey: " . $this->session_hash . "<br />Username: " . $this->user_username . "<br/>Email: " . $this->user_email . "<br/>Permissions: " . implode('-', $this->permissions));
-		$this->logger->stopLevel();
+		Logger::newLevel("Activating Session");
+		Logger::logInfo("<br />SessionKey: " . $this->session_hash . "<br />Username: " . $this->user_username . "<br/>Email: " . $this->user_email . "<br/>Permissions: " . implode('-', $this->permissions));
+		Logger::stopLevel();
 	}
 
 	/**
@@ -310,7 +315,7 @@ class Users extends Module {
 		// Broadcast data with an event
 		if ($valid) {
 			// If valid, provide all required data
-			$event = $this->events->fireEvent(new SessionLoginEvent(),
+			$event = Events::fireEvent(new SessionLoginEvent(),
 				$identifier,
 				$password,
 				$remember_me,
@@ -320,7 +325,7 @@ class Users extends Module {
 			);
 		} else {
 			// If not, provide only the identifiers
-			$event = $this->events->fireEvent(new SessionLoginEvent(), $identifier, $password, $remember_me);
+			$event = Events::fireEvent(new SessionLoginEvent(), $identifier, $password, $remember_me);
 		}
 
 		// Firest check for full blown deny
@@ -380,7 +385,7 @@ class Users extends Module {
 		$stmnt->execute($insert_array);
 		if ($stmnt->rowCount() == 1) {
 			// Set the cookie
-			setcookie($this->cfg->cookie_name, $sessionData['hash'], $sessionData['valid_time'], '/', $this->config->main->SITE_DOMAIN);
+			setcookie($this->cfg->cookie_name, $sessionData['hash'], $sessionData['valid_time'], '/', Config::get('main')->SITE_DOMAIN);
 			return true;
 		} else {
 			throw new SessionException("Could not log user in. Database error", 1);
@@ -411,7 +416,7 @@ class Users extends Module {
 				$user_id = $data[0]['user_id'];
 
 				// Then fire the event
-				$event = $this->events->fireEvent(new SessionLogoutEvent(), $user_id, $username, $email);
+				$event = Events::fireEvent(new SessionLogoutEvent(), $user_id, $username, $email);
 				if ($event->isCancelled()) {
 					return false;
 				}
@@ -428,7 +433,7 @@ class Users extends Module {
 					// And after that remove the cookie
 					if ($stmnt->rowCount() == 1) {
 						// Set the cookie
-						setcookie($this->cfg->cookie_name, $sessionKey, date('U') - 3600, '/', $this->config->main->SITE_DOMAIN);
+						setcookie($this->cfg->cookie_name, $sessionKey, date('U') - 3600, '/', Config::get('main')->SITE_DOMAIN);
 						return true;
 					}
 
@@ -471,7 +476,7 @@ class Users extends Module {
 		}
 
 		// Fire the event
-		$event = $this->events->fireEvent(new SessionRegisterEvent(), $username, $email, $password);
+		$event = Events::fireEvent(new SessionRegisterEvent(), $username, $email, $password);
 		if ($event->isCancelled()) {
 			return false;
 		}
@@ -500,7 +505,7 @@ class Users extends Module {
 
 		// Check for the existence of an account
 		$qry = "SELECT * FROM hi_session_users WHERE user_username = :username OR user_email = :email";
-		$stmnt = $this->mods->database->prepare($qry);
+		$stmnt = Modules::get('core/database')->prepare($qry);
 		$stmnt->execute(['username' => $username, 'email' => $email]);
 		$data = $stmnt->fetch(\PDO::FETCH_ASSOC);
 		if (empty($data)) {
@@ -509,22 +514,22 @@ class Users extends Module {
 			$qry1 = "INSERT INTO ".$prefix."session_users (user_username,user_password,user_email,verify_code) VALUES (:username,:password,:email,:verify_code)";
 			$qry2 = "INSERT INTO ".$prefix."session_permissions (permission_tag_id,permission_user_id) VALUES (:tag_id,:user_id)";
 
-			$this->mods->database->beginTransaction();
-			$stmnt1 = $this->mods->database->prepare($qry1);
-			$stmnt2 = $this->mods->database->prepare($qry2);
+			Modules::get('core/database')->beginTransaction();
+			$stmnt1 = Modules::get('core/database')->prepare($qry1);
+			$stmnt2 = Modules::get('core/database')->prepare($qry2);
 
 			$stmnt1->execute(['username' => $username, 'password' => $password, 'email' => $email, 'verify_code' => substr(sha1(uniqid()), 0, 15)]);
-			$id = $this->mods->database->lastInsertId();
+			$id = Modules::get('core/database')->lastInsertId();
 			$stmnt2->execute(['tag_id' => 1, 'user_id' => $id]);
 
 			// And then fire the event
-			$event = $this->events->fireEvent(new SessionUserCreateEvent(), $user_id, $username, $password);
+			$event = Events::fireEvent(new SessionUserCreateEvent(), $user_id, $username, $password);
 			if ($event->isCancelled()) {
-				$this->mods->database->rollBack();
+				Modules::get('core/database')->rollBack();
 				return false;
 			}
 
-			$this->mods->database->commit();
+			Modules::get('core/database')->commit();
 
 			// After that send a registration mail
 			if ($send_email) {
@@ -553,22 +558,22 @@ class Users extends Module {
 		$udt = $udt[0];
 
 		// Load the mailer module
-		$mailer = $this->core->loadMod('techfuze/mailer')->mailer;
-		$mailer->setFrom('no-reply@'.$this->config->main->SITE_DOMAIN, 'Auth Service');
+		$mailer = Modules::get('core/mailer')->mailer;
+		$mailer->setFrom('no-reply@'.Config::get('main')->SITE_DOMAIN, 'Auth Service');
 
 		// First prepare the layout manager
-		$this->layout->setEngine('PHP');
+		Layout::setEngine('PHP');
 
 		// Assign all variables
 		$verifyCode = $udt['user_verify_code'];
 		if (empty($this->cfg->verify_controller) && $verify) {
 			throw new SessionException("Could not send mail. No verification controller set. Please set one in the sessions config.", 1);
 		}
-		$verifyURL = $this->config->main->SITE_URL . "/" . $this->cfg->verify_controller . "?verify&code=".$verifyCode;
+		$verifyURL = Config::get('main')->SITE_URL . "/" . $this->cfg->verify_controller . "?verify&code=".$verifyCode;
 
-		$event = $this->events->fireEvent(new SessionRegisterMailEvent(), $udt, $verifyCode, $verifyURL);
+		$event = Events::fireEvent(new SessionRegisterMailEvent(), $udt, $verifyCode, $verifyURL);
 		if ($event->isCancelled()) {
-			$this->logger->log("Sending of Registration Mail has been cancelled");
+			Logger::log("Sending of Registration Mail has been cancelled");
 			return false;
 		}
 
@@ -576,12 +581,12 @@ class Users extends Module {
 		$udt = $event->udt;
 
 		// Assign new variables
-		$this->layout->assign('username', $udt['user_username']);
-		$this->layout->assign('email', $udt['user_email'] );
+		Layout::assign('username', $udt['user_username']);
+		Layout::assign('email', $udt['user_email'] );
 
 		// More if there is a need to verify
 		if ($verify) {
-			$this->layout->assign('verifyURL', $event->verifyURL);
+			Layout::assign('verifyURL', $event->verifyURL);
 		}
 
 		// Check if a custom HTML should be used
@@ -589,14 +594,14 @@ class Users extends Module {
 			$html = $event->html;
 		} else {
 			// Or retrieve it from a layout file
-			$html = $this->layout->get('email_layout', $this->getModulePath() . "/Views/" );
+			$html = Layout::get('email_layout', $this->getModulePath() . "/Views/" );
 		}
 
 		// And finally send it
 		$mailer->addAddress($udt['email']);
 		$mailer->isHTML(true);
 		$mailer->Body = $html;
-		$mailer->Subject = $this->config->main->SERVER_NAME . " | Registration";
+		$mailer->Subject = Config::get('main')->SERVER_NAME . " | Registration";
 		$mailer->send();
 		if (!empty($mailer->ErrorInfo)) {
 			// Throw Exception if something goes wrong
@@ -622,14 +627,14 @@ class Users extends Module {
 			$from = $udt[$key];
 
 			// Then fire the event
-			$event = $this->events->fireEvent(new SessionUserModifyEvent(), $userId, $key, $value, $from);
+			$event = Events::fireEvent(new SessionUserModifyEvent(), $userId, $key, $value, $from);
 			if ($event->isCancelled()) {
 				return false;
 			}
 
 			// And fetch tag information
 			$prefix = $this->db->getPrefix();
-			$stmnt = $this->mods->database->prepare("UPDATE ".$prefix."session_users SET $key = ?");
+			$stmnt = Modules::get('core/database')->prepare("UPDATE ".$prefix."session_users SET $key = ?");
 			$stmnt->execute([$value]);
 			if ($stmnt->rowCount() == 1) {
 				return true;
@@ -655,7 +660,7 @@ class Users extends Module {
 		// First check if the oldPassword is correct
 		if (is_null($oldPassword) || password_verify($oldPassword, $udt['user_password'])) {
 			// Send out the event
-			$event = $this->events->fireEvent(new SessionChangePasswordEvent(),
+			$event = Events::fireEvent(new SessionChangePasswordEvent(),
 				$userId,
 				$udt['user_username'],
 				$oldPassword,
@@ -691,7 +696,7 @@ class Users extends Module {
 		$email = $udt['user_email'];
 
 		// Then fire the event
-		$event = $this->events->fireEvent(new SessionUserSuspendEvent(), $user_id, $username, $email);
+		$event = Events::fireEvent(new SessionUserSuspendEvent(), $user_id, $username, $email);
 
 		// Cancel if denied by module
 		if ($event->isCancelled()) {
@@ -716,7 +721,7 @@ class Users extends Module {
 		$email = $udt['user_email'];
 
 		// Then fire the event
-		$event = $this->events->fireEvent(new SessionUserUnsuspendEvent(), $user_id, $username, $email);
+		$event = Events::fireEvent(new SessionUserUnsuspendEvent(), $user_id, $username, $email);
 
 		// Cancel if denied by module
 		if ($event->isCancelled()) {
@@ -741,7 +746,7 @@ class Users extends Module {
 		$email = $udt['user_email'];
 
 		// Then fire an event
-		$event = $this->events->fireEvent(new SessionUserRemoveEvent(), $userId, $username, $email);
+		$event = Events::fireEvent(new SessionUserRemoveEvent(), $userId, $username, $email);
 		if ($event->isCancelled()) {
 			return false;
 		}
@@ -760,7 +765,7 @@ class Users extends Module {
 	public function verifyUser($verifyCode) {
 		// And fetch tag information
 		$prefix = $this->db->getPrefix();
-		$stmnt = $this->mods->database->prepare("SELECT * FROM ".$prefix."session_users WHERE user_verify_code = ?");
+		$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."session_users WHERE user_verify_code = ?");
 		$stmnt->execute([$verifyCode]);
 		$data = $stmnt->fetchAll(\PDO::FETCH_ASSOC);
 		if (count($data == 1)) {
@@ -779,7 +784,7 @@ class Users extends Module {
 	 */
 	public function verifyPassword($userId, $password) {
 		$prefix = $this->db->getPrefix();
-		$stmnt = $this->mods->database->prepare("SELECT * FROM ".$prefix."session_users WHERE user_id = ?");
+		$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."session_users WHERE user_id = ?");
 		$stmnt->execute([$userId]);
 		$data = $stmnt->fetchAll(\PDO::FETCH_ASSOC);
 		if (!empty($data)) {
@@ -868,7 +873,7 @@ class Users extends Module {
 
 		// And fetch tag information
 		$prefix = $this->db->getPrefix();
-		$stmnt = $this->mods->database->prepare("SELECT * FROM ".$prefix."session_tags WHERE tag_name = ?");
+		$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."session_tags WHERE tag_name = ?");
 		$stmnt->execute([strtoupper($permissionTag)]);
 		$tag = $stmnt->fetch(\PDO::FETCH_ASSOC);
 		if (!empty($tag)) {
@@ -876,16 +881,16 @@ class Users extends Module {
 		}
 
 		// And now remove the reference in the database
-		$stmnt = $this->mods->database->prepare("DELETE FROM ".$prefix."session_permissions WHERE permission_tag_id = :tag_id AND permission_user_id = :user_id");
+		$stmnt = Modules::get('core/database')->prepare("DELETE FROM ".$prefix."session_permissions WHERE permission_tag_id = :tag_id AND permission_user_id = :user_id");
 		$stmnt->execute(['tag_id' => $tag_id, 'user_id' => $user_id]);
 		if ($stmnt->rowCount() == 1) {
 			// Check if the tag is still used
 			if ($removeTag) {
-				$stmnt = $this->mods->database->prepare("SELECT * FROM ".$prefix."session_permissions WHERE permission_tag_id = ?");
+				$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."session_permissions WHERE permission_tag_id = ?");
 				$stmnt->execute([strtoupper($permissionTag)]);
 				if (count($stmnt->fetchAll(\PDO::FETCH_ASSOC)) == 0) {
 					// Remove the tag
-					$stmnt = $this->mods->database->prepare("DELETE FROM ".$prefix."session_tags WHERE tag_name = ?");
+					$stmnt = Modules::get('core/database')->prepare("DELETE FROM ".$prefix."session_tags WHERE tag_name = ?");
 					$stmnt->execute([strtoupper($permissionTag)]);
 					if ($stmnt->rowCount() == 0) {
 						// Something went wrong
@@ -928,13 +933,13 @@ class Users extends Module {
 
 		// Check if the tag already exists
 		$prefix = $this->db->getPrefix();
-		$stmnt = $this->mods->database->prepare("SELECT * FROM ".$prefix."session_tags WHERE tag_name = ?");
+		$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."session_tags WHERE tag_name = ?");
 		$stmnt->execute([strtoupper($permissionTag)]);
 		$d = $stmnt->fetchAll(\PDO::FETCH_ASSOC);
 
 		if (count($d) == 0) {
 			// Create tag
-			$stmnt = $this->mods->database->prepare("INSERT INTO ".$prefix."session_tags (tag_name) VALUES (:tag_name)");
+			$stmnt = Modules::get('core/database')->prepare("INSERT INTO ".$prefix."session_tags (tag_name) VALUES (:tag_name)");
 			$stmnt->execute(['tag_name' => strtoupper($permissionTag)]);
 			$id = $stmnt->lastInsertId();
 		} elseif (count($d) == 1) {
@@ -944,7 +949,7 @@ class Users extends Module {
 		}
 
 		// Add the permission
-		$stmnt = $this->mods->database->prepare("INSERT INTO ".$prefix."session_permissions (permission_tag_id,permission_user_id) VALUES (:permission_tag_id,:permission_user_id)");
+		$stmnt = Modules::get('core/database')->prepare("INSERT INTO ".$prefix."session_permissions (permission_tag_id,permission_user_id) VALUES (:permission_tag_id,:permission_user_id)");
 		$stmnt->execute(['permission_tag_id' => $id, 'permission_user_id' => $user_id]);
 
 		if ($stmnt->rowCount() == 1) {
@@ -977,7 +982,7 @@ class Users extends Module {
 
 			WHERE users.user_username = ?
 		";
-		$stmnt = $this->mods->database->prepare($query);
+		$stmnt = Modules::get('core/database')->prepare($query);
 		$users = array();
 		for ($i=0; $i < count($usernames); $i++) {
 			$username = $usernames[$i];
@@ -1014,7 +1019,7 @@ class Users extends Module {
 
 			WHERE users.user_id = ?
 		";
-		$stmnt = $this->mods->database->prepare($query);
+		$stmnt = Modules::get('core/database')->prepare($query);
 		$users = array();
 		for ($i=0; $i < count($ids); $i++) {
 			$id = $ids[$i];
@@ -1051,7 +1056,7 @@ class Users extends Module {
 
 			WHERE users.user_email = ?
 		";
-		$stmnt = $this->mods->database->prepare($query);
+		$stmnt = Modules::get('core/database')->prepare($query);
 		$users = array();
 		for ($i=0; $i < count($emails); $i++) {
 			$email = $emails[$i];
@@ -1087,7 +1092,7 @@ class Users extends Module {
 
 			WHERE tags.tag_name = ?
 		";
-		$stmnt = $this->mods->database->prepare($query);
+		$stmnt = Modules::get('core/database')->prepare($query);
 		$users = array();
 		for ($i=0; $i < count($permissionTags); $i++) {
 			$tag = $permissionTags[$i];

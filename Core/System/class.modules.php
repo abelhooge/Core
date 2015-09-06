@@ -37,35 +37,34 @@ use \stdClass;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Modules extends Bus{
+class Modules {
 
-    public $register;
-    public $modules;
+    public static $register;
+    public static $modules = array();
 
     /**
      * An array which modules are loaded, and should not be loaded again
      * @access private
      * @var Array of module names
      */
-    private $loaded_modules = array();
-
-    public function __construct(&$core){
-        parent::__construct($core);
-        $this->modules = array();
-    }
+    private static $loaded_modules = array();
 
     /**
+     * Retrieves a module and returns it.
+     * If a module is already loaded, it returns a reference to the loaded version
+     * @param  String $name Name of the module
+     * @return \FuzeWorks\Module Module The module
      * @throws FuzeWorks\ModuleException
      */
-    public function loadMod($name) {
+    public static function get($name) {
         // Where the modules are
         $path = "Modules/";
 
         // Check if the requested module is registered
-        if (isset($this->register[$name])) {
-            if (!empty($this->register[$name])) {
+        if (isset(self::$register[$name])) {
+            if (!empty(self::$register[$name])) {
                 // Load the moduleInfo
-                $cfg = (object) $this->register[$name];
+                $cfg = (object) self::$register[$name];
 
                 // Check if the module is disabled
                 if (isset($cfg->meta)) {
@@ -74,11 +73,11 @@ class Modules extends Bus{
                 }
 
                 // Check if the module is already loaded. If so, only return a reference, if not, load the module
-                if (in_array($name, $this->loaded_modules)) {
+                if (in_array($name, self::$loaded_modules)) {
                     // return the link
                     $msg = "Module '".ucfirst((isset($cfg->name) ? $cfg->name : $cfg->module_name)) . "' is already loaded";
-                    $this->logger->log($msg);
-                    $c = &$this->core->mods->{strtolower($cfg->module_name)};
+                    Logger::log($msg);
+                    $c = self::$modules[strtolower($cfg->module_name)];
                     return $c;
                 } else {
                     // Load the module
@@ -87,7 +86,7 @@ class Modules extends Bus{
                     // Load the dependencies before the module loads
                     $deps = (isset($cfg->dependencies) ? $cfg->dependencies : array());
                     for ($i=0; $i < count($deps); $i++) {
-                        $this->loadMod($deps[$i]);
+                        self::get($deps[$i]);
                     }
 
                     // Check if the file exists
@@ -99,7 +98,7 @@ class Modules extends Bus{
                         $msg .= (isset($cfg->version) ? "; version: ".$cfg->version : "");
                         $msg .= (isset($cfg->author) ? "; made by ".$cfg->author : "");
                         $msg .= (isset($cfg->website) ? "; from ".$cfg->website: "");
-                        $this->logger->log($msg);
+                        Logger::log($msg);
                     } else {
                         // Throw Exception if the file does not exist
                         throw new ModuleException("Requested mod '".$name."' could not be loaded. Class file not found", 1);
@@ -110,13 +109,13 @@ class Modules extends Bus{
                     if (isset($cfg->abstract)) {
                         if ($cfg->abstract) {
                             $CLASS = new stdClass();
-                            return $this->core->mods->{strtolower($cfg->module_name)} = &$CLASS;
+                            return self::$modules[strtolower($cfg->module_name)] = &$CLASS;
                         }
                     }
 
                     // Load the module class
                     $class_name = $cfg->module_class;
-                    $CLASS = new $class_name($this);
+                    $CLASS = new $class_name();
 
                     // Apply default methods
                     if (method_exists($CLASS, 'setModulePath')) {
@@ -146,16 +145,16 @@ class Modules extends Bus{
                     $CLASS->onLoad();
 
                     // Add to the loaded modules
-                    $this->loaded_modules[] = $name;
+                    self::$loaded_modules[] = $name;
 
                     // Return a reference
-                    return $this->core->mods->{strtolower($cfg->module_name)} = &$CLASS;
+                    return self::$modules[strtolower($cfg->module_name)] = &$CLASS;
                 }
             }
         }
     }
 
-    private function setModuleValue($file, $key, $value) {
+    private static function setModuleValue($file, $key, $value) {
         if (file_exists($file) && is_writable($file)) {
             $cfg = require($file);
             $cfg[$key] = $value;
@@ -167,7 +166,7 @@ class Modules extends Bus{
     /**
      * @throws FuzeWorks\ModuleException
      */
-    public function addModule($moduleInfo_file) {
+    public static function addModule($moduleInfo_file) {
         $file = $moduleInfo_file;
         $directory = dirname($file);
         if (file_exists($file)) {
@@ -179,9 +178,9 @@ class Modules extends Bus{
             $name .= (!empty($cfg->author) ? strtolower($cfg->author)."/" : "");
             $name .= strtolower($cfg->module_name);
 
-            $this->logger->log("Adding module: '".$name."'");
-            if (isset($this->register[$name])) {
-                $this->logger->logError("Module '".$name."' can not be added. Module is already loaded");
+            Logger::log("Adding module: '".$name."'");
+            if (isset(self::$register[$name])) {
+                Logger::logError("Module '".$name."' can not be added. Module is already loaded");
                 return false;
             }
 
@@ -189,21 +188,21 @@ class Modules extends Bus{
             if (isset($cfg->enabled)) {
                 if ($cfg->enabled) {
                     // Copy all the data into the register and enable
-                    $this->register[$name] = (array) $cfg;
-                    $this->logger->log("[ON]  '".$name."'");
+                    self::$register[$name] = (array) $cfg;
+                    Logger::log("[ON]  '".$name."'");
                 } else {
                     // If not, copy all the basic data so that it can be enabled in the future
                     $cfg2 = new StdClass();
                     $cfg2->module_name = $cfg->module_name;
                     $cfg2->directory = $cfg->directory;
                     $cfg2->meta = $cfg;
-                    $this->register[$name] = (array)$cfg2;
-                    $this->logger->log("[OFF] '".$name."'");
+                    self::$register[$name] = (array)$cfg2;
+                    Logger::log("[OFF] '".$name."'");
                 }
             } else {
                 // Copy all the data into the register and enable
-                $this->register[$name] = (array) $cfg;
-                $this->logger->log("[ON]  '".$name."'");
+                self::$register[$name] = (array) $cfg;
+                Logger::log("[ON]  '".$name."'");
             }
         } else {
             throw new ModuleException("Could not add module. '$moduleInfo_file' does not exist", 1);
@@ -213,15 +212,15 @@ class Modules extends Bus{
     /**
      * @throws FuzeWorks\ModuleException
      */
-    public function enableModule($name, $permanent = true) {
-        if (isset($this->register[$name])) {
+    public static function enableModule($name, $permanent = true) {
+        if (isset(self::$register[$name])) {
             // Change the register
-            $info = (object) $this->register[$name];
+            $info = (object) self::$register[$name];
 
             // Do nothing if it is already enabled
             if (isset($info->enabled)) {
                 if ($info->enabled) {
-                    $this->logger->logWarning("Could not enable module '".$name."'. Module is already enabled.");
+                    Logger::logWarning("Could not enable module '".$name."'. Module is already enabled.");
                     return false;
                 }
             }
@@ -229,18 +228,18 @@ class Modules extends Bus{
             // Otherwise move data from meta to the module config
             $info = $info->meta;
             $info->enabled = true;
-            $this->register[$name] = (array)$info;
+            self::$register[$name] = (array)$info;
 
-            $this->logger->log("Enabled module '".$name."'");
+            Logger::log("Enabled module '".$name."'");
 
             // Enable it permanently if so desired
             if ($permanent) {
                 $file = $info->directory . "/moduleInfo.php";
-                $this->setModuleValue($file, 'enabled', true);
+                self::setModuleValue($file, 'enabled', true);
             }
 
             // Reload the eventRegister
-            $this->events->buildEventRegister();
+            Events::buildEventRegister();
         } else {
             throw new ModuleException("Could not enable module '".$name."'. Module does not exist.", 1);
         }
@@ -249,13 +248,13 @@ class Modules extends Bus{
     /**
      * @throws FuzeWorks\ModuleException
      */
-    public function disableModule($name, $permanent = true) {
-        if (isset($this->register[$name])) {
-            $info = (object) $this->register[$name];
+    public static function disableModule($name, $permanent = true) {
+        if (isset(self::$register[$name])) {
+            $info = (object) self::$register[$name];
 
             // Do nothing if it is already disabled
             if (isset($info->meta)) {
-                $this->logger->logWarning("Could not disable module '".$name."'. Module is already disabled.");
+                Logger::logWarning("Could not disable module '".$name."'. Module is already disabled.");
                 return false;
             }
 
@@ -264,26 +263,26 @@ class Modules extends Bus{
             $disabled->directory = $info->directory;
             $disabled->module_name = $info->module_name;
 
-            $this->register[$name] = (array)$disabled;
-            $this->logger->log("Disabled module '".$name."'");
+            self::$register[$name] = (array)$disabled;
+            Logger::log("Disabled module '".$name."'");
             if ($permanent) {
                 $file = $info->directory . "/moduleInfo.php";
-                $this->setModuleValue($file, 'enabled', false);
+                self::setModuleValue($file, 'enabled', false);
             }
 
             // Reload the eventRegister
-            $this->events->buildEventRegister();
+            Events::buildEventRegister();
 
             // Remove the existence of the module
-            unset($this->core->mods->{strtolower($info->module_name)});
+            unset(self::$modules[strtolower($cfg->module_name)]);
         } else {
             throw new ModuleException("Could not disable module '".$name."'. Module does not exist.", 1);
         }
 
     }
 
-    public function buildRegister() {
-        $this->logger->newLevel("Loading Module Headers", 'Core');
+    public static function buildRegister() {
+        Logger::newLevel("Loading Module Headers", 'Core');
 
         // Get all the module directories
         $dir = "Modules/";
@@ -312,14 +311,14 @@ class Modules extends Bus{
                     if ($cfg->enabled) {
                         // Copy all the data into the register and enable
                         $register[$name] = (array) $cfg;
-                        $this->logger->log("[ON]  '".$name."'");
+                        Logger::log("[ON]  '".$name."'");
 
                         // Add all module aliases if available
                         if (isset($cfg->aliases)) {
                             foreach ($cfg->aliases as $alias) {
                                 $register[$alias] = (array) $cfg;
                                 unset($register[$alias]['events']);
-                                $this->logger->log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
+                                Logger::log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
                             }
                         }
                     } else {
@@ -329,28 +328,28 @@ class Modules extends Bus{
                         $cfg2->directory = $cfg->directory;
                         $cfg2->meta = $cfg;
                         $register[$name] = (array)$cfg2;
-                        $this->logger->log("[OFF] '".$name."'");
+                        Logger::log("[OFF] '".$name."'");
 
                         // Add all module aliases if available
                         if (isset($cfg->aliases)) {
                             foreach ($cfg->aliases as $alias) {
                                 $register[$alias] = (array) $cfg2;
                                 unset($register[$alias]['events']);
-                                $this->logger->log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
+                                Logger::log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
                             }
                         }
                     }
                 } else {
                     // Copy all the data into the register and enable
                     $register[$name] = (array) $cfg;
-                    $this->logger->log("[ON]  '".$name."'");
+                    Logger::log("[ON]  '".$name."'");
 
                     // Add all module aliases if available
                     if (isset($cfg->aliases)) {
                         foreach ($cfg->aliases as $alias) {
                             $register[$alias] = (array) $cfg;
                             unset($register[$alias]['events']);
-                            $this->logger->log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
+                            Logger::log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
                         }
                     }
                 }
@@ -369,12 +368,12 @@ class Modules extends Bus{
 
                 // Apply it
                 $register[$name] = (array)$cfg;
-                $this->logger->log("[ON]  '".$name."'");
+                Logger::log("[ON]  '".$name."'");
             }
         }
 
-        $this->register = $register;
-        $this->logger->stopLevel();
+        self::$register = $register;
+        Logger::stopLevel();
 
     }
 

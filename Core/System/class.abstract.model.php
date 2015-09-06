@@ -49,7 +49,7 @@ interface ModelServer {
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-abstract class Model extends Bus{
+abstract class Model {
 
 	/**
 	 * The parent class holder object
@@ -60,22 +60,13 @@ abstract class Model extends Bus{
 	private $parentClass;
 
 	/**
-	 * Constructs the class and Bus
-	 * @access public
-	 * @param Core Object, gets referenced
-	 */
-	public function __construct(&$core) {
-		parent::__construct($core);
-	}
-
-	/**
 	 * Set the type of this model. Eg, use techfuze/databasemodel and Databasemodel to get a SQL connected model
 	 * @access protected
 	 * @param String Module_name, the name of the module where the model can be found
 	 * @param String Model_type, model type to return
 	 */
 	protected function setType($module_name, $model_type) {
-		$mod = $this->core->loadMod($module_name);
+		$mod = Modules::get($module_name);
 		$this->parentClass = $mod->giveModel($model_type);
 	}
 
