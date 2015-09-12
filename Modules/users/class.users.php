@@ -61,13 +61,28 @@ class Users extends Module {
 	private $db;
 
 	/**
+	 * Whether cookies should be set or the details should be returned as arrays
+	 * @var boolean true for cookies, false for arrays
+	 */
+	public $setCookies = true;
+
+	/**
 	 * Gets called upon module initialization
 	 * @access public
 	 */
 	public function onLoad() {
 		require_once($this->getmodulePath() . "/class.events.php");
-		$this->setModuleConfig(Config::loadConfigFile('sessions', $this->getModulePath()));
+		require_once($this->getModulePath() . "/class.cookie.php");
+		require_once($this->getModulePath() . "/class.udt.php");
 		$this->db = Modules::get('core/database');
+	}
+
+	/**
+	 * Whether cookies should be set or the details should be returned as arrays
+	 * @param boolean $boolean true for cookies, false for arrays
+	 */
+	public function setCookies($boolean = true) {
+		$this->setCookies = $boolean;
 	}
 
 	/**
@@ -76,6 +91,7 @@ class Users extends Module {
 	 * @access public
 	 * @param String SessionKey (optional)
 	 * @return SessionData Array
+	 * @todo Evaluate final conditions, vague
 	 */
 	public function start($sessionKey = null) {
 		// Fetch the sessionKey, if it exists
@@ -93,17 +109,15 @@ class Users extends Module {
 		// Prepare for the event
 		if ($data !== false) {
 			$udt = $this->convertUserData($data);
-			$user_id = $udt['user_id'];
-			$username = $udt['user_username'];
-			$email = $udt['user_email'];
 			$guest_session = false;
 		} else {
 			$udt = $this->getGuestUdt();
-			$user_id = 0;
-			$username = 'Guest';
-			$email = 'Guest@'.Config::get('main')->SITE_DOMAIN;
 			$guest_session = true;
 		}
+
+		$user_id = $udt->user_id;
+		$username = $udt->username;
+		$email = $udt->primaryEmail;
 
 		// Fire the event
 		$event = Events::fireEvent(new SessionStartEvent(), $user_id, $username, $email, $udt, $guest_session);
@@ -124,8 +138,13 @@ class Users extends Module {
 	 * @return Guest UDT
 	 */
 	private function sendGuestSession() {
+		// Replace a cookie if present so the user will become a guest
 		if (isset($_COOKIE[$this->cfg->cookie_name])) {
-			setcookie($this->cfg->cookie_name, '', time()-3600, '/', Config::get('main')->SITE_DOMAIN);
+			$cookie = new Cookie($this->cfg->cookie_name, '', time()-3600, '/', Config::get('main')->SITE_DOMAIN);
+			// Set the cookie if required to do so
+			if ($this->setCookies) {
+				$cookie->place();
+			}
 		}
 		$udt = $this->getGuestUdt();
 		$this->udt = $udt;
@@ -139,15 +158,21 @@ class Users extends Module {
 	 * @return Array UDT
 	 */
 	private function getGuestUdt() {
-		return array(
-				'user_id' => 0,
-				'user_username' => 'Guest',
-				'username' => 'Guest',
-				'user_email' => 'Guest@'.Config::get('main')->SITE_DOMAIN,
-				'email' => 'Guest@'.Config::get('main')->SITE_DOMAIN,
-				'permissions' => array('GUEST' => 'GUEST', 'LOGIN' => 'LOGIN'),
-				'session_hash' => '0'
-			);
+		$udt = new Udt(0,
+			'Guest',
+			'Guest@'.Config::get('main')->SITE_DOMAIN,
+			array(
+				'Guest@'.Config::get('main')->SITE_DOMAIN
+			),
+			array(
+				'GUEST' => 'GUEST',
+				'LOGIN' => 'LOGIN'
+			),
+			array(),
+			'0'
+		 );
+
+		return $udt;
 	}
 
 	/**
@@ -158,8 +183,6 @@ class Users extends Module {
 	 * @return UDT
 	 */
 	private function sendUserSession($udt) {
-		$udt['username'] = $udt['user_username'];
-		$udt['email'] = $udt['user_email'];
 		$this->udt = $udt;
 		$this->logSessionData();
 		return $udt;
@@ -171,7 +194,7 @@ class Users extends Module {
 	 */
 	private function logSessionData() {
 		Logger::newLevel("Activating Session");
-		Logger::logInfo("<br />SessionKey: " . $this->session_hash . "<br />Username: " . $this->user_username . "<br/>Email: " . $this->user_email . "<br/>Permissions: " . implode('-', $this->permissions));
+		Logger::logInfo("<br />SessionKey: " . $this->sessionKey . "<br />Username: " . $this->username . "<br/>Email: " . $this->primaryEmail . "<br/>Permissions: " . implode('-', $this->permissions));
 		Logger::stopLevel();
 	}
 
@@ -219,15 +242,15 @@ class Users extends Module {
 		$prefix = $this->db->getPrefix();
 		$query = "
 			SELECT *
-			FROM ".$prefix."session_permissions AS permissions
+			FROM ".$prefix."user_permissions AS permissions
 
-			LEFT JOIN ".$prefix."session_users AS users
+			LEFT JOIN ".$prefix."user_users AS users
 				ON permissions.permission_user_id=users.user_id
 
-			LEFT JOIN ".$prefix."session_tags AS tags
+			LEFT JOIN ".$prefix."user_tags AS tags
 				ON permissions.permission_tag_id=tags.tag_id
 
-			LEFT JOIN ".$prefix."session_sessions AS sessions
+			LEFT JOIN ".$prefix."user_sessions AS sessions
 				ON permissions.permission_user_id=sessions.session_user_id
 
 			WHERE sessions.session_hash = ?
@@ -264,7 +287,7 @@ class Users extends Module {
 		$prefix = $this->db->getPrefix();
 		$query = "
 			SELECT *
-			FROM ".$prefix."session_users AS users
+			FROM ".$prefix."user_users AS users
 			WHERE users.user_email = :identifier OR users.user_username = :identifier";
 		$stmnt = $this->db->prepare($query);
 		$stmnt->execute(array('identifier' => $identifier));
@@ -364,7 +387,7 @@ class Users extends Module {
 	 * Propagate a login to the database and set the cookie. Don't forget to redirect to apply the cookie
 	 * @access public
 	 * @param Array SessionData
-	 * @return Boolean true on success, false on failure
+	 * @return Boolean|\Module\Users\Cookie true on success, false on failure, \Module\Users\Cookie on success with cookie data
 	 */
 	public function propagate($sessionData) {
 		$prefix = $this->db->getPrefix();
@@ -377,7 +400,7 @@ class Users extends Module {
 			'session_start' => $sessionData['session_start']);
 
 		$query = "
-			INSERT INTO ".$prefix."session_sessions
+			INSERT INTO ".$prefix."user_sessions
 				(session_hash,session_user_id,session_info,session_ip,session_start)
 				VALUES (:hash, :user_id, :info, :ip, :session_start)
 		";
@@ -385,11 +408,14 @@ class Users extends Module {
 		$stmnt->execute($insert_array);
 		if ($stmnt->rowCount() == 1) {
 			// Set the cookie
-			setcookie($this->cfg->cookie_name, $sessionData['hash'], $sessionData['valid_time'], '/', Config::get('main')->SITE_DOMAIN);
+			$cookie = new Cookie($this->cfg->cookie_name, $sessionData['hash'], $sessionData['valid_time'], '/', Config::get('main')->SITE_DOMAIN);
+			if ($this->setCookies)
+				$cookie->place();
+			else
+				return $cookie;
 			return true;
 		} else {
 			throw new SessionException("Could not log user in. Database error", 1);
-			return false;
 		}
 	}
 
@@ -399,7 +425,7 @@ class Users extends Module {
 	 * @access public
 	 * @param String SessionKey (optional)
 	 * @param Boolean Propagate the logout to the database (default true)
-	 * @return Boolean true on success, false on deny
+	 * @return Boolean|\Module\Users\Cookie true on success, false on deny, \Moule\Users\Cookie on success without sending the cookie
 	 * @throws SessionException on fatal error
 	 */
 	public function logout($sessionKey = null, $propagate = true) {
@@ -426,19 +452,26 @@ class Users extends Module {
 				if ($propagate) {
 					// If set to propagete, edit the entry in the database
 					$prefix = $this->db->getPrefix();
-					$query = "UPDATE ".$prefix."session_sessions SET session_active = 0 WHERE session_hash = ?";
+					$query = "UPDATE ".$prefix."user_sessions SET session_active = 0 WHERE session_hash = ?";
 					$stmnt = $this->db->prepare($query);
 					$stmnt->execute(array($sessionKey));
 
 					// And after that remove the cookie
 					if ($stmnt->rowCount() == 1) {
 						// Set the cookie
-						setcookie($this->cfg->cookie_name, $sessionKey, date('U') - 3600, '/', Config::get('main')->SITE_DOMAIN);
+						$cookie = new Cookie($this->cfg->cookie_name, $sessionKey, date('U') - 3600, '/', Config::get('main')->SITE_DOMAIN);
+						if ($this->setCookies) {
+							$cookie->place();
+						} else {
+							return $cookie;
+						}
 						return true;
 					}
 
 					throw new SessionException("Could not log user out. Database error", 1);
 				}
+
+				return true;
 			}
 		}
 
@@ -504,26 +537,26 @@ class Users extends Module {
 		$password = password_hash($password, PASSWORD_DEFAULT);
 
 		// Check for the existence of an account
-		$qry = "SELECT * FROM hi_session_users WHERE user_username = :username OR user_email = :email";
+		$qry = "SELECT * FROM hi_user_users WHERE user_username = :username OR user_email = :email";
 		$stmnt = Modules::get('core/database')->prepare($qry);
 		$stmnt->execute(['username' => $username, 'email' => $email]);
 		$data = $stmnt->fetch(\PDO::FETCH_ASSOC);
 		if (empty($data)) {
 			// And put the data into the database
 			$prefix = $this->db->getPrefix();
-			$qry1 = "INSERT INTO ".$prefix."session_users (user_username,user_password,user_email,verify_code) VALUES (:username,:password,:email,:verify_code)";
-			$qry2 = "INSERT INTO ".$prefix."session_permissions (permission_tag_id,permission_user_id) VALUES (:tag_id,:user_id)";
+			$qry1 = "INSERT INTO ".$prefix."user_users (user_username,user_password,user_email,user_verify_code) VALUES (:username,:password,:email,:user_verify_code)";
+			$qry2 = "INSERT INTO ".$prefix."user_permissions (permission_tag_id,permission_user_id) VALUES (:tag_id,:user_id)";
 
 			Modules::get('core/database')->beginTransaction();
 			$stmnt1 = Modules::get('core/database')->prepare($qry1);
 			$stmnt2 = Modules::get('core/database')->prepare($qry2);
 
-			$stmnt1->execute(['username' => $username, 'password' => $password, 'email' => $email, 'verify_code' => substr(sha1(uniqid()), 0, 15)]);
+			$stmnt1->execute(['username' => $username, 'password' => $password, 'email' => $email, 'user_verify_code' => substr(sha1(uniqid()), 0, 15)]);
 			$id = Modules::get('core/database')->lastInsertId();
 			$stmnt2->execute(['tag_id' => 1, 'user_id' => $id]);
 
 			// And then fire the event
-			$event = Events::fireEvent(new SessionUserCreateEvent(), $user_id, $username, $password);
+			$event = Events::fireEvent(new SessionUserCreateEvent(), $id, $username, $password);
 			if ($event->isCancelled()) {
 				Modules::get('core/database')->rollBack();
 				return false;
@@ -634,7 +667,7 @@ class Users extends Module {
 
 			// And fetch tag information
 			$prefix = $this->db->getPrefix();
-			$stmnt = Modules::get('core/database')->prepare("UPDATE ".$prefix."session_users SET $key = ?");
+			$stmnt = Modules::get('core/database')->prepare("UPDATE ".$prefix."user_users SET $key = ?");
 			$stmnt->execute([$value]);
 			if ($stmnt->rowCount() == 1) {
 				return true;
@@ -765,7 +798,7 @@ class Users extends Module {
 	public function verifyUser($verifyCode) {
 		// And fetch tag information
 		$prefix = $this->db->getPrefix();
-		$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."session_users WHERE user_verify_code = ?");
+		$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."user_users WHERE user_verify_code = ?");
 		$stmnt->execute([$verifyCode]);
 		$data = $stmnt->fetchAll(\PDO::FETCH_ASSOC);
 		if (count($data == 1)) {
@@ -784,7 +817,7 @@ class Users extends Module {
 	 */
 	public function verifyPassword($userId, $password) {
 		$prefix = $this->db->getPrefix();
-		$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."session_users WHERE user_id = ?");
+		$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."user_users WHERE user_id = ?");
 		$stmnt->execute([$userId]);
 		$data = $stmnt->fetchAll(\PDO::FETCH_ASSOC);
 		if (!empty($data)) {
@@ -873,7 +906,7 @@ class Users extends Module {
 
 		// And fetch tag information
 		$prefix = $this->db->getPrefix();
-		$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."session_tags WHERE tag_name = ?");
+		$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."user_tags WHERE tag_name = ?");
 		$stmnt->execute([strtoupper($permissionTag)]);
 		$tag = $stmnt->fetch(\PDO::FETCH_ASSOC);
 		if (!empty($tag)) {
@@ -881,16 +914,16 @@ class Users extends Module {
 		}
 
 		// And now remove the reference in the database
-		$stmnt = Modules::get('core/database')->prepare("DELETE FROM ".$prefix."session_permissions WHERE permission_tag_id = :tag_id AND permission_user_id = :user_id");
+		$stmnt = Modules::get('core/database')->prepare("DELETE FROM ".$prefix."user_permissions WHERE permission_tag_id = :tag_id AND permission_user_id = :user_id");
 		$stmnt->execute(['tag_id' => $tag_id, 'user_id' => $user_id]);
 		if ($stmnt->rowCount() == 1) {
 			// Check if the tag is still used
 			if ($removeTag) {
-				$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."session_permissions WHERE permission_tag_id = ?");
+				$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."user_permissions WHERE permission_tag_id = ?");
 				$stmnt->execute([strtoupper($permissionTag)]);
 				if (count($stmnt->fetchAll(\PDO::FETCH_ASSOC)) == 0) {
 					// Remove the tag
-					$stmnt = Modules::get('core/database')->prepare("DELETE FROM ".$prefix."session_tags WHERE tag_name = ?");
+					$stmnt = Modules::get('core/database')->prepare("DELETE FROM ".$prefix."user_tags WHERE tag_name = ?");
 					$stmnt->execute([strtoupper($permissionTag)]);
 					if ($stmnt->rowCount() == 0) {
 						// Something went wrong
@@ -933,13 +966,13 @@ class Users extends Module {
 
 		// Check if the tag already exists
 		$prefix = $this->db->getPrefix();
-		$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."session_tags WHERE tag_name = ?");
+		$stmnt = Modules::get('core/database')->prepare("SELECT * FROM ".$prefix."user_tags WHERE tag_name = ?");
 		$stmnt->execute([strtoupper($permissionTag)]);
 		$d = $stmnt->fetchAll(\PDO::FETCH_ASSOC);
 
 		if (count($d) == 0) {
 			// Create tag
-			$stmnt = Modules::get('core/database')->prepare("INSERT INTO ".$prefix."session_tags (tag_name) VALUES (:tag_name)");
+			$stmnt = Modules::get('core/database')->prepare("INSERT INTO ".$prefix."user_tags (tag_name) VALUES (:tag_name)");
 			$stmnt->execute(['tag_name' => strtoupper($permissionTag)]);
 			$id = $stmnt->lastInsertId();
 		} elseif (count($d) == 1) {
@@ -949,7 +982,7 @@ class Users extends Module {
 		}
 
 		// Add the permission
-		$stmnt = Modules::get('core/database')->prepare("INSERT INTO ".$prefix."session_permissions (permission_tag_id,permission_user_id) VALUES (:permission_tag_id,:permission_user_id)");
+		$stmnt = Modules::get('core/database')->prepare("INSERT INTO ".$prefix."user_permissions (permission_tag_id,permission_user_id) VALUES (:permission_tag_id,:permission_user_id)");
 		$stmnt->execute(['permission_tag_id' => $id, 'permission_user_id' => $user_id]);
 
 		if ($stmnt->rowCount() == 1) {
@@ -972,12 +1005,12 @@ class Users extends Module {
 		$prefix = $this->db->getPrefix();
 		$query = "
 			SELECT *
-			FROM ".$prefix."session_permissions AS permissions
+			FROM ".$prefix."user_permissions AS permissions
 
-			LEFT JOIN ".$prefix."session_users AS users
+			LEFT JOIN ".$prefix."user_users AS users
 				ON permissions.permission_user_id=users.user_id
 
-			LEFT JOIN ".$prefix."session_tags AS tags
+			LEFT JOIN ".$prefix."user_tags AS tags
 				ON permissions.permission_tag_id=tags.tag_id
 
 			WHERE users.user_username = ?
@@ -1009,12 +1042,12 @@ class Users extends Module {
 		$prefix = $this->db->getPrefix();
 		$query = "
 			SELECT *
-			FROM ".$prefix."session_permissions AS permissions
+			FROM ".$prefix."user_permissions AS permissions
 
-			LEFT JOIN ".$prefix."session_users AS users
+			LEFT JOIN ".$prefix."user_users AS users
 				ON permissions.permission_user_id=users.user_id
 
-			LEFT JOIN ".$prefix."session_tags AS tags
+			LEFT JOIN ".$prefix."user_tags AS tags
 				ON permissions.permission_tag_id=tags.tag_id
 
 			WHERE users.user_id = ?
@@ -1034,6 +1067,41 @@ class Users extends Module {
 	}
 
 	/**
+	 * Get users by their sessionKey
+	 * @param  array  $sessionKeys Sessionkeys of the users
+	 * @return array  of UDT's
+	 */
+	public function getUsersBySessionKeys($sessionKeys = array()) {
+		if (is_string($sessionKeys)) {
+			$sessionKeys = array($sessionKeys);
+		}
+
+		$prefix = $this->db->getPrefix();
+		$query = "SELECT DISTINCT users.user_id
+			FROM ".$prefix."user_sessions AS sessions
+
+			LEFT JOIN ".$prefix."user_users AS users
+				ON sessions.session_user_id=users.user_id
+
+			WHERE sessions.session_hash = ?
+			";
+
+		$stmnt = $this->db->prepare($query);
+
+		$ids = array();
+		foreach ($sessionKeys as $hash) {
+			$stmnt->execute(array($hash));
+			$data = $stmnt->fetch(\PDO::FETCH_ASSOC);
+			if (!empty($data)) {
+				$ids[] = $data['user_id'];
+			}
+		}
+
+		// And afterwards retrieve the UDT's by parsing this result
+		return $this->getUsersByIds($ids);
+	}
+
+	/**
 	 * Get users by Email address
 	 * @access public
 	 * @param Array of emails
@@ -1043,15 +1111,29 @@ class Users extends Module {
 		if (is_string($emails)) {
 			$emails = array($emails);
 		}
+
+		// First we will retrieve all the ids, and afterwards we will retrieve the user using these ids
 		$prefix = $this->db->getPrefix();
+		$query = "SELECT DISTINCT users.user_id
+			FROM ".$prefix."user_emails AS emails
+
+			LEFT JOIN ".$prefix."user_users AS users
+				ON emails.email_user_id=users.user_id";
+
+		$ids = Modules::get('core/database')->prepare($query);
+		foreach ($emails as $email) {
+			
+		}
+
+
 		$query = "
 			SELECT *
-			FROM ".$prefix."session_permissions AS permissions
+			FROM ".$prefix."user_permissions AS permissions
 
-			LEFT JOIN ".$prefix."session_users AS users
+			LEFT JOIN ".$prefix."user_users AS users
 				ON permissions.permission_user_id=users.user_id
 
-			LEFT JOIN ".$prefix."session_tags AS tags
+			LEFT JOIN ".$prefix."user_tags AS tags
 				ON permissions.permission_tag_id=tags.tag_id
 
 			WHERE users.user_email = ?
@@ -1082,12 +1164,12 @@ class Users extends Module {
 		$prefix = $this->db->getPrefix();
 		$query = "
 			SELECT *
-			FROM ".$prefix."session_permissions AS permissions
+			FROM ".$prefix."user_permissions AS permissions
 
-			LEFT JOIN ".$prefix."session_users AS users
+			LEFT JOIN ".$prefix."user_users AS users
 				ON permissions.permission_user_id=users.user_id
 
-			LEFT JOIN ".$prefix."session_tags AS tags
+			LEFT JOIN ".$prefix."user_tags AS tags
 				ON permissions.permission_tag_id=tags.tag_id
 
 			WHERE tags.tag_name = ?
@@ -1137,7 +1219,7 @@ class Users extends Module {
 	 * @return Mixed Value
 	 */
 	public function __get($key) {
-		return $this->udt[$key];
+		return $this->udt->$key;
 	}
 }
 

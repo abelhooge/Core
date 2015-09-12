@@ -446,13 +446,22 @@ class Router{
             if(!class_exists($class))
                 require $file;
 
-            self::$callable = new $class();
+            // Get the path the controller should know about
+            $path = substr(self::getPath(), ($pos = strpos(self::getPath(), '/')) !== false ? $pos + 1 : 0);
+
+            // And create the controller
+            self::$callable = new $class($path);
+
+            // If the controller does not want a function to be loaded, provide a halt parameter.
+            if (isset(self::$callable->halt)) {
+                return;
+            }
 
             // Check if method exists or if there is a caller function
             if(method_exists(self::$callable, self::$function) || method_exists(self::$callable, '__call')){
 
                 // Execute the function on the controller
-                self::$callable->{self::$function}(self::$parameters);
+                echo self::$callable->{self::$function}(self::$parameters);
             }else{
 
                 // Function could not be found
