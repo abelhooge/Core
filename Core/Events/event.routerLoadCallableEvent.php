@@ -1,5 +1,34 @@
 <?php
+/**
+ * FuzeWorks
+ *
+ * The FuzeWorks MVC PHP FrameWork
+ *
+ * Copyright (C) 2015   TechFuze
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author      TechFuze
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ * @link        http://fuzeworks.techfuze.net
+ * @since       Version 0.0.1
+ * @version     Version 0.0.1
+ */
 
+namespace FuzeWorks\Event;
 use \FuzeWorks\Event;
 
 /**
@@ -7,7 +36,9 @@ use \FuzeWorks\Event;
  *
  * Called when a callable is about to be loaded
  *
- * @package net.techfuze.fuzeworks.events
+ * @package     net.techfuze.fuzeworks.core.event
+ * @author      Abel Hoogeveen <abel@techfuze.net>
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
 class routerLoadCallableEvent extends Event{
 
@@ -17,25 +48,20 @@ class routerLoadCallableEvent extends Event{
     public $callable;
 
     /**
-     * @var null|string The controller-part of the route
+     * @var array The matches with the routing path
      */
-    public $controller = null;
+    public $matches = array();
 
     /**
-     * @var null|string The function-part of the route
+     * The route which was matched
+     * @var null|string
      */
-    public $function   = null;
+    public $route = null;
 
-    /**
-     * @var null|string The parameter-part of the route
-     */
-    public $parameters = null;
+    public function init($callable, $matches, $route){
 
-    public function init($callable, $controller, $function, $parameters){
-
-        $this->callable   = $callable;
-        $this->controller = $controller;
-        $this->function   = $function;
-        $this->parameters = $parameters;
+        $this->callable = $callable;
+        $this->matches  = $matches;
+        $this->route    = $route;
     }
 }

@@ -28,14 +28,50 @@
  * @version     Version 0.0.1
  */
 
-namespace FuzeWorks;
+namespace FuzeWorks\Event;
+use \FuzeWorks\Event;
 
 /**
- * Abstract class Controller
+ * Event that gets loaded when a view is loaded.
  *
- * At this point does nothing, can be extended in the future to allow special controller functions
- * @package     net.techfuze.fuzeworks.core
+ * Use this to cancel the loading of a view, or change the file or engine of a view
+ *
+ * @package     net.techfuze.fuzeworks.core.event
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-abstract class Controller {}
+class LayoutLoadViewEvent extends Event {
+
+	/**
+	 * The directory of the view to be loaded
+	 * @var string
+	 */
+    public $directory;
+
+    /**
+     * The file of the view to be loaded
+     * @var string
+     */
+    public $file;
+
+    /**
+     * The engine the file will be loaded with
+     * @var object
+     */
+    public $engine;
+
+    /**
+     * The assigned variables to the template
+     * @var array
+     */
+    public $assigned_variables;
+
+    public function init($file, $directory, $engine, $assigned_variables){
+        $this->file = $file;
+        $this->directory = $directory;
+        $this->engine = $engine;
+        $this->assigned_variables = $assigned_variables;
+    }
+}
+
+?>

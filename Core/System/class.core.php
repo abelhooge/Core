@@ -71,17 +71,23 @@ class Core {
 		// Load core functionality
 		self::loadStartupFiles();
 
-		Logger::init();
+		// Load the config file of the FuzeWorks core
+		$config = Config::get('core');
 
-		Modules::buildRegister();
-		Events::buildEventRegister();
+		// Load the logger
+		Logger::init();
 
 		// And initialize the router paths
 		Router::init();
 
+		// Build all the registers for correct operation
+		Modules::buildRegister();
+		Events::buildEventRegister();
+
 		// Load Composer
-		if (Config::get('core')->enable_composer) {
-			self::loadComposer();
+		if ($config->enable_composer) {
+			$file = ($config->composer_autoloader != '' ? $config->composer_autoloader : 'vendor/autoload.php');
+			self::loadComposer($file);
 		}
 
 		$event = Events::fireEvent('coreStartEvent');
@@ -90,7 +96,10 @@ class Core {
 		}
 	}
 
-	public static function loadStartupFiles($config = array()) {
+	/**
+	 * Load all the files of the FuzeWorks Framework.
+	 */
+	private static function loadStartupFiles() {
 		if (self::$loaded)
 			return;
 
@@ -106,7 +115,7 @@ class Core {
 		require_once("Core/System/class.abstract.model.php");
 		require_once("Core/System/class.models.php");
 		require_once("Core/System/class.layout.php");
-		require_once("Core/System/class.abstract.controller.php");
+		require_once("Core/System/class.abstract.controllerabstract.php");
 		require_once("Core/System/class.router.php");
 		require_once("Core/System/class.abstract.module.php");
 		require_once("Core/System/class.modules.php");
@@ -123,6 +132,11 @@ class Core {
         self::$loaded = true;
 	}
 
+	/**
+	 * Stop FuzeWorks and run all shutdown functions.
+	 *
+	 * Afterwards run the Logger shutdown function in order to possibly display the log
+	 */
 	public static function shutdown() {
 		Events::fireEvent('coreShutdownEvent');
 		Logger::shutdown();
@@ -132,11 +146,16 @@ class Core {
 	 * Load composer if it is present
 	 * @access private
 	 * @param String directory of composer autoload file (optional)
+	 * @return boolean true on success, false on failure
 	 */
 	private static function loadComposer($file = "vendor/autoload.php") {
 		if (file_exists($file)) {
 			require($file);
+			Logger::log('Loaded Composer');
+			return true;
 		}
+		Logger::log('Failed to load Composer. File \''.$file.'\' not found');
+		return false;
 	}
 
 

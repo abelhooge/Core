@@ -28,27 +28,25 @@
  * @version     Version 0.0.1
  */
 
-namespace FuzeWorks;
+namespace Application\Model;
+use \FuzeWorks\Model;
 
 /**
- * Interpret Class.
+ * SQLTable model
  *
- * This Model is able to automatically select a SQL database as its source.
- * @package     net.techfuze.fuzeworks.core
+ * This model connects to the querybuilder and is used to quickly interact with SQL tables.
+ *
+ * Start building a query AND DON'T FORGET TO USE setTable() before executing the query
+ * @package     net.techfuze.fuzeworks.application.model
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Interpret extends Model {
+class Sqltable extends Model{
 
     public function __construct(){
-        $this->setType('techfuze/databaseutils', 'Model');
-        $this->table    = '';
-    }
 
-    public function table($name) {
-    	$this->table = $name;
-
+    	$this->setType('core/databaseutils', 'Model');
+        $this->fields   = '*';
+        $this->table    = 'table';
     }
 }
-
-?>

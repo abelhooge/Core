@@ -28,20 +28,46 @@
  * @version     Version 0.0.1
  */
 
-use FuzeWorks\Events;
+use \FuzeWorks\Events;
+use \FuzeWorks\Router;
+use \FuzeWorks\EventPriority;
 
 /**
- * Class CoreTestAbstract
- *
- * Provides the event tests with some basic functionality
+ * Class RouterRouteEventTest
  */
-abstract class CoreTestAbstract extends PHPUnit_Framework_TestCase
-{
-    /**
-     * Remove all listeners before the next test starts
-     */
-    public function tearDown(){
+class RouterRouteEventTest extends CoreTestAbstract{
 
-        Events::$listeners = array();
+    /**
+     * Check if the event is fired when it should be
+     */
+    public function test_basic(){
+
+        $mock = $this->getMock('MockEvent', array('mockMethod'));
+        $mock->expects($this->once())->method('mockMethod');
+
+        Events::addListener(array($mock, 'mockMethod'), 'routerRouteEvent', EventPriority::NORMAL);
+        Router::setPath('a/b/c');
+        Router::route(false);
+    }
+
+    /**
+     * Cancel events
+     */
+    public function test_cancel(){
+
+        Router::setPath('x/y/z');
+
+        Events::addListener(array($this, 'listener_cancel'), 'routerRouteEvent', EventPriority::NORMAL);
+        Router::route(false);
+
+        $this->assertNotEquals('x', Router::getMatches()['controller']);
+        $this->assertNotEquals('y', Router::getMatches()['function']);
+        $this->assertNotEquals('z', Router::getMatches()['parameters']);
+    }
+
+    // Cancel all calls
+    public function listener_cancel($event){
+
+        $event->setCancelled(true);
     }
 }

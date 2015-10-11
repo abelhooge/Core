@@ -35,7 +35,6 @@ use \FuzeWorks\Router;
 require_once( dirname(__FILE__) . "/Core/System/class.core.php");
 
 // Load it
-new Core();
 Core::init();
 
 Router::setPath( (isset($_GET['path']) ? $_GET['path'] : null)   );

@@ -34,25 +34,32 @@ use \Application\Init;
 /**
  * Class Router
  *
- * This class handles the framework's routing. The router determines which controller should be called.
+ * This class handles the framework's routing. The router determines which system should be loaded and called.
  * The overall structure of the routing is as follows:
  *
  * The routes-array will hold a list of RegEx-strings. When the route-method is called, the framework will try
  * to match the current path against all the RegEx's. When a RegEx matches, the linked callable will be called.
  *
- * The default route works as follows:
+ * Every module can register routes and add their own callables. By default, two callables are used:
+ * The defaultCallable and the moduleCallable.
+ *
+ * The defaultCallable is a traditional MVC controller loader. Loading an URL using a default route works as follows:
  *
  *      Let's say the visitor requests /A/B/C
  *
- *      A would be the 'controller' (default: home)
+ *      A would be the 'controller' (default: standard)
  *      B would be the function to be called in the 'controller' (default: index)
  *      C would be the first parameter
  *
  *      All controllers are to be placed in the /Application/controller-directory.
  *
+ * This is the default behaviour by adding routes to the config.routes.php. It is also possible to load Modules using routes.
+ * To load a Module using a route, add the route to the moduleInfo.php in a routes array.
+ * When this route is matched, a moduleCallable gets loaded which loads the module and loads either a controller file, or a routing function.
+ *
  * But because of this RegEx-table, modules can easily listen on completely different paths. You can, for example, make
- * a module that only triggers when /admin/<controller>/<function>/.. is accessed. Or even complexer structure are
- * available, e.g: /webshop/product-<controller>/view/<function>.
+ * a module that only triggers when /admin/<page>/<component>/.. is accessed. Or even complexer structure are
+ * available, e.g: /webshop/product-<id>/view/<detailID>.
  *
  * BE AWARE:
  *
@@ -72,7 +79,7 @@ use \Application\Init;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Router{
+class Router {
 
     /**
      * @var null|string The provided path
@@ -90,19 +97,9 @@ class Router{
     private static $callable    = null;
 
     /**
-     * @var null|string The extracted controller's name
+     * @var null|array The extracted matches from the regex
      */
-    private static $controller  = null;
-
-    /**
-     * @var null|string The extracted controller's function name
-     */
-    private static $function    = null;
-
-    /**
-     * @var array The extracted parameters
-     */
-    private static $parameters  = array();
+    private static $matches  = null;
 
     /**
      * The constructor adds the default route to the routing table
@@ -150,50 +147,12 @@ class Router{
     }
 
     /**
-     * Returns the active controller's name
-     *
-     * @return null|string
+     * Returns all the matches with the RegEx route
+     * @return null|array
      */
-    public static function getController() {
+    public static function getMatches() {
 
-        return self::$controller;
-    }
-
-    /**
-     * Returns the name of the active controller's function
-     *
-     * @return null|string The name of the function
-     */
-    public static function getFunction() {
-
-        return self::$function;
-    }
-
-    /**
-     * Returns the routing parameters
-     *
-     * @return array
-     */
-    public static function getParameters(){
-
-        return self::$parameters;
-    }
-
-    /**
-     * Returns the routing parameter at given index
-     *
-     * @param int $index
-     * @return array
-     */
-    public static function getParameter($index = 0){
-
-        $parameters = self::$parameters;
-        $index      = ($index >= 0 ? $index : count($parameters)+$index);
-
-        if(isset($parameters[$index]))
-            return $parameters[$index];
-
-        return null;
+        return self::$matches;
     }
 
     /**
@@ -214,7 +173,7 @@ class Router{
         }
 
         // Remove double slashes
-        $path = preg_replace('@[/]+@', '/', $path);
+        $path = preg_replace('@[/]+@', '/', $event->path);
 
         // Remove first slash
         if(substr($path, 0, 1) == '/')
@@ -228,42 +187,16 @@ class Router{
     }
 
     /**
-     * Set the controller name
-     *
-     * Until we decide what to do with name giving of controllers/functions,
-     * this function stays here.
-     *
-     * @param string $controller the name of the controller
-     */
-    public static function setController($controller){
-
-        self::$controller = $controller;
-    }
-
-    /**
-     * Set the function name
-     *
-     * Until we decide what to do with name giving of controllers/functions,
-     * this function stays here.
-     *
-     * @param string $function the name of the controller
-     */
-    public static function setFunction($function){
-
-        self::$function = $function;
-    }
-
-    /**
      * Add a route
      *
      * The path will be checked before custom routes before the default route(/controller/function/param1/param2/etc)
      * When the given RegEx matches the current routing-path, the callable will be called.
-     * 
+     *
      * The callable will be called with three arguments:
-     * 
-     *      Callable($controller, $function, $parameters)
-     * 
-     * These three variables will be extracted from the named groups of your RegEx. When one or more named groups are
+     *
+     *      Callable($regex_matches = array())
+     *
+     * The variables in the array will be the named groups of your RegEx. When one or more named groups are
      * not matched, they will be set to NULL. The default RegEx is:
      *
      *      /^(?P<controller>.*?)(|\/(?P<function>.*?)(|\/(?P<parameters>.*?)))$/
@@ -321,15 +254,17 @@ class Router{
     }
 
     /**
-     * Extracts the routing path to controller, function and parameters
+     * Extracts the routing path from the URL using the routing table.
      *
-     * @TODO: $loadCallable might not be needed anymore
+     * Determines what callable should be loaded and what data matches the route regex.
+     *
+     * @todo: Add path to routerRouteEvent
      * @param boolean $loadCallable Immediate load the callable when it's route matches
      */
     public static function route($loadCallable = true)
     {
         // Fire the event to notify our modules
-        $event = Events::fireEvent('routerRouteEvent', self::$routes, $loadCallable);
+        $event = Events::fireEvent('routerRouteEvent', self::$routes, $loadCallable, self::$path);
 
         // The event has been cancelled
         if($event->isCancelled()){
@@ -338,23 +273,21 @@ class Router{
         }
 
         // Assign everything to the object to make it accessible, but let modules check it first
-        //self::$routes = $event->routes;
-        //$loadCallable = $event->loadCallable;
+        $routes = $event->routes;
+        $loadCallable = $event->loadCallable;
 
         //Check the custom routes
-        foreach (self::$routes as $r => $c) {
+        foreach ($routes as $r => $c) {
 
             //A custom route is found
-            if(preg_match($r, self::$path, $matches)) {
-
-                self::$controller = !empty($matches['controller']) ? $matches['controller']               : null;
-                self::$function   = !empty($matches['function'])   ? $matches['function']                 : null;
-                self::$parameters = !empty($matches['parameters']) ? explode('/', $matches['parameters']) : null;
-
+            if(preg_match($r, $event->path, $matches)) {
                 Logger::log('Route matched: '.$r);
 
+                // Add the matches to the current class
+                self::$matches = $matches;
+
                 self::$callable   = $c;
-                if(!$loadCallable || !self::loadCallable())
+                if(!$loadCallable || !self::loadCallable($matches, $r))
                     break;
             }
         }
@@ -362,34 +295,47 @@ class Router{
         // Check if we found a callable anyway
         if(self::$callable === null){
 
-            Logger::log('No routes found for given path: "'.self::$path.'"', E_WARNING);
+            Logger::log('No routes found for given path: "'.$event->path.'"', E_WARNING);
             Logger::http_error(404);
             return;
         }
     }
 
     /**
-     * Load and execute the callable
+     * Load the callable to which the route matched.
      *
+     * First it checks if it is possible to call the callable. If not, the default callable gets selected and a controller, function and parameters get selected.
+     *
+     * Then the arguments get prepared and finally the callable is called.
+     *
+     * @param  array   Preg matches with the routing path
+     * @param  string  The route that matched
      * @return boolean Whether or not the callable was satisfied
+     * @todo add route to routerLoadCallableEvent
      */
-    public static function loadCallable(){
+    public static function loadCallable($matches = array(), $route){
 
         Logger::newLevel('Loading callable');
 
         // Fire the event to notify our modules
-        $event = Events::fireEvent('routerLoadCallableEvent', self::$callable, self::$controller, self::$function, self::$parameters);
+        $event = Events::fireEvent('routerLoadCallableEvent', self::$callable, $matches, $route);
 
         // The event has been cancelled
         if($event->isCancelled())
             return false;
 
-        if(!is_callable(self::$callable))
+        // Prepare the arguments and add the route
+        $args = $event->matches;
+        $args['route'] = $event->route;
+
+        if(!is_callable($event->callable))
         if(isset(self::$callable['controller'])) {
 
-            self::$controller = isset(self::$callable['controller']) ? self::$callable['controller'] : self::$controller;
-            self::$function   = isset(self::$callable['function'])   ? self::$callable['function']   : self::$function;
-            self::$parameters = isset(self::$callable['parameters']) ? self::$callable['parameters'] : self::$parameters;
+            // Reset the arguments and fetch from custom callable
+            $args = array();
+            $args['controller'] = isset(self::$callable['controller']) ? self::$callable['controller'] : (isset($matches['controller']) ? $matches['controller'] : null);
+            $args['function']   = isset(self::$callable['function'])   ? self::$callable['function']   : (isset($matches['function']) ? $matches['function'] : null);
+            $args['parameters'] = isset(self::$callable['parameters']) ? self::$callable['parameters'] : (isset($matches['parameters']) ? explode('/', $matches['parameters']) : null);
 
             self::$callable = array('\FuzeWorks\Router', 'defaultCallable');
         }else{
@@ -400,19 +346,14 @@ class Router{
             return true;
         }
 
-        $args = array(
-            self::$controller,
-            self::$function,
-            self::$parameters,
-        );
-
+        // And log the input to the logger
         Logger::newLevel('Calling callable');
-        Logger::log('Controller: '.  ($args[0] === null ? 'null' : $args[0]));
-        Logger::log('Function: '.    ($args[1] === null ? 'null' : $args[1]));
-        Logger::log('Parameters: '.  (empty($args[2])   ? '[]'   : implode(', ',$args[2])));
+        foreach ($args as $key => $value) {
+            Logger::log($key.": ".var_export($value,true)."");
+        }
         Logger::stopLevel();
 
-        $skip = call_user_func_array(self::$callable, $args) === false;
+        $skip = call_user_func_array(self::$callable, array($args)) === false;
 
         if($skip)
             Logger::log('Callable not satisfied, skipping to next callable');
@@ -427,16 +368,17 @@ class Router{
      * This callable will do the 'old skool' routing. It will load the controllers from the controller-directory
      * in the application-directory.
      */
-    public static function defaultCallable(){
+    public static function defaultCallable($arguments = array()){
 
         Logger::log('Default callable called!');
 
-        self::$controller = self::$controller === null ? Config::get('main')->default_controller : self::$controller;
-        self::$function   = self::$function   === null ? Config::get('main')->default_function   : self::$function;
+        $controller = empty($arguments['controller']) ? Config::get('main')->default_controller : $arguments['controller'];
+        $function   = empty($arguments['function']) ? Config::get('main')->default_function   : $arguments['function'];
+        $parameters = empty($arguments['parameters']) ? null : $arguments['parameters'];
 
         // Construct file paths and classes
-        $class  = '\Controller\\'.ucfirst(self::$controller);
-        $file   = 'Application/Controller/controller.'.self::$controller.'.php';
+        $class  = '\Application\Controller\\'.ucfirst($controller);
+        $file   = 'Application/Controller/controller.'.$controller.'.php';
 
         Logger::log('Loading controller '.$class.' from file: '.$file);
 
@@ -458,14 +400,14 @@ class Router{
             }
 
             // Check if method exists or if there is a caller function
-            if(method_exists(self::$callable, self::$function) || method_exists(self::$callable, '__call')){
+            if(method_exists(self::$callable, $function) || method_exists(self::$callable, '__call')){
 
                 // Execute the function on the controller
-                echo self::$callable->{self::$function}(self::$parameters);
+                echo self::$callable->{$function}($parameters);
             }else{
 
                 // Function could not be found
-                Logger::log('Could not find function '.self::$function.' on controller '.$class);
+                Logger::log('Could not find function '.$function.' on controller '.$class);
                 Logger::http_error(404);
             }
         }else{

@@ -41,13 +41,47 @@ namespace FuzeWorks;
  */
 class Logger {
 
+	/**
+	 * Log entries which display information entries
+	 * @var array
+	 */
  	public static $infoErrors = array();
+
+ 	/**
+ 	 * Log entries which display critical error entries
+ 	 * @var array
+ 	 */
  	public static $criticalErrors = array();
+
+ 	/**
+ 	 * Log entries which display warning entries
+ 	 * @var array
+ 	 */
  	public static $warningErrors = array();
+
+ 	/**
+ 	 * All log entries, unsorted
+ 	 * @var array
+ 	 */
  	public static $Logs = array();
+
+ 	/**
+ 	 * Wether to output the log after FuzeWorks has run
+ 	 * @var boolean
+ 	 */
   	private static $print_to_screen = false;
+
+  	/**
+  	 * Wether to output the log after FuzeWorks has run, regardless of conditions
+  	 * @var boolean
+  	 */
   	public static $debug = false;
 
+  	/**
+  	 * Initiates the Logger.
+  	 *
+  	 * Registers the error and exception handler, when required to do so by configuration
+  	 */
 	public static function init() {
  		// Register the error handler
  		if (Config::get('error')->error_reporting == true) {
@@ -59,6 +93,11 @@ class Logger {
  		self::newLevel("Logger Initiated");
 	}
 
+	/**
+	 * Function to be run upon FuzeWorks shutdown.
+	 *
+	 * Logs a fatal error and outputs the log when configured or requested to do so
+	 */
 	public static function shutdown() {
 		// Load last error if thrown
   		$errfile = "Unknown file";
@@ -79,8 +118,8 @@ class Logger {
  		}
 
 		if (self::$debug == true || self::$print_to_screen) {
-			self::log("Parsing debug log", "Logger");
-			self::logToScreen();
+			self::log("Parsing debug log");
+			echo self::logToScreen();
 		}
 	}
 
@@ -126,6 +165,10 @@ class Logger {
 		self::logError("Exception thrown: " . $message . " | " . $code, null, $file, $line);
 	}
 
+	/**
+	 * Output the entire log to the screen. Used for debugging problems with your code.
+	 * @return String   Output of the log
+	 */
  	public static function logToScreen() {
  		// Send a screenLogEvent, allows for new screen log designs
  		$event = Events::fireEvent('screenLogEvent');
@@ -134,7 +177,7 @@ class Logger {
  		}
 
  		// Otherwise just load it
-        echo '<h3>FuzeWorks debug log</h3>';
+        $string = '<h3>FuzeWorks debug log</h3>';
         $layer = 0;
         for($i = 0; $i < count(self::$Logs); $i++){
 
@@ -142,23 +185,29 @@ class Logger {
             if($log['type'] == 'LEVEL_START'){
                 $layer++;
                 $color = 255-($layer*25);
-                echo '<div style="background: rgb(188 , 232 ,'.$color.');border: 1px black solid;margin: 5px 0;padding: 5px 20px;">';
-	            echo '<div style="font-weight: bold; font-size: 11pt;">'.$log['message'].'<span style="float: right">'.(!empty($log['runtime']) ? "(".round($log['runtime']*1000, 4).'ms)' : "").'</span></div>';
+                $string .= '<div style="background: rgb(188 , 232 ,'.$color.');border: 1px black solid;margin: 5px 0;padding: 5px 20px;">';
+	            $string .= '<div style="font-weight: bold; font-size: 11pt;">'.$log['message'].'<span style="float: right">'.(!empty($log['runtime']) ? "(".round($log['runtime']*1000, 4).'ms)' : "").'</span></div>';
             } elseif ($log['type'] == "LEVEL_STOP") {
             	$layer--;
-            	echo "</div>";
+            	$string .= "</div>";
             } elseif ($log['type'] == "ERROR") {
-	            echo '<div style="'.($layer == 0 ? 'padding-left: 21px;' : "").'font-size: 11pt; background-color:#f56954;">['.$log['type'].']'.(!empty($log['context']) && is_string($log['context']) ? '<u>['.$log['context'].']</u>' : "").' '.$log["message"].'
+	            $string .= '<div style="'.($layer == 0 ? 'padding-left: 21px;' : "").'font-size: 11pt; background-color:#f56954;">['.$log['type'].']'.(!empty($log['context']) && is_string($log['context']) ? '<u>['.$log['context'].']</u>' : "").' '.$log["message"].'
 	            	<span style="float: right">'.(!empty($log['logFile']) ? $log['logFile'] : "")." : ".(!empty($log['logLine']) ? $log['logLine'] : "").'('.round($log['runtime']*1000, 4).' ms)</span></div>';   	
             } elseif ($log['type'] == "WARNING") {
-	            echo '<div style="'.($layer == 0 ? 'padding-left: 21px;' : "").'font-size: 11pt; background-color:#f39c12;">['.$log['type'].']'.(!empty($log['context']) && is_string($log['context']) ? '<u>['.$log['context'].']</u>' : "").' '.$log["message"].'
+	            $string .= '<div style="'.($layer == 0 ? 'padding-left: 21px;' : "").'font-size: 11pt; background-color:#f39c12;">['.$log['type'].']'.(!empty($log['context']) && is_string($log['context']) ? '<u>['.$log['context'].']</u>' : "").' '.$log["message"].'
 	            	<span style="float: right">'.(!empty($log['logFile']) ? $log['logFile'] : "")." : ".(!empty($log['logLine']) ? $log['logLine'] : "").'('.round($log['runtime']*1000, 4).' ms)</span></div>';   	
             } elseif ($log['type'] == "INFO") {
-	            echo '<div style="'.($layer == 0 ? 'padding-left: 21px;' : "").'font-size: 11pt;">'.(!empty($log['context']) ? '<u>['.$log['context'].']</u>' : "").' '.$log["message"].'<span style="float: right">('.round($log['runtime']*1000, 4).' ms)</span></div>';   	
+	            $string .= '<div style="'.($layer == 0 ? 'padding-left: 21px;' : "").'font-size: 11pt;">'.(!empty($log['context']) ? '<u>['.$log['context'].']</u>' : "").' '.$log["message"].'<span style="float: right">('.round($log['runtime']*1000, 4).' ms)</span></div>';   	
             }
         }
+
+        return $string;
  	}
 
+ 	/**
+ 	 * Backtrace a problem to the source using the trace of an Exception
+ 	 * @return string   HTML backtrace
+ 	 */
  	public static function backtrace() {
 	    $e = new Exception();
 	    $trace = explode("\n", $e->getTraceAsString());
@@ -179,11 +228,26 @@ class Logger {
 
  	/* =========================================LOGGING METHODS==============================================================*/
 
-
+ 	/**
+ 	 * Create a information log entry
+ 	 * @param  String  $msg  The information to be logged
+ 	 * @param  String  $mod  The name of the module
+ 	 * @param  String  $file The file where the log occured
+ 	 * @param  integer $line The line where the log occured
+ 	 * @return void
+ 	 */
 	public static function log($msg, $mod = null, $file = 0, $line = 0) {
 		self::logInfo($msg, $mod, $file, $line);
 	}
 
+ 	/**
+ 	 * Create a information log entry
+ 	 * @param  String  $msg  The information to be logged
+ 	 * @param  String  $mod  The name of the module
+ 	 * @param  String  $file The file where the log occured
+ 	 * @param  integer $line The line where the log occured
+ 	 * @return void
+ 	 */
  	public static function logInfo($msg, $mod = null, $file = 0, $line = 0) {
  		$LOG = array('type' => 'INFO',
  			'message' => (!is_null($msg) ? $msg : ""),
@@ -196,6 +260,14 @@ class Logger {
  		self::$Logs[] = $LOG;
  	}
 
+ 	/**
+ 	 * Create a error log entry
+ 	 * @param  String  $msg  The information to be logged
+ 	 * @param  String  $mod  The name of the module
+ 	 * @param  String  $file The file where the log occured
+ 	 * @param  integer $line The line where the log occured
+ 	 * @return void
+ 	 */
  	public static function logError($msg, $mod = null, $file = 0, $line = 0)  {
  		$LOG = array('type' => 'ERROR',
  			'message' => (!is_null($msg) ? $msg : ""),
@@ -208,6 +280,14 @@ class Logger {
  		self::$Logs[] = $LOG;
  	}
 
+ 	/**
+ 	 * Create a warning log entry
+ 	 * @param  String  $msg  The information to be logged
+ 	 * @param  String  $mod  The name of the module
+ 	 * @param  String  $file The file where the log occured
+ 	 * @param  integer $line The line where the log occured
+ 	 * @return void
+ 	 */
  	public static function logWarning($msg, $mod = null, $file = 0, $line = 0)  {
  		$LOG = array('type' => 'WARNING',
  			'message' => (!is_null($msg) ? $msg : ""),
@@ -220,6 +300,14 @@ class Logger {
  		self::$Logs[] = $LOG;
  	}
 
+ 	/**
+ 	 * Create a new Level log entry. Used to categorise logs
+ 	 * @param  String  $msg  The name of the new level
+ 	 * @param  String  $mod  The name of the module
+ 	 * @param  String  $file The file where the log occured
+ 	 * @param  integer $line The line where the log occured
+ 	 * @return void
+ 	 */
  	public static function newLevel($msg, $mod = null, $file = null, $line = null) {
  		$LOG = array('type' => 'LEVEL_START',
  			'message' => (!is_null($msg) ? $msg : ""),
@@ -231,6 +319,14 @@ class Logger {
  		self::$Logs[] = $LOG;
  	}
 
+ 	/**
+ 	 * Create a stop Level log entry. Used to close log categories
+ 	 * @param  String  $msg  The name of the new level
+ 	 * @param  String  $mod  The name of the module
+ 	 * @param  String  $file The file where the log occured
+ 	 * @param  integer $line The line where the log occured
+ 	 * @return void
+ 	 */
  	public static function stopLevel($msg = null, $mod = null, $file = null, $line = null) {
  		$LOG = array('type' => 'LEVEL_STOP',
  			'message' => (!is_null($msg) ? $msg : ""),
@@ -292,6 +388,11 @@ class Logger {
 		return $type = 'Unknown error: '.$type;
 	}
 
+	/**
+	 * Calls an HTTP error, sends it as a header, and loads a template if required to do so.
+	 * @param  integer $errno HTTP error code
+	 * @param  boolean $view  true to view error on website
+	 */
     public static function http_error($errno = 500, $view = true){
 
         $http_codes = array(
@@ -331,22 +432,22 @@ class Logger {
             511 => 'Network Authentication Required'
         );
 
-        self::logError('HTTP-error '.$errno.' called', 'Logger');
-        self::log('Sending header HTTP/1.1 '.$errno.' '.$http_codes[$errno], 'Logger', __FILE__, __LINE__);
+        self::logError('HTTP-error '.$errno.' called');
+        self::log('Sending header HTTP/1.1 '.$errno.' '.$http_codes[$errno]);
         header('HTTP/1.1 '.$errno.' '.$http_codes[$errno]);
 
 		// Do we want the error-view with it?
 		if($view == false)
 			return;
 
+		// Load the view
         $view = 'errors/'.$errno;
         self::log('Loading view '.$view);
 
+        // Try and load the view, if impossible, load HTTP code instead.
         try{
-
             Layout::view($view);
-        }catch(LayoutException $exception){
-
+        } catch(LayoutException $exception){
             // No error page could be found, just echo the result
             echo "<h1>$errno</h1><h3>".$http_codes[$errno]."</h3>";
         }
@@ -368,6 +469,12 @@ class Logger {
  		self::$print_to_screen = false;
  	}
 
+ 	/**
+ 	 * Get the relative time since the framework started.
+ 	 *
+ 	 * Used for debugging timings in FuzeWorks
+ 	 * @return int Time passed since FuzeWorks init
+ 	 */
   	private static function getRelativeTime() {
  		$startTime = STARTTIME;
  		$time = microtime(true) - $startTime;

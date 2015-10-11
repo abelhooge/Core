@@ -51,6 +51,11 @@ return array(
     // Events that this module listens for. When the exampleEvent is fired, this module will be loaded so the module can handle the event
     'events'        => array('exampleEvent'),
 
+    // Routes that this module listens on. If the URL /example/ gets called, this module will be loaded
+    // Everything after /example/ will be sent to the route() function in the matches array under the 'data' key
+    // A route must ALWAYS have the module capturing group. Otherwise it will fail
+    'routes'        => array('/^example(|\/(?P<data>.*?))$/'),
+
     // The name of the module as it will be logged. This does not affect usage of the module in any way
     'name'          => 'FuzeWorks Example Module',
 

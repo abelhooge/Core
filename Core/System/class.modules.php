@@ -39,22 +39,40 @@ use \stdClass;
  */
 class Modules {
 
+    /**
+     * A register of all the existing module headers.
+     *
+     * The module headers contain information required to loading the module
+     * @var Array
+     */
     public static $register;
+
+    /**
+     * An array of all the loaded modules
+     * @var array
+     */
     public static $modules = array();
 
     /**
-     * An array which modules are loaded, and should not be loaded again
+     * An array with the names of all modules that are loaded, and should not be loaded again
      * @access private
      * @var Array of module names
      */
     private static $loaded_modules = array();
 
     /**
+     * An array which holds the routes to module to load them quickly
+     * @access private
+     * @var array
+     */
+    private static $module_routes = array();
+
+    /**
      * Retrieves a module and returns it.
      * If a module is already loaded, it returns a reference to the loaded version
      * @param  String $name Name of the module
      * @return \FuzeWorks\Module Module The module
-     * @throws FuzeWorks\ModuleException
+     * @throws \FuzeWorks\ModuleException
      */
     public static function get($name) {
         // Where the modules are
@@ -154,6 +172,12 @@ class Modules {
         }
     }
 
+    /**
+     * Set the value of a module config or moduleInfo.php
+     * @param String $file  File to edit
+     * @param String $key   Key to edit
+     * @param Mixed  $value Value to set
+     */
     private static function setModuleValue($file, $key, $value) {
         if (file_exists($file) && is_writable($file)) {
             $cfg = require($file);
@@ -164,6 +188,9 @@ class Modules {
     }
 
     /**
+     * Add a module using a moduleInfo.php file
+     *
+     * @param  String   Path to moduleInfo.php file
      * @throws FuzeWorks\ModuleException
      */
     public static function addModule($moduleInfo_file) {
@@ -210,6 +237,11 @@ class Modules {
     }
 
     /**
+     * Enables a module when it is disabled
+     *
+     * @access public
+     * @param  String    Module name
+     * @param  boolean   true for permanent enable
      * @throws FuzeWorks\ModuleException
      */
     public static function enableModule($name, $permanent = true) {
@@ -246,6 +278,11 @@ class Modules {
     }
 
     /**
+     * Disableds a module when it is enabled
+     *
+     * @access public
+     * @param  String    Module name
+     * @param  boolean   true for permanent disable
      * @throws FuzeWorks\ModuleException
      */
     public static function disableModule($name, $permanent = true) {
@@ -281,6 +318,12 @@ class Modules {
 
     }
 
+    /**
+     * Create a register with all the module headers from all the existing modules.
+     *
+     * Used to correctly load all modules
+     * @return void
+     */
     public static function buildRegister() {
         Logger::newLevel("Loading Module Headers", 'Core');
 
@@ -319,6 +362,16 @@ class Modules {
                                 $register[$alias] = (array) $cfg;
                                 unset($register[$alias]['events']);
                                 Logger::log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
+                            }
+                        }
+
+                        // If routes are present, add them to the router
+                        if (isset($cfg->routes)) {
+                            foreach ($cfg->routes as $route) {
+                                // Create the route and callable and parse them
+                                $callable = array('\FuzeWorks\Modules', 'moduleCallable');
+                                Router::addRoute($route, $callable, true);
+                                self::$module_routes[$route] = $name;
                             }
                         }
                     } else {
@@ -375,6 +428,38 @@ class Modules {
         self::$register = $register;
         Logger::stopLevel();
 
+    }
+
+   /**
+     * The Module Callable
+     *
+     * When a module listens for a specific routing path, this callable get's called.
+     * After this the module can handle the request with the route() function in the module's root directory
+     * @access public
+     * @param  array   Regex matches
+     * @return void
+     */
+    public static function moduleCallable($matches = array()){
+        // First detect what module is attached to this route
+        Logger::newLevel('Module callable called!');
+
+        // Get the route
+        $route = !empty($matches['route']) ? $matches['route'] : null;
+
+        // See if the route exists
+        if (isset(self::$module_routes[$route])) {
+            Logger::log("Module '".self::$module_routes[$route]."' matched given route");
+
+            // Load the module
+            $mod = self::get(self::$module_routes[$route]);
+            unset($matches['route']);
+            $mod->route($matches);
+        } else {
+            Logger::logError("Route did not match known module. Fatal error");
+            return Logger::http_error(500);
+        }
+
+        Logger::stopLevel();
     }
 
 }

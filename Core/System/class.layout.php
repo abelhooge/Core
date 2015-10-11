@@ -30,6 +30,10 @@
 
 namespace FuzeWorks;
 use \Smarty;
+use \FuzeWorks\TemplateEngine\JSONEngine;
+use \FuzeWorks\TemplateEngine\PHPEngine;
+use \FuzeWorks\TemplateEngine\SmartyEngine;
+use \FuzeWorks\TemplateEngine\TemplateEngine;
 
 /**
  * Layout and Template Manager for FuzeWorks.
@@ -128,10 +132,23 @@ class Layout {
 
 		self::$current_engine->setDirectory($directory);
 
+		// And run an Event to see what other parts have to say about it
+        $event = Events::fireEvent('layoutLoadViewEvent', $file, $directory, self::$current_engine, self::$assigned_variables);
+
+        // The event has been cancelled
+        if($event->isCancelled()){
+
+            return false;
+        }
+
+        // And refetch the data from the event
+        self::$current_engine = $event->engine;
+        self::$assigned_variables = $event->assigned_variables;
+
 		Logger::stopLevel();
 
 		// And finally run it
-		return self::$current_engine->get($file, self::$assigned_variables);
+		return self::$current_engine->get($event->file, self::$assigned_variables);
 	}
 
 	/**
@@ -355,6 +372,9 @@ class Layout {
 		Logger::log("Reset the layout manager to its default state");
 	}
 }
+
+namespace FuzeWorks\TemplateEngine;
+use \FuzeWorks\LayoutException;
 
 /**
  * Interface that all Template Engines must follow

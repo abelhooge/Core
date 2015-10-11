@@ -41,10 +41,24 @@ namespace FuzeWorks;
  */
 class Models {
 
+    /**
+     * Array of all the loaded models
+     * @var array
+     */
     private static $models_array = array();
-    private static $model_types = array();
-    private static $models_loaded = false;
 
+    /**
+     * Array of all the existing model types (classes)
+     * @var array
+     */
+    private static $model_types = array();
+
+    /**
+     * Load a model.
+     * @param  String $name      Name of the model
+     * @param  String $directory Optional directory of the model
+     * @return Object            The Model object.
+     */
     public static function loadModel($name, $directory = null){
         // Model load event
         $event = Events::fireEvent('modelLoadEvent', $name, $directory);
@@ -57,19 +71,19 @@ class Models {
             self::$models_array[$name] = self::$model_types[$name];
         } elseif (file_exists($file)){
             require_once($file);
-            $model = "\Model\\" . ucfirst($name);
+            $model = "\Application\Model\\" . ucfirst($name);
             Logger::log('Loading Model: '.$model, $model);
             self::$models_array[$name] = new $model();
         } else{
-        	Logger::logWarning('The requested model: \''.$name.'\' could not be found. Loading empty model', 'Models');
-            require_once("Core/System/Models/model.interpret.php");
-            Logger::log('Loading Model: interprated databasemodel', 'Models');
-            $model = new Interpret();
-            $model->table($name);
-            self::$models_array[$name] = $model;
+            throw new ModelException("The requested model: \''.$name.'\' could not be found", 1);
         }
     }
 
+    /**
+     * Retrieve a model
+     * @param  String $name Name of the model
+     * @return Object       The Model object
+     */
     public static function get($name){
     	if (isset(self::$models_array[strtolower($name)])) {
     		return self::$models_array[strtolower($name)];

@@ -28,33 +28,14 @@
  * @version     Version 0.0.1
  */
 
-namespace Application\Controller;
-use \FuzeWorks\ControllerAbstract;
-use \FuzeWorks\Layout;
+namespace FuzeWorks;
 
 /**
- * The default controller of FuzeWorks.
+ * Abstract class ControllerAbstract
  *
- * This controller gets loaded when the '/' path is provided, eg. the home page.
- * By default, the index function gets loaded.
- *
+ * At this point does nothing, can be extended in the future to allow special controller functions
  * @package     net.techfuze.fuzeworks.core
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Standard extends ControllerAbstract {
-
-	/**
-	 * The default function of FuzeWorks.
-	 *
-	 * This code gets loaded for the Home page
-	 * @param  array  $path The path provided by the HTTP Server
-	 * @return void
-	 */
-	public function index($path = null) {
-		Layout::view('home');
-	}
-}
-
-
-?>
+abstract class ControllerAbstract {}
