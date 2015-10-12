@@ -61,12 +61,14 @@ class Event {
     }
 }
 
+namespace FuzeWorks\Event;
+
 /**
  * Simple event which will notify components of an event, but does not contain any data
  * @package     net.techfuze.fuzeworks.core
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class NotifierEvent extends Event {}
+class NotifierEvent extends \FuzeWorks\Event {}
 
 ?>

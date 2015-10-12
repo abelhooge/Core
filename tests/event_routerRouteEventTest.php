@@ -28,27 +28,46 @@
  * @version     Version 0.0.1
  */
 
-namespace FuzeWorks;
+use \FuzeWorks\Events;
+use \FuzeWorks\Router;
+use \FuzeWorks\EventPriority;
 
 /**
- * Interpret Class.
- *
- * This Model is able to automatically select a SQL database as its source.
- * @package     net.techfuze.fuzeworks.core
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * Class RouterRouteEventTest
  */
-class Interpret extends Model {
+class RouterRouteEventTest extends CoreTestAbstract{
 
-    public function __construct(){
-        $this->setType('techfuze/databaseutils', 'Model');
-        $this->table    = '';
+    /**
+     * Check if the event is fired when it should be
+     */
+    public function test_basic(){
+
+        $mock = $this->getMock('MockEvent', array('mockMethod'));
+        $mock->expects($this->once())->method('mockMethod');
+
+        Events::addListener(array($mock, 'mockMethod'), 'routerRouteEvent', EventPriority::NORMAL);
+        Router::setPath('a/b/c');
+        Router::route(false);
     }
 
-    public function table($name) {
-    	$this->table = $name;
+    /**
+     * Cancel events
+     */
+    public function test_cancel(){
 
+        Router::setPath('x/y/z');
+
+        Events::addListener(array($this, 'listener_cancel'), 'routerRouteEvent', EventPriority::NORMAL);
+        Router::route(false);
+
+        $this->assertNotEquals('x', Router::getMatches()['controller']);
+        $this->assertNotEquals('y', Router::getMatches()['function']);
+        $this->assertNotEquals('z', Router::getMatches()['parameters']);
+    }
+
+    // Cancel all calls
+    public function listener_cancel($event){
+
+        $event->setCancelled(true);
     }
 }
-
-?>

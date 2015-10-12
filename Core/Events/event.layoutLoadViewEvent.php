@@ -28,22 +28,50 @@
  * @version     Version 0.0.1
  */
 
-return array(
+namespace FuzeWorks\Event;
+use \FuzeWorks\Event;
 
-    'module_class'    => '\Module\Users\Users',
-    'module_file'     => 'class.users.php',
-    'module_name'     => 'users',
+/**
+ * Event that gets loaded when a view is loaded.
+ *
+ * Use this to cancel the loading of a view, or change the file or engine of a view
+ *
+ * @package     net.techfuze.fuzeworks.core.event
+ * @author      Abel Hoogeveen <abel@techfuze.net>
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ */
+class LayoutLoadViewEvent extends Event {
 
-    'dependencies'  => array('core/database'),
-    'aliases'       => array(),
-    'events'        => array(),
+	/**
+	 * The directory of the view to be loaded
+	 * @var string
+	 */
+    public $directory;
 
-    'name'          => 'Users',
-    'description'   => 'Lightweight user and permissions system',
-    'author'        => 'core',
-    'version'       => '1.0.0.0',
-    'website'       => 'http://fuzeworks.techfuze.net/',
+    /**
+     * The file of the view to be loaded
+     * @var string
+     */
+    public $file;
 
-    'date_created'  => '23-02-2015',
-    'date_updated'  => '29-08-2015',
-);
+    /**
+     * The engine the file will be loaded with
+     * @var object
+     */
+    public $engine;
+
+    /**
+     * The assigned variables to the template
+     * @var array
+     */
+    public $assigned_variables;
+
+    public function init($file, $directory, $engine, $assigned_variables){
+        $this->file = $file;
+        $this->directory = $directory;
+        $this->engine = $engine;
+        $this->assigned_variables = $assigned_variables;
+    }
+}
+
+?>

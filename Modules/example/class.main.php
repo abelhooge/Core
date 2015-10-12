@@ -99,6 +99,17 @@ class Main extends Module {
 		return $result;
 	}
 
+	/**
+	 * Gets called when the path matches the regex of this module.
+	 * @access public
+	 * @param  array   Regex matches
+	 * @return void
+	 */
+	public function route($matches = array()) {
+		// Just print the inputted data:
+		echo "<h3>Input data: ".$matches['data']."</h3>";
+	}
+
 }
 
 class ExampleEvent extends Event {

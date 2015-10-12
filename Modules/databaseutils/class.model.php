@@ -31,6 +31,7 @@
 
 namespace Module\DatabaseUtils;
 use \FuzeWorks\Module;
+use \FuzeWorks\Modules;
 use \FuzeWorks\Bus;
 use \FuzeWorks\ModelServer;
 use \FuzeWorks\DatabaseException;
@@ -182,6 +183,23 @@ class Model {
 		return $queryBuilder;
 	}
 
+    /**
+     * The default table will be set to $this->table
+     * @see Query::replace
+     * @param $array Array with values
+     * @return Query
+     * @throws Exception
+     */
+
+    public function replace($array){
+
+        $queryBuilder = new Query();
+        $queryBuilder->setTable($this->table);
+        call_user_func_array(array($queryBuilder, 'replace'), func_get_args());
+
+        return $queryBuilder;
+    }
+
 	/**
 	 * Return latest insert id
 	 *
@@ -192,6 +210,6 @@ class Model {
 	}
 
 	public function __call($name, $params) {
-		return call_user_func_array(array($this->mods->database, $name), $params);
+		return call_user_func_array(array(Modules::get('core/database'), $name), $params);
 	}
 }

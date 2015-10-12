@@ -29,8 +29,9 @@
  */
 
 namespace FuzeWorks;
-use \Iterator;
 use \PDOException;
+use \FuzeWorks\ORM\ConfigFileORM;
+use \FuzeWorks\ORM\ConfigDatabaseORM;
 
 
 /**
@@ -52,13 +53,6 @@ class Config {
 	public static $dbActive = false;
 
 	/**
-	 * Class Constructor
-	 * @access public
-	 * @param FuzeWorks Core Reference
-	 */
-	public static function init() {}
-
-	/**
 	 * All loaded Config files
 	 * @var Array of ConfigORM
 	 */
@@ -70,7 +64,7 @@ class Config {
 	 * @param String config file name
 	 * @param String directory, default is Application/Config
 	 * @throws \Exception on file not found
-	 * @return StdObject of config
+	 * @return \FuzeWorks\ORM\ConfigORM of config
 	 */
 	public static function loadConfigFile($name, $directory = null) {
 		$dir = (isset($directory) ? $directory : "Application/Config/");
@@ -111,12 +105,15 @@ class Config {
 	 * Magic config getter
 	 * @access public
 	 * @param String config file name
-	 * @return StdObject of config
+	 * @return \FuzeWorks\ORM\ConfigORM of config
 	 */
 	public static function get($name) {
 		return self::loadConfigFile($name);
 	}
 }
+
+namespace FuzeWorks\ORM;
+use \Iterator;
 
 /**
  * Abstract ConfigORM class.

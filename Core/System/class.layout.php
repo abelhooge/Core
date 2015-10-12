@@ -30,6 +30,10 @@
 
 namespace FuzeWorks;
 use \Smarty;
+use \FuzeWorks\TemplateEngine\JSONEngine;
+use \FuzeWorks\TemplateEngine\PHPEngine;
+use \FuzeWorks\TemplateEngine\SmartyEngine;
+use \FuzeWorks\TemplateEngine\TemplateEngine;
 
 /**
  * Layout and Template Manager for FuzeWorks.
@@ -71,13 +75,14 @@ class Layout {
 
 	/**
 	 * Retrieve a template file using a string and a directory and immediatly echo it.
-	 * What template files get loaded depend on the template engine that is used.
-	 * PHP for example used .php files. Providing this function with 'home/dashboard' will load the home/view.dashboard.php files.
+	 *
+	 * What template file gets loaded depends on the template engine that is being used.
+	 * PHP for example uses .php files. Providing this function with 'home/dashboard' will load the home/view.dashboard.php file.
 	 * You can also provide no particular engine, and the manager will decide what template to load.
-	 * Remember that doing so will result in an LayoutException when multiple compatible files are found.
+	 * Remember that doing so will result in a LayoutException when multiple compatible files are found.
 	 * @param  String $file      File to load
 	 * @param  string $directory Directory to load it from
-	 * @return true on success
+	 * @return Boolean true on success
 	 * @throws LayoutException   On error
 	 */
 	public static function view($file, $directory = 'Application/Views') {
@@ -88,10 +93,11 @@ class Layout {
 
 	/**
 	 * Retrieve a template file using a string and a directory.
-	 * What template files get loaded depend on the template engine that is used.
-	 * PHP for example used .php files. Providing this function with 'home/dashboard' will load the home/view.dashboard.php files.
+	 *
+	 * What template file gets loaded depends on the template engine that is being used.
+	 * PHP for example uses .php files. Providing this function with 'home/dashboard' will load the home/view.dashboard.php file.
 	 * You can also provide no particular engine, and the manager will decide what template to load.
-	 * Remember that doing so will result in an LayoutException when multiple compatible files are found.
+	 * Remember that doing so will result in a LayoutException when multiple compatible files are found.
 	 * @param  String $file      File to load
 	 * @param  string $directory Directory to load it from
 	 * @return String            The output of the template
@@ -126,10 +132,23 @@ class Layout {
 
 		self::$current_engine->setDirectory($directory);
 
+		// And run an Event to see what other parts have to say about it
+        $event = Events::fireEvent('layoutLoadViewEvent', $file, $directory, self::$current_engine, self::$assigned_variables);
+
+        // The event has been cancelled
+        if($event->isCancelled()){
+
+            return false;
+        }
+
+        // And refetch the data from the event
+        self::$current_engine = $event->engine;
+        self::$assigned_variables = $event->assigned_variables;
+
 		Logger::stopLevel();
 
 		// And finally run it
-		return self::$current_engine->get($file, self::$assigned_variables);
+		return self::$current_engine->get($event->file, self::$assigned_variables);
 	}
 
 	/**
@@ -156,6 +175,7 @@ class Layout {
 
 	/**
 	 * Converts a view string to a file using the directory and the used extensions.
+	 *
 	 * It will detect wether the file exists and choose a file according to the provided extensions
 	 * @param  String $string     The string used by a controller. eg: 'dashboard/home'
 	 * @param  String $directory  The directory to search in for the template
@@ -352,6 +372,9 @@ class Layout {
 		Logger::log("Reset the layout manager to its default state");
 	}
 }
+
+namespace FuzeWorks\TemplateEngine;
+use \FuzeWorks\LayoutException;
 
 /**
  * Interface that all Template Engines must follow
@@ -559,6 +582,20 @@ class JSONEngine implements TemplateEngine {
 	 */
 	protected $assigned_variables = array();
 
+	/**
+	 * Whether the JSON data should be parsed or left as is
+	 * @var boolean true if to be parsed
+	 */
+	protected static $string_return = true;
+
+	/**
+	 * Whether the JSON data should be parsed or left as is
+	 * @param true if to be parsed
+	 */
+	public static function returnAsString($boolean = true) {
+		self::$string_return = $boolean;
+	}
+
 	public function setDirectory($directory) {
 		return true;
 	}
@@ -581,7 +618,10 @@ class JSONEngine implements TemplateEngine {
 		$json['data'] = $this->assigned_variables;
 
 		// And return it
-		return json_encode($json);
+		if (self::$string_return)
+			return json_encode($json);
+
+		return $json;
 	}
 
 	public function getFileExtensions() {
@@ -590,6 +630,7 @@ class JSONEngine implements TemplateEngine {
 
 	public function reset() {
 		$this->assigned_variables = array();
+		$this->string_return = true;
 	}
 
 	public function test($param1, $param2, $param3) {

@@ -110,7 +110,13 @@ class Events {
         }
     }
 
-	## EVENTS
+	/**
+     * Fires an Event
+     *
+     * The Event gets created, passed around and then returned to the issuer.
+     * @param  Mixed  $input Object for direct event, string for system event or notifierEvent
+     * @return \FuzeWorks\Event        The Event
+     */
 	public static function fireEvent($input) {
 		if (is_string($input)) {
 			// If the input is a string
@@ -121,12 +127,13 @@ class Events {
 	            $file = "Core/Events/event.".$eventName.".php";
 	            if(file_exists($file)){
 	                // Load the file
+                    $eventClass = "\FuzeWorks\Event\\" . $eventClass;
 	                require_once($file);
 	            }else{
 	                // No event arguments? Looks like a notify-event
 	                if(func_num_args() == 1){
 	                    // Load notify-event-class
-	                    $eventClass = '\FuzeWorks\NotifierEvent';
+	                    $eventClass = '\FuzeWorks\Event\NotifierEvent';
 	                }else{
 	                    // No notify-event: we tried all we could
 	                    throw new Exception("Event ".$eventName." could not be found!");
@@ -178,11 +185,12 @@ class Events {
                     Logger::newLevel('Found listeners with priority ' . EventPriority::getPriority($priority));
                     //Fire the event to each listener
                     foreach ($listeners as $callback) {
-                        if(!is_string($callback[0]))
-                            Logger::log('Firing ' . get_class($callback[0]) . '->' . $callback[1]);
+                        if (is_callable($callback)) {
+                            Logger::newLevel('Firing function');
+                        } elseif(!is_string($callback[0]))
+                            Logger::newLevel('Firing ' . get_class($callback[0]) . '->' . $callback[1]);
                         else
-                            Logger::log('Firing ' . join('->', $callback));
-                        Logger::newLevel('');
+                            Logger::newLevel('Firing ' . join('->', $callback));
                         try {
                             call_user_func($callback, $event);
                         } catch (ModuleException $e) {
@@ -200,7 +208,12 @@ class Events {
 		return $event;
 	}
 
-    // Event Preparation:
+    /**
+     * Build a register which says which module listens for what event.
+     *
+     * This way not all modules have to be loaded in order to listen to all events.
+     * @return boolean true on success
+     */
     public static function buildEventRegister() {
         $event_register = array();
 

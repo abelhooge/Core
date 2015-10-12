@@ -1,4 +1,33 @@
 <?php
+/**
+ * FuzeWorks
+ *
+ * The FuzeWorks MVC PHP FrameWork
+ *
+ * Copyright (C) 2015   TechFuze
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * @author      TechFuze
+ * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ * @link        http://fuzeworks.techfuze.net
+ * @since       Version 0.0.1
+ * @version     Version 0.0.1
+ */
+
 use \FuzeWorks\Core;
 use \FuzeWorks\Router;
 
@@ -42,19 +71,15 @@ class RouterTest extends CoreTestAbstract
 
         // Assert
         // Whole route
-        $this->assertEquals(array('a','b',array('c','d')), array(Router::getController(), Router::getFunction(), Router::getParameters()));
-        $this->assertEquals('a', Router::getController());
-        $this->assertEquals('d', Router::getParameter(-1));
-        $this->assertEquals(null, Router::getParameter(5));
+        $this->assertEquals(array('a','b','c/d'), array(Router::getMatches()['controller'], Router::getMatches()['function'], Router::getMatches()['parameters']));
+        $this->assertEquals('a', Router::getMatches()['controller']);
 
         // Parameters
-        $this->assertEquals(array('c','d'), Router::getParameters());
-        $this->assertEquals('c', Router::getParameter(0));
-        $this->assertEquals('d', Router::getParameter(-1));
+        $this->assertEquals('c/d', Router::getMatches()['parameters']);
 
         // Function and controller
-        $this->assertEquals('a', Router::getController());
-        $this->assertEquals('b', Router::getFunction());
+        $this->assertEquals('a', Router::getMatches()['controller']);
+        $this->assertEquals('b', Router::getMatches()['function']);
     }
 
     /**
@@ -65,18 +90,18 @@ class RouterTest extends CoreTestAbstract
         // Empty path
         Router::setPath(null);
         Router::route(false);
-        $this->assertEquals(null, Router::getController());
+        $this->assertEquals(null, Router::getMatches()['controller']);
 
         // Double slashes
         Router::setPath('a///b');
         Router::route(false);
-        $this->assertEquals(array('a','b'), array(Router::getController(), Router::getFunction()));
+        $this->assertEquals(array('a','b'), array(Router::getMatches()['controller'], Router::getMatches()['function']));
 
         // Escaped path path
         Router::setPath('/a\/b\/c/');
         Router::route(false);
-        $this->assertEquals(array('a\\','b\\','c'), array(Router::getController(), Router::getFunction(), Router::getParameter(0)));
-        $this->assertNotEquals('a', Router::getController());
+        $this->assertEquals(array('a\\','b\\','c'), array(Router::getMatches()['controller'], Router::getMatches()['function'], Router::getMatches()['parameters']));
+        $this->assertNotEquals('a', Router::getMatches()['controller']);
     }
 
     public function testCustomRoute(){
@@ -93,22 +118,22 @@ class RouterTest extends CoreTestAbstract
 
         Router::setPath('b/controller_a/function_a');
         Router::route(false);
-        $this->assertEquals('controller_a', Router::getController());
-        $this->assertEquals('function_a', Router::getFunction());
+        $this->assertEquals('controller_a', Router::getMatches()['controller']);
+        $this->assertEquals('function_a', Router::getMatches()['function']);
 
         Router::setPath('e/function_b/c');
         Router::route(false);
-        $this->assertEquals(null, Router::getController());
-        $this->assertEquals('function_b', Router::getFunction());
+        $this->assertEquals(null, Router::getMatches()['controller']);
+        $this->assertEquals('function_b', Router::getMatches()['function']);
 
         Router::setPath('b/b');
         Router::route(false);
-        $this->assertEquals(null, Router::getController());
-        $this->assertEquals(null, Router::getFunction());
+        $this->assertEquals(null, Router::getMatches()['controller']);
+        $this->assertEquals(null, Router::getMatches()['function']);
 
         Router::setPath('a/b');
         Router::route(false);
-        $this->assertEquals('a', Router::getController());
-        $this->assertEquals('b', Router::getFunction());
+        $this->assertEquals('a', Router::getMatches()['controller']);
+        $this->assertEquals('b', Router::getMatches()['function']);
     }
 }

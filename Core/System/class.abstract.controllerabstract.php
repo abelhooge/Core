@@ -31,11 +31,11 @@
 namespace FuzeWorks;
 
 /**
- * Abstract class Controller
+ * Abstract class ControllerAbstract
  *
  * At this point does nothing, can be extended in the future to allow special controller functions
  * @package     net.techfuze.fuzeworks.core
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-abstract class Controller {}
+abstract class ControllerAbstract {}

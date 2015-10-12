@@ -779,7 +779,7 @@ class Query extends Module {
 
         try{
 
-            $this->sth = Modules::get('core/database')->getConnection()->prepare($this->getSql());
+            $this->sth = Modules::get('core/database')->prepare($this->getSql());
             if(count($this->getBinds()) === 0){
 
                 $this->sth->execute();
@@ -832,7 +832,7 @@ class Query extends Module {
      */
     public function getLastInsertId(){
 
-        return Modules::get('core/database')->getConnection()->lastInsertId();
+        return Modules::get('core/database')->lastInsertId();
 
     }
 
