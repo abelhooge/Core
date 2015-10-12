@@ -258,7 +258,6 @@ class Router {
      *
      * Determines what callable should be loaded and what data matches the route regex.
      *
-     * @todo: Add path to routerRouteEvent
      * @param boolean $loadCallable Immediate load the callable when it's route matches
      */
     public static function route($loadCallable = true)
@@ -311,7 +310,6 @@ class Router {
      * @param  array   Preg matches with the routing path
      * @param  string  The route that matched
      * @return boolean Whether or not the callable was satisfied
-     * @todo add route to routerLoadCallableEvent
      */
     public static function loadCallable($matches = array(), $route){
 

@@ -34,9 +34,9 @@ use \FuzeWorks\Events;
 use \FuzeWorks\TemplateEngine\TemplateEngine;
 
 /**
- * Class RouterTest
+ * Class LayoutTest
  *
- * This test will test the router
+ * This test will test the layout manager and the default TemplateEngines
  */
 class LayoutTest extends CoreTestAbstract
 {

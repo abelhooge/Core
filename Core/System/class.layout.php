@@ -159,7 +159,10 @@ class Layout {
 		Logger::stopLevel();
 
 		// And finally run it
-		return self::$current_engine->get($event->file, self::$assigned_variables);
+		if (file_exists($event->file))
+			return self::$current_engine->get($event->file, self::$assigned_variables);
+
+		throw new LayoutException("The requested file was not found", 1);
 	}
 
 	/**
