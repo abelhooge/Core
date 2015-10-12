@@ -76,13 +76,14 @@ use \PHPMailer;
 			if ($cfg->sendmail_enabled && !$cfg->smtp_enabled) {
 				$this->mailers[$name]->isSendmail();
 			} elseif (!$cfg->sendmail_enabled && $cfg->smtp_enabled) {
+				// Set up all the SMTP details
 				$this->mailers[$name]->isSMTP();
 				$this->mailers[$name]->SMTPDebug = $cfg->smtp_debug_level;
 				$this->mailers[$name]->Debugoutput = 'html';
 				$this->mailers[$name]->Host = $cfg->smtp_host;
 				$this->mailers[$name]->Port = $cfg->smtp_port;
 
-				// Authentication
+				// SMTP Authentication
 				if ($cfg->smtp_auth) {
 					$this->mailers[$name]->SMTPAuth = true;
 					$this->mailers[$name]->Username = $cfg->smtp_username;

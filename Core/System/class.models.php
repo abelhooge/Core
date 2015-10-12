@@ -73,7 +73,7 @@ class Models {
             require_once($file);
             $model = "\Application\Model\\" . ucfirst($name);
             Logger::log('Loading Model: '.$model, $model);
-            self::$models_array[$name] = new $model();
+            return self::$models_array[$name] = new $model();
         } else{
             throw new ModelException("The requested model: \''.$name.'\' could not be found", 1);
         }
@@ -85,11 +85,16 @@ class Models {
      * @return Object       The Model object
      */
     public static function get($name){
-    	if (isset(self::$models_array[strtolower($name)])) {
-    		return self::$models_array[strtolower($name)];
+        // Get the name
+        $name = strtolower($name);
+
+        // Check if it already exists
+    	if (isset(self::$models_array[$name])) {
+            // Return if it does
+    		return self::$models_array[$name];
     	} else {
-    		self::loadModel(strtolower($name));
-    		return self::$models_array[strtolower($name)];
+            // If not, load and return afterwards
+    		return self::loadModel($name);
     	}
     }
 }

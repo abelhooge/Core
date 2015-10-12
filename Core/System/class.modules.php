@@ -93,8 +93,6 @@ class Modules {
                 // Check if the module is already loaded. If so, only return a reference, if not, load the module
                 if (in_array($name, self::$loaded_modules)) {
                     // return the link
-                    $msg = "Module '".ucfirst((isset($cfg->name) ? $cfg->name : $cfg->module_name)) . "' is already loaded";
-                    Logger::log($msg);
                     $c = self::$modules[strtolower($cfg->module_name)];
                     return $c;
                 } else {
@@ -349,41 +347,18 @@ class Modules {
                 // Get the module directory
                 $cfg->directory = $mod_dir;
 
-                // Check wether the module is enabled or no
+                // Check wether the module is disabled
                 if (isset($cfg->enabled)) {
-                    if ($cfg->enabled) {
-                        // Copy all the data into the register and enable
-                        $register[$name] = (array) $cfg;
-                        Logger::log("[ON]  '".$name."'");
-
-                        // Add all module aliases if available
-                        if (isset($cfg->aliases)) {
-                            foreach ($cfg->aliases as $alias) {
-                                $register[$alias] = (array) $cfg;
-                                unset($register[$alias]['events']);
-                                Logger::log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
-                            }
-                        }
-
-                        // If routes are present, add them to the router
-                        if (isset($cfg->routes)) {
-                            foreach ($cfg->routes as $route) {
-                                // Create the route and callable and parse them
-                                $callable = array('\FuzeWorks\Modules', 'moduleCallable');
-                                Router::addRoute($route, $callable, true);
-                                self::$module_routes[$route] = $name;
-                            }
-                        }
-                    } else {
-                        // If not, copy all the basic data so that it can be enabled in the future
+                    if (!$cfg->enabled) {
+                        // If disabled, a holder will be placed so it might be enabled in the future
                         $cfg2 = new StdClass();
                         $cfg2->module_name = $cfg->module_name;
                         $cfg2->directory = $cfg->directory;
                         $cfg2->meta = $cfg;
                         $register[$name] = (array)$cfg2;
-                        Logger::log("[OFF] '".$name."'");
+                        Logger::newLevel("[OFF] '".$name."'");
 
-                        // Add all module aliases if available
+                        // And possibly some aliases
                         if (isset($cfg->aliases)) {
                             foreach ($cfg->aliases as $alias) {
                                 $register[$alias] = (array) $cfg2;
@@ -391,21 +366,39 @@ class Modules {
                                 Logger::log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
                             }
                         }
-                    }
-                } else {
-                    // Copy all the data into the register and enable
-                    $register[$name] = (array) $cfg;
-                    Logger::log("[ON]  '".$name."'");
 
-                    // Add all module aliases if available
-                    if (isset($cfg->aliases)) {
-                        foreach ($cfg->aliases as $alias) {
-                            $register[$alias] = (array) $cfg;
-                            unset($register[$alias]['events']);
-                            Logger::log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
-                        }
+                        Logger::stopLevel();
+
+                        // And to the next one
+                        continue;
                     }
                 }
+
+                // Copy all the data into the register and enable
+                $register[$name] = (array) $cfg;
+                Logger::newLevel("[ON]  '".$name."'");
+
+                // Add all module aliases if available
+                if (isset($cfg->aliases)) {
+                    foreach ($cfg->aliases as $alias) {
+                        $register[$alias] = (array) $cfg;
+                        unset($register[$alias]['events']);
+                        Logger::log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
+                    }
+                }
+
+                // If routes are present, add them to the router
+                if (isset($cfg->routes)) {
+                    foreach ($cfg->routes as $route) {
+                        // Create the route and callable and parse them
+                        $callable = array('\FuzeWorks\Modules', 'moduleCallable');
+                        Router::addRoute($route, $callable, true);
+                        self::$module_routes[$route] = $name;
+                    }
+                }
+
+                Logger::stopLevel();
+
             } else {
                 // If no details are specified, create a basic module
                 $name = $mod_dirs[$i];
@@ -421,7 +414,8 @@ class Modules {
 
                 // Apply it
                 $register[$name] = (array)$cfg;
-                Logger::log("[ON]  '".$name."'");
+                Logger::newLevel("[ON]  '".$name."'");
+                Logger::stopLevel();
             }
         }
 
