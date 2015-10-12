@@ -29,6 +29,7 @@
  */
 
 use FuzeWorks\Events;
+use FuzeWorks\Layout;
 
 /**
  * Class CoreTestAbstract
@@ -39,9 +40,12 @@ abstract class CoreTestAbstract extends PHPUnit_Framework_TestCase
 {
     /**
      * Remove all listeners before the next test starts
+     *
+     * Reset the layout manager
      */
     public function tearDown(){
 
         Events::$listeners = array();
+        Layout::reset();
     }
 }
