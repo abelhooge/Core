@@ -29,7 +29,6 @@
  */
 
 namespace FuzeWorks;
-use \Smarty;
 use \FuzeWorks\TemplateEngine\JSONEngine;
 use \FuzeWorks\TemplateEngine\PHPEngine;
 use \FuzeWorks\TemplateEngine\SmartyEngine;
@@ -42,6 +41,18 @@ use \FuzeWorks\TemplateEngine\TemplateEngine;
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
 class Layout {
+
+	/**
+	 * The file to be loaded by the layout manager
+	 * @var null|string
+	 */
+	public static $file = null;
+
+	/**
+	 * The directory of the file to be loaded by the layout manager
+	 * @var null|string
+	 */
+	public static $directory = null;
 
 	/**
 	 * All assigned currently assigned to the template
@@ -82,12 +93,12 @@ class Layout {
 	 * Remember that doing so will result in a LayoutException when multiple compatible files are found.
 	 * @param  String $file      File to load
 	 * @param  string $directory Directory to load it from
-	 * @return Boolean true on success
+	 * @return void
 	 * @throws LayoutException   On error
 	 */
 	public static function view($file, $directory = 'Application/Views') {
 		echo self::get($file, $directory);
-		return true;
+		return;
 	}
 
 
@@ -111,13 +122,13 @@ class Layout {
 
 		// First retrieve the filepath
 		if (is_null(self::$current_engine)) {
-			$file = self::getFileFromString($file, $directory, array_keys(self::$file_extensions));
+			self::setFileFromString($file, $directory, array_keys(self::$file_extensions));
 		} else {
-			$file = self::getFileFromString($file, $directory, self::$current_engine->getFileExtensions());
+			self::setFileFromString($file, $directory, self::$current_engine->getFileExtensions());
 		}
 
 		// Then assign some basic variables for the template
-		self::$assigned_variables['viewDir'] = Config::get('main')->SITE_URL . preg_replace('#/+#','/', substr($directory . "/", -strlen($directory . "/") ) );
+		self::$assigned_variables['viewDir'] = Config::get('main')->SITE_URL . preg_replace('#/+#','/', substr(self::$directory . "/", -strlen(self::$directory . "/") ) );
 		self::$assigned_variables['siteURL'] = Config::get('main')->SITE_URL;
 		self::$assigned_variables['siteLogo'] = Config::get('main')->SITE_LOGO_URL;
 		self::$assigned_variables['serverName'] = Config::get('main')->SERVER_NAME;
@@ -127,13 +138,13 @@ class Layout {
 
 		// Select an engine if one is not already selected
 		if (is_null(self::$current_engine)) {
-			self::$current_engine = self::getEngineFromExtension( self::getExtensionFromFile($file) );
+			self::$current_engine = self::getEngineFromExtension( self::getExtensionFromFile(self::$file) );
 		}
 
-		self::$current_engine->setDirectory($directory);
+		self::$current_engine->setDirectory(self::$directory);
 
 		// And run an Event to see what other parts have to say about it
-        $event = Events::fireEvent('layoutLoadViewEvent', $file, $directory, self::$current_engine, self::$assigned_variables);
+        $event = Events::fireEvent('layoutLoadViewEvent', self::$file, self::$directory, self::$current_engine, self::$assigned_variables);
 
         // The event has been cancelled
         if($event->isCancelled()){
@@ -148,7 +159,10 @@ class Layout {
 		Logger::stopLevel();
 
 		// And finally run it
-		return self::$current_engine->get($event->file, self::$assigned_variables);
+		if (file_exists($event->file))
+			return self::$current_engine->get($event->file, self::$assigned_variables);
+
+		throw new LayoutException("The requested file was not found", 1);
 	}
 
 	/**
@@ -227,10 +241,58 @@ class Layout {
 
 		// And choose what to output
 		if (!$fileSelected) {
-			Logger::logWarning("Could not select template. No matching file found.");
+			throw new LayoutException("Could not select template. No matching file found.");
 		}
 
 		return $selectedFile;
+	}
+
+	/**
+	 * Converts a view string to a file using the directory and the used extensions.
+	 * It also sets the file variable of this class.
+	 *
+	 * It will detect wether the file exists and choose a file according to the provided extensions
+	 * @param  String $string     The string used by a controller. eg: 'dashboard/home'
+	 * @param  String $directory  The directory to search in for the template
+	 * @param  array  $extensions Extensions to use for this template. Eg array('php', 'tpl') etc.
+	 * @return String             Filepath of the template
+	 * @throws LayoutException    On error
+	 */
+	public static function setFileFromString($string, $directory, $extensions = array()) {
+		self::$file = self::getFileFromString($string, $directory, $extensions);
+		self::$directory = preg_replace('#/+#','/',(!is_null($directory) ? $directory : "Application/Views") . "/");
+	}
+
+	/**
+	 * Get the current file to be loaded
+	 * @return null|string Path to the file
+	 */
+	public static function getFile() {
+		return self::$file;
+	}
+
+	/**
+	 * Set the file to be loaded
+	 * @param string $file Path to the file
+	 */
+	public static function setFile($file) {
+		self::$file = $file;
+	}
+
+	/**
+	 * Get the directory of the file to be loaded
+	 * @return null|string Path to the directory
+	 */
+	public static function getDirectory() {
+		return self::$directory;
+	}
+
+	/**
+	 * Set the directory of the file to be loaded
+	 * @param string $directory Path to the directory
+	 */
+	public static function setDirectory($directory) {
+		self::$directory = $directory;
 	}
 
 	/**
@@ -295,7 +357,7 @@ class Layout {
 	 * @return boolean                      true on success
 	 * @throws \FuzeWorks\LayoutException   On error
 	 */
-	public static function registerEngine($engineClass, $engineName, $engineFileExtensions) {
+	public static function registerEngine($engineClass, $engineName, $engineFileExtensions = array()) {
 		// First check if the engine already exists
 		if (isset(self::$engines[$engineName])) {
 			throw new LayoutException("Could not register engine. Engine '".$engineName."' already registered", 1);
@@ -332,7 +394,7 @@ class Layout {
 	/**
 	 * Load the template engines by sending a layoutLoadEngineEvent
 	 */
-	private static function loadTemplateEngines() {
+	public static function loadTemplateEngines() {
 		if (!self::$engines_loaded) {
 			Events::fireEvent('layoutLoadEngineEvent');
 			// Load the engines provided in this file
@@ -375,6 +437,7 @@ class Layout {
 
 namespace FuzeWorks\TemplateEngine;
 use \FuzeWorks\LayoutException;
+use \Smarty;
 
 /**
  * Interface that all Template Engines must follow
