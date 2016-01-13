@@ -54,9 +54,23 @@ namespace FuzeWorks;
  */
 class Events {
 
+    /**
+     * Array of classes that can handle events
+     * @var array
+     */
 	public static $listeners = array();
+
+    /**
+     * Whether the event system is enabled or not
+     * @var array
+     */
     private static $enabled = true;
-    private static $register;
+
+    /**
+     * A register with all the events and associated modules which should be loaded upon eventFire
+     * @var array
+     */
+    public static $register;
 
     /**
      * Adds a function as listener
@@ -207,42 +221,6 @@ class Events {
 		Logger::stopLevel();
 		return $event;
 	}
-
-    /**
-     * Build a register which says which module listens for what event.
-     *
-     * This way not all modules have to be loaded in order to listen to all events.
-     * @return boolean true on success
-     */
-    public static function buildEventRegister() {
-        $event_register = array();
-
-        // Check wether there is data or not
-        $data = Modules::$register;
-        $data = null;
-        if (is_null($data)) {
-            self::$register = array();
-            return true;
-        }
-
-        // If there is, handle it
-        foreach ($data as $key => $value) {
-            if (isset($value['events'])) {
-                if (!empty($value['events'])) {
-                    for ($i=0; $i < count($value['events']); $i++) { 
-                        if (isset($event_register[$value['events'][$i]])) {
-                            $event_register[$value['events'][$i]][] = $key;
-                        } else {
-                            $event_register[$value['events'][$i]] = array($key);
-                        }
-                    }
-                }
-            }
-        }
-
-        self::$register = $event_register;
-        return true;
-    }
 
     /**
      * Enables the event system

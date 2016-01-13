@@ -330,14 +330,20 @@ class Modules {
         $mod_dirs = array();
         $mod_dirs = array_values(array_diff(scandir($dir), array('..', '.')));
 
-        // Build the module register
+        // Build the module and event register
         $register = array();
+        $event_register = array();
+
+        // Cycle through all module directories
         for ($i=0; $i < count($mod_dirs); $i++) {
             $mod_dir = $dir . $mod_dirs[$i] . "/";
             // If a moduleInfo.php exists, load it
             if (file_exists($mod_dir . "/moduleInfo.php")) {
                 // Load the configuration file
                 $cfg = (object) require($mod_dir . "/moduleInfo.php");
+
+                // Set enabled for now
+                $enabled = true;
 
                 // Define the module name
                 $name = "";
@@ -347,38 +353,34 @@ class Modules {
                 // Get the module directory
                 $cfg->directory = $mod_dir;
 
-                // Check wether the module is disabled
+                // Check whether the module is disabled
                 if (isset($cfg->enabled)) {
                     if (!$cfg->enabled) {
+                        // If disabled, set the variable
+                        $enabled = false;
+
                         // If disabled, a holder will be placed so it might be enabled in the future
-                        $cfg2 = new StdClass();
-                        $cfg2->module_name = $cfg->module_name;
-                        $cfg2->directory = $cfg->directory;
-                        $cfg2->meta = $cfg;
-                        $register[$name] = (array)$cfg2;
-                        Logger::newLevel("[OFF] '".$name."'");
+                        $mock = new StdClass();
+                        $mock->module_name = $cfg->module_name;
+                        $mock->directory = $cfg->directory;
+                        $mock->meta = $cfg;
+                        $mock->aliases = $cfg->aliases;
 
-                        // And possibly some aliases
-                        if (isset($cfg->aliases)) {
-                            foreach ($cfg->aliases as $alias) {
-                                $register[$alias] = (array) $cfg2;
-                                unset($register[$alias]['events']);
-                                Logger::log("&nbsp;&nbsp;&nbsp;'".$alias."' (alias of '".$name."')");
-                            }
-                        }
-
-                        Logger::stopLevel();
-
-                        // And to the next one
-                        continue;
+                        // Important, change the configuration to the mock, so we can duplicate it afterwards
+                        $cfg = $mock;
                     }
                 }
 
                 // Copy all the data into the register and enable
                 $register[$name] = (array) $cfg;
-                Logger::newLevel("[ON]  '".$name."'");
 
-                // Add all module aliases if available
+                // Log the name for enabled and disabled
+                if (!$enabled)
+                    Logger::newLevel("[OFF] '".$name."'");
+                else
+                    Logger::newLevel("[ON]  '".$name."'");
+
+                // And possibly some aliases
                 if (isset($cfg->aliases)) {
                     foreach ($cfg->aliases as $alias) {
                         $register[$alias] = (array) $cfg;
@@ -387,8 +389,15 @@ class Modules {
                     }
                 }
 
-                // If routes are present, add them to the router
+                // If not enabled, log it, wrap it and off to the next one
+                if (!$enabled) {
+                    Logger::stopLevel();
+                    continue;
+                }
+
+                // Otherwise continue and add routing paths
                 if (isset($cfg->routes)) {
+                    // Get routes and add them
                     foreach ($cfg->routes as $route) {
                         // Create the route and callable and parse them
                         $callable = array('\FuzeWorks\Modules', 'moduleCallable');
@@ -397,29 +406,46 @@ class Modules {
                     }
                 }
 
+                // And for the events
+                if (isset($cfg->events)) {
+                    // Get the events and add them
+                    foreach ($cfg->events as $event) {
+                        // First check if the event already exists, if so, append it
+                        if (isset($event_register[$event]))
+                            $event_register[$event][] = $name;
+                        else
+                            $event_register[$event] = array($name);
+
+                        // Log the event
+                        Logger::Log('Event added: \''.$event.'\'');
+                    }
+                }
+
                 Logger::stopLevel();
 
             } else {
-                // If no details are specified, create a basic module
+                // If no details are specified, create a basic mock module
                 $name = $mod_dirs[$i];
 
-                // Build a default module config
-                $cfg = new stdClass();
-                $cfg->module_class = ucfirst($name);
-                $cfg->module_file = 'class.'.strtolower($name).".php";
-                $cfg->module_name = $name;
-                $cfg->dependencies = array();
-                $cfg->versions = array();
-                $cfg->directory = $mod_dir;
+                // Build a default mock module config
+                $mock = new stdClass();
+                $mock->module_class = ucfirst($name);
+                $mock->module_file = 'class.'.strtolower($name).".php";
+                $mock->module_name = $name;
+                $mock->dependencies = array();
+                $mock->versions = array();
+                $mock->directory = $mod_dir;
 
                 // Apply it
-                $register[$name] = (array)$cfg;
+                $register[$name] = (array)$mock;
                 Logger::newLevel("[ON]  '".$name."'");
                 Logger::stopLevel();
             }
         }
 
+        // And apply the registers to their dedicate location
         self::$register = $register;
+        Events::$register = $event_register;
         Logger::stopLevel();
 
     }

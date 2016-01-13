@@ -82,7 +82,6 @@ class Core {
 
 		// Build all the registers for correct operation
 		Modules::buildRegister();
-		Events::buildEventRegister();
 
 		// Load Composer
 		if ($config->enable_composer) {
@@ -90,6 +89,7 @@ class Core {
 			self::loadComposer($file);
 		}
 
+		// And fire the coreStartEvent
 		$event = Events::fireEvent('coreStartEvent');
 		if ($event->isCancelled()) {
 			return true;
@@ -122,8 +122,8 @@ class Core {
 
 		// Create the module holder
 		new Config();
-		new Events();
 		new Logger();
+		new Events();
 		new Models();
 		new Layout();
 		new Router();
