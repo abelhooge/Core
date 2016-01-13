@@ -39,7 +39,7 @@ return array(
     // The name of the module; Appended into Modules::get('namespace/module_name');
     'module_name'     => 'Example',
 
-    // Wether this module is an abstract. Making this abstract will only load the file, but not the class.
+    // whether this module is an abstract. Making this abstract will only load the file, but not the class.
     'abstract'      => false,
 
     // Other names for this module. Setting an alias will allow you to load the module with a different name.
@@ -77,6 +77,6 @@ return array(
     // The last update of this module
     'date_updated'  => '29-04-2015',
 
-    // Wether the module is enabled or not. If it is disabled, it can not be loaded.
+    // whether the module is enabled or not. If it is disabled, it can not be loaded.
     'enabled'       => true
 );

@@ -73,7 +73,7 @@ class Layout {
 	private static $file_extensions = array();
 
 	/**
-	 * Wether the template engines are already called.
+	 * whether the template engines are already called.
 	 * @var boolean True if loaded
 	 */
 	private static $engines_loaded = false;
@@ -190,7 +190,7 @@ class Layout {
 	/**
 	 * Converts a view string to a file using the directory and the used extensions.
 	 *
-	 * It will detect wether the file exists and choose a file according to the provided extensions
+	 * It will detect whether the file exists and choose a file according to the provided extensions
 	 * @param  String $string     The string used by a controller. eg: 'dashboard/home'
 	 * @param  String $directory  The directory to search in for the template
 	 * @param  array  $extensions Extensions to use for this template. Eg array('php', 'tpl') etc.
@@ -251,7 +251,7 @@ class Layout {
 	 * Converts a view string to a file using the directory and the used extensions.
 	 * It also sets the file variable of this class.
 	 *
-	 * It will detect wether the file exists and choose a file according to the provided extensions
+	 * It will detect whether the file exists and choose a file according to the provided extensions
 	 * @param  String $string     The string used by a controller. eg: 'dashboard/home'
 	 * @param  String $directory  The directory to search in for the template
 	 * @param  array  $extensions Extensions to use for this template. Eg array('php', 'tpl') etc.

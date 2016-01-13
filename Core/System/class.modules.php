@@ -209,7 +209,7 @@ class Modules {
                 return false;
             }
 
-            // Check wether the module is enabled or no
+            // Check whether the module is enabled or no
             if (isset($cfg->enabled)) {
                 if ($cfg->enabled) {
                     // Copy all the data into the register and enable

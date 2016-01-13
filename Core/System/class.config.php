@@ -46,7 +46,7 @@ use \FuzeWorks\ORM\ConfigDatabaseORM;
 class Config {
 
 	/**
-	 * Wether or not the database is active at the moment
+	 * whether or not the database is active at the moment
 	 * @access public
 	 * @var Boolean true on active database
 	 */
@@ -241,7 +241,7 @@ class ConfigDatabaseORM extends ConfigORM {
 	private $dbh;
 
 	/**
-	 * Wether the database connection has been successfully established
+	 * whether the database connection has been successfully established
 	 * @var boolean true on success
 	 */
 	public $success = false;

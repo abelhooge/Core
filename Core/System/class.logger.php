@@ -66,13 +66,13 @@ class Logger {
  	public static $Logs = array();
 
  	/**
- 	 * Wether to output the log after FuzeWorks has run
+ 	 * whether to output the log after FuzeWorks has run
  	 * @var boolean
  	 */
   	private static $print_to_screen = false;
 
   	/**
-  	 * Wether to output the log after FuzeWorks has run, regardless of conditions
+  	 * whether to output the log after FuzeWorks has run, regardless of conditions
   	 * @var boolean
   	 */
   	public static $debug = false;
