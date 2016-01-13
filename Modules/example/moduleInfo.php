@@ -36,7 +36,7 @@ return array(
     // The file that will be loaded upon requesting the module
     'module_file'     => 'class.main.php',
 
-    // The name of the module. When the module is loaded it can be called throughout the framework with $this->mods->example;
+    // The name of the module; Appended into Modules::get('namespace/module_name');
     'module_name'     => 'Example',
 
     // Wether this module is an abstract. Making this abstract will only load the file, but not the class.

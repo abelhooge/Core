@@ -81,11 +81,11 @@ class Config {
 			return $cfg = self::$cfg[$name] = new ConfigFileORM($file);
 		} else {
 			// Caught in a datastream
-			$this->core->loadMod('techfuze/database');
+			$module = Modules::get('core/database');
 			// No escape from dbactive
 			if (self::$dbActive) {
 				// Open your stream
-				$dborm = new ConfigDatabaseORM($this->mods->database, $name);
+				$dborm = new ConfigDatabaseORM($module, $name);
 				// Lookup for the success
 				if ($dborm->success) {
 					// And see
