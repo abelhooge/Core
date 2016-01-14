@@ -397,6 +397,7 @@ class Layout {
 	public static function loadTemplateEngines() {
 		if (!self::$engines_loaded) {
 			Events::fireEvent('layoutLoadEngineEvent');
+
 			// Load the engines provided in this file
 			self::registerEngine(new PHPEngine(), 'PHP', array('php'));
 			self::registerEngine(new SmartyEngine(), 'Smarty', array('tpl'));

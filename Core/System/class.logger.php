@@ -117,6 +117,9 @@ class Logger {
  			self::logInfo(self::backtrace());
  		}
 
+ 		// And finally stop the Logging
+ 		self::stopLevel();
+
 		if (self::$debug == true || self::$print_to_screen) {
 			self::log("Parsing debug log");
 			echo self::logToScreen();

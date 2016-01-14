@@ -166,7 +166,11 @@ class Modules {
                     // Return a reference
                     return self::$modules[strtolower($cfg->module_name)] = &$CLASS;
                 }
+            } else {
+                throw new ModuleException("Invalid module found: '".$name."'", 1);
             }
+        } else {
+            throw new ModuleException("Module not found: '".$name."'", 1);
         }
     }
 

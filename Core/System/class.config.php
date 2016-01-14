@@ -276,7 +276,7 @@ class ConfigDatabaseORM extends ConfigORM {
         try{
             $stmnt = $this->dbh->prepare("SELECT * FROM ".$prefix."config WHERE `file` = ?");
             $stmnt->execute(array($name));
-        }catch (PDOException $e){
+        } catch (PDOException $e){
             throw new ConfigException('Could not execute SQL-query due PDO-exception '.$e->getMessage());
         }
 
