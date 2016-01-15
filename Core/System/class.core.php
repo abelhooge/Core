@@ -53,6 +53,14 @@ class Core {
      */
     private static $loaded = false;
 
+    /**
+     * Working directory of the Framework
+     *
+     * This is required to make the shutdown function working under Apache webservers
+     * @var String $cwd
+     */
+    public static $cwd;
+
 	/**
 	 * Initializes the core
 	 *
@@ -94,6 +102,9 @@ class Core {
 		if ($event->isCancelled()) {
 			return true;
 		}
+
+		// Set the CWD for usage in the shutdown function+
+		self::$cwd = getcwd();
 	}
 
 	/**
@@ -136,9 +147,17 @@ class Core {
 	 * Stop FuzeWorks and run all shutdown functions.
 	 *
 	 * Afterwards run the Logger shutdown function in order to possibly display the log
+	 * @access public
+	 * @return void
 	 */
 	public static function shutdown() {
+		// Fix Apache bug where CWD is changed upon shutdown
+		chdir(self::$cwd);
+
+		// Fire the Shutdown event
 		Events::fireEvent('coreShutdownEvent');
+
+		// And end the logger
 		Logger::shutdown();
 	}
 
