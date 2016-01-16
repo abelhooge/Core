@@ -51,7 +51,7 @@ class Module {
 	protected $moduleName = 'placeholder';
 
 	/**
-	 * @var String name used in the mod array 
+	 * @var String name used in the mod array
 	 */
 	protected $linkName = 'placeholder';
 
@@ -59,6 +59,11 @@ class Module {
 	 * @var moduleInfo object of the module
 	 */
 	protected $cfg;
+
+	/**
+	 * @var array Advertisements send from other modules
+	 */
+	protected $advertisements = array();
 
 	/**
 	 * Returns the name of the module
@@ -150,6 +155,14 @@ class Module {
 			$config = var_export($this->cfg, true);
 			file_put_contents($file, "<?php return $config ;");
 		}
+	}
+
+	/**
+	 * Set the advertisements send by other modules
+	 * @param array $advertisements Advertisement data
+	 */
+	public function setAdvertisements($advertiseName, $advertiseData) {
+		$this->advertisements[$advertiseName] = $advertiseData;
 	}
 
 	/**

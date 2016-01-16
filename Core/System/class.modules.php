@@ -45,7 +45,13 @@ class Modules {
      * The module headers contain information required to loading the module
      * @var Array
      */
-    public static $register;
+    private static $register;
+
+    /**
+     * A register which holds all the module advertisements by key
+     * @var array
+     */
+    private static $advertiseRegister = array();
 
     /**
      * An array of all the loaded modules
@@ -85,10 +91,8 @@ class Modules {
                 $cfg = (object) self::$register[$name];
 
                 // Check if the module is disabled
-                if (isset($cfg->meta)) {
-                    throw new ModuleException("Requested mod '".$name."' could not be loaded. Not enabled", 1);
-                    return false;
-                }
+                if (isset($cfg->meta))
+                    throw new ModuleException("Could not load module. Module '".$name."' is not enabled", 1);
 
                 // Check if the module is already loaded. If so, only return a reference, if not, load the module
                 if (in_array($name, self::$loaded_modules)) {
@@ -117,7 +121,7 @@ class Modules {
                         Logger::log($msg);
                     } else {
                         // Throw Exception if the file does not exist
-                        throw new ModuleException("Requested mod '".$name."' could not be loaded. Class file not found", 1);
+                        throw new ModuleException("Could not load module. Module '".$name."' class file was not found.", 1);
                         return false;
                     }
 
@@ -134,15 +138,30 @@ class Modules {
                     $CLASS = new $class_name();
 
                     // Apply default methods
-                    if (method_exists($CLASS, 'setModulePath')) {
+                    if (method_exists($CLASS, 'setModulePath'))
                         $CLASS->setModulePath($cfg->directory);
-                    }
-                    if (method_exists($CLASS, 'setModuleLinkName')) {
+
+                    if (method_exists($CLASS, 'setModuleLinkName'))
                         $CLASS->setModuleLinkName(strtolower($cfg->module_name));
-                    }
-                    if (method_exists($CLASS, 'setModuleName')) {
+
+                    if (method_exists($CLASS, 'setModuleName'))
                         $CLASS->setModuleName($name);
+
+                    // Send all advertisements
+                    if (isset($cfg->listenFor)) {
+                        $listenFor = $cfg->listenFor;
+                        if (method_exists($CLASS, 'setAdvertisements')) {
+                            foreach ($listenFor as $advertiseName) {
+                                if (isset(self::$advertiseRegister[$advertiseName])) {
+                                    $CLASS->setAdvertisements($advertiseName, self::$advertiseRegister[$advertiseName]);
+                                }
+                            }
+                        } else {
+                            throw new ModuleException("Could not load module. Module '".$name."' listens for advertisement but does not implement setAdvertisements() method.", 1);
+                        }
                     }
+
+                    // Send the moduleConfig if possible
                     if (method_exists($CLASS, 'setModuleConfig')) {
                         // Append the config file to the module CFG (accessable through $this->cfg)
                         if (file_exists($cfg->directory . "/" . "config.".strtolower($cfg->module_name).".php")) {
@@ -155,9 +174,10 @@ class Modules {
                         $CLASS->setModuleConfig($cfg);
                     }
 
-                    if (!method_exists($CLASS, 'onLoad')) {
-                        throw new ModuleException("Module '".$name."' does not have an onLoad() method! Invalid module", 1);
-                    }
+                    // And finally check if it can be loaded
+                    if (!method_exists($CLASS, 'onLoad'))
+                        throw new ModuleException("Could not load module. Module '".$name."' does not have an onLoad() method", 1);
+
                     $CLASS->onLoad();
 
                     // Add to the loaded modules
@@ -167,7 +187,7 @@ class Modules {
                     return self::$modules[strtolower($cfg->module_name)] = &$CLASS;
                 }
             } else {
-                throw new ModuleException("Invalid module found: '".$name."'", 1);
+                throw new ModuleException("Could not load module. Module '".$name."' has an invalid config", 1);
             }
         } else {
             throw new ModuleException("Module not found: '".$name."'", 1);
@@ -422,6 +442,18 @@ class Modules {
 
                         // Log the event
                         Logger::Log('Event added: \''.$event.'\'');
+                    }
+                }
+
+                // And check for an advertisement tag
+                if (isset($cfg->advertise)) {
+                    // Cycle through advertisements
+                    foreach ($cfg->advertise as $advertiseName => $advertiseData) {
+                        // Log advertisement
+                        Logger::log('Advertisement added: \'' .$advertiseName. '\'');
+
+                        // Add to advertiseRegister
+                        self::$advertiseRegister[$advertiseName][$name] = $advertiseData;
                     }
                 }
 

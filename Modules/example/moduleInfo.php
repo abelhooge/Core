@@ -51,10 +51,17 @@ return array(
     // Events that this module listens for. When the exampleEvent is fired, this module will be loaded so the module can handle the event
     'events'        => array('exampleEvent'),
 
-    // Routes that this module listens on. If the URL /example/ gets called, this module will be loaded
-    // Everything after /example/ will be sent to the route() function in the matches array under the 'data' key
-    // A route must ALWAYS have the module capturing group. Otherwise it will fail
+    // Routes that this module listens on. Any URL that matches this pattern will load this module
+    // If the URL /example/ gets called, this module will be loaded
+    // Everything after /example/ will be sent to the route() function in the matches array under the, in this example, 'data' key
     'routes'        => array('/^example(|\/(?P<data>.*?))$/'),
+
+    // Advertises some data with the key 'exampleAdvertisement'. This data will be sent to a module which listens for this key.
+    // This allows for some data to be sent to a module which listens to this key.
+    'advertise'     => array('exampleAdvertisement' => array('exampleData')),
+
+    // Tells the module engine that this module would like all the data with the key 'exampleAdvertisement'.
+    'listenFor'     => array('exampleAdvertisement'),
 
     // The name of the module as it will be logged. This does not affect usage of the module in any way
     'name'          => 'FuzeWorks Example Module',
