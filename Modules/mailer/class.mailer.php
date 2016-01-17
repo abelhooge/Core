@@ -30,7 +30,9 @@
 
 namespace Module\Mailer;
 use \FuzeWorks\Module;
+use \FuzeWorks\ModuleException;
 use \FuzeWorks\Config;
+use \FuzeWorks\Logger;
 use \PHPMailer;
 
 /**
@@ -57,7 +59,9 @@ use \PHPMailer;
  	 * @access public
  	 */
 	public function onLoad() {
-		$this->cfg = Config::loadConfigFile('mailer', $this->getModulePath());
+		if (!class_exists('\PHPMailer')) {
+			throw new ModuleException("PHPMailer class not found! Is composer installed?", 1);
+		}
 	}
 
 	/**
