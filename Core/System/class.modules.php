@@ -95,7 +95,7 @@ class Modules {
                     throw new ModuleException("Could not load module. Module '".$name."' is not enabled", 1);
 
                 // Check if the module is already loaded. If so, only return a reference, if not, load the module
-                if (in_array($name, self::$loaded_modules)) {
+                if (in_array(strtolower($name), self::$loaded_modules)) {
                     // return the link
                     $c = self::$modules[strtolower($cfg->module_name)];
                     return $c;
@@ -178,10 +178,15 @@ class Modules {
                     if (!method_exists($CLASS, 'onLoad'))
                         throw new ModuleException("Could not load module. Module '".$name."' does not have an onLoad() method", 1);
 
-                    $CLASS->onLoad();
+                    // Prepare onLoad call
+                    $args = func_get_args();
+                    array_shift($args);
+
+                    // And call onLoad
+                    call_user_func_array(array($CLASS, 'onLoad'), $args);
 
                     // Add to the loaded modules
-                    self::$loaded_modules[] = $name;
+                    self::$loaded_modules[] = strtolower($name);
 
                     // Return a reference
                     return self::$modules[strtolower($cfg->module_name)] = &$CLASS;
