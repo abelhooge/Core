@@ -166,6 +166,15 @@ class Module {
 	}
 
 	/**
+	 * Get the advertisements with a specific name
+	 * @param  String $advertiseName AdvertisementName
+	 * @return array                 AdvertisementData
+	 */
+	public function getAdvertisements($advertiseName) {
+		return $this->advertisements[$advertiseName];
+	}
+
+	/**
 	 * Return a value from the module configuration
 	 * @access public
 	 * @param Mixed config Key
