@@ -31,57 +31,57 @@
 namespace FuzeWorks;
 
 /**
- * Class Module
+ * Trait Module
  *
- * Abstract Class for modules
+ * Contains all the methods modules should have
  * @package     net.techfuze.fuzeworks.core
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Module {
+trait Module {
 
 	/**
 	 * @var null|string Relative path to the module
 	 */
-	protected $modulePath = null;
+	protected static $modulePath = null;
 
 	/**
 	 * @var string Internal name of the module
 	 */
-	protected $moduleName = 'placeholder';
+	protected static $moduleName = 'placeholder';
 
 	/**
 	 * @var String name used in the mod array
 	 */
-	protected $linkName = 'placeholder';
+	protected static $linkName = 'placeholder';
 
 	/**
 	 * @var moduleInfo object of the module
 	 */
-	protected $cfg;
+	protected static $cfg;
 
 	/**
 	 * @var array Advertisements send from other modules
 	 */
-	protected $advertisements = array();
+	protected static $advertisements = array();
 
 	/**
 	 * Returns the name of the module
 	 *
 	 * @return string Returns the name of the module
 	 */
-	public function getModuleName(){
+	public static function getModuleName(){
 
-        return $this->moduleName;
+        return self::$moduleName;
     }
 
 	/**
 	 * Returns the path to the module
 	 * @return null|string
 	 */
-	public function getModulePath(){
+	public static function getModulePath(){
 
-        return $this->modulePath;
+        return self::$modulePath;
     }
 
     /**
@@ -89,8 +89,8 @@ class Module {
      * @access public
  	 * @return stdClass module config
      */
-    public function getModuleConfig() {
-    	return $this->cfg;
+    public static function getModuleConfig() {
+    	return self::$cfg;
     }
 
 	/**
@@ -101,11 +101,10 @@ class Module {
 	 *
 	 * @param string $modulePath
 	 */
-	public function setModulePath($modulePath = null){
-
+	public static function setModulePath($modulePath = null){
         // Only allow one change of this variable from outside
-        if($this->modulePath === null)
-            $this->modulePath = $modulePath;
+        if(self::$modulePath === null)
+            self::$modulePath = $modulePath;
     }
 
     /**
@@ -113,8 +112,8 @@ class Module {
      * @access public
      * @param String link name
      */
-    public function setModuleLinkName($linkName) {
-    	$this->linkName = $linkName;
+    public static function setModuleLinkName($linkName) {
+    	self::$linkName = $linkName;
     }
 
     /**
@@ -122,8 +121,8 @@ class Module {
      * @access public
      * @param String module name
      */
-    public function setModuleName($modName) {
-    	$this->moduleName = $modName;
+    public static function setModuleName($modName) {
+    	self::$moduleName = $modName;
     }
 
     /**
@@ -131,8 +130,8 @@ class Module {
      * @access public
      * @param stdClass module config
      */
-    public function setModuleConfig($config) {
-    	$this->cfg = $config;
+    public static function setModuleConfig($config) {
+    	self::$cfg = $config;
     }
 
     /**
@@ -141,12 +140,12 @@ class Module {
      * @param Mixed config Key
      * @param Mixed config value
      */
-	public function setConfigValue($key, $value) {
-		$file = $this->getModulePath() . "moduleInfo.php";
-		$this->cfg->$key = $value;
+	public static function setConfigValue($key, $value) {
+		$file = self::getModulePath() . "moduleInfo.php";
+		self::$cfg->$key = $value;
 
 		// Check if the module path is set yet
-		if ($this->getModulePath() == null) {
+		if (self::getModulePath() == null) {
 			Logger::logWarning("Could not write module config. ModulePath is not set", get_class($this));
 			return false;
 		}
@@ -161,8 +160,8 @@ class Module {
 	 * Set the advertisements send by other modules
 	 * @param array $advertisements Advertisement data
 	 */
-	public function setAdvertisements($advertiseName, $advertiseData) {
-		$this->advertisements[$advertiseName] = $advertiseData;
+	public static function setAdvertisements($advertiseName, $advertiseData) {
+		self::$advertisements[$advertiseName] = $advertiseData;
 	}
 
 	/**
@@ -170,8 +169,8 @@ class Module {
 	 * @param  String $advertiseName AdvertisementName
 	 * @return array                 AdvertisementData
 	 */
-	public function getAdvertisements($advertiseName) {
-		return $this->advertisements[$advertiseName];
+	public static function getAdvertisements($advertiseName) {
+		return self::$advertisements[$advertiseName];
 	}
 
 	/**
@@ -180,7 +179,7 @@ class Module {
 	 * @param Mixed config Key
 	 * @return Mixed config value
 	 */
-	public function getConfigValue($key) {
-		return $this->cfg->$key;
+	public static function getConfigValue($key) {
+		return self::$cfg->$key;
 	}
 }

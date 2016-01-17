@@ -43,7 +43,9 @@ use \FuzeWorks\Logger;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Main extends Module {
+class Main {
+
+	use Module;
 
 	/**
 	 * Loads the module and registers the events

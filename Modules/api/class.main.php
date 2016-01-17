@@ -39,14 +39,14 @@ use \FuzeWorks\Module;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Main extends Module {
-
+class Main {
+	use Module;
 	/**
 	 * Gets loaded upon module initialization
 	 *
 	 * Loads all the API types
 	 */
     public function onLoad() {
-        require_once($this->getModulePath() . "/class.rest.php");
+        require_once(self::getModulePath() . "/class.rest.php");
     }
 }

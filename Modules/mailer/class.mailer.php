@@ -41,7 +41,9 @@ use \PHPMailer;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
- class Main extends Module {
+ class Main {
+
+ 	use Module;
 
  	/**
  	 * Array of all the active PHPMailer instances
@@ -70,7 +72,7 @@ use \PHPMailer;
 			$this->mailers[$name] = new PHPMailer();
 
 			// Set settings
-			$cfg = $this->cfg;
+			$cfg = self::$cfg;
 
 			// First check what is enabled
 			if ($cfg->sendmail_enabled && !$cfg->smtp_enabled) {

@@ -32,6 +32,8 @@ namespace Module\Database;
 use \FuzeWorks\Module;
 use \FuzeWorks\Config;
 use \FuzeWorks\Logger;
+use \FuzeWorks\Events;
+use \FuzeWorks\EventPriority;
 use \PDO;
 use \FuzeWorks\DatabaseException;
 
@@ -44,7 +46,8 @@ use \FuzeWorks\DatabaseException;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Main extends Module {
+class Main {
+	use Module;
 
 	/**
 	 * The default database connection
@@ -56,6 +59,7 @@ class Main extends Module {
 
 	public function onLoad() {
 		Config::$dbActive = true;
+		Events::addListener(array($this, 'shutdown'), 'coreShutdownEvent', EventPriority::NORMAL);
 	}
 
 	/**
@@ -98,6 +102,11 @@ class Main extends Module {
 		} catch (Exception $e) {
 			throw (new DatabaseException('Could not connect to the database: "'. $e->getMessage() . '"'));
 		}
+	}
+
+	public function shutdown() {
+		Logger::log("Closing open database connections");
+		$this->DBH = null;
 	}
 
 	public function getPrefix() {

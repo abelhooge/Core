@@ -31,7 +31,7 @@
 return array(
 
     'module_class'    => 'Module\Database\Main',
-    'module_file'     => 'class.database.php',
+    'module_file'     => 'class.main.php',
     'module_name'     => 'Database',
 
     'abstract'      => false,

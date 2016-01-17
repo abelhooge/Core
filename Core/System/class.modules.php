@@ -138,14 +138,15 @@ class Modules {
                     $CLASS = new $class_name();
 
                     // Apply default methods
-                    if (method_exists($CLASS, 'setModulePath'))
-                        $CLASS->setModulePath($cfg->directory);
+                    if (method_exists($CLASS, 'setModulePath')) {
+                        $CLASS::setModulePath($cfg->directory);
+                    }
 
                     if (method_exists($CLASS, 'setModuleLinkName'))
-                        $CLASS->setModuleLinkName(strtolower($cfg->module_name));
+                        $CLASS::setModuleLinkName(strtolower($cfg->module_name));
 
                     if (method_exists($CLASS, 'setModuleName'))
-                        $CLASS->setModuleName($name);
+                        $CLASS::setModuleName($name);
 
                     // Send all advertisements
                     if (isset($cfg->listenFor)) {
@@ -153,7 +154,7 @@ class Modules {
                         if (method_exists($CLASS, 'setAdvertisements')) {
                             foreach ($listenFor as $advertiseName) {
                                 if (isset(self::$advertiseRegister[$advertiseName])) {
-                                    $CLASS->setAdvertisements($advertiseName, self::$advertiseRegister[$advertiseName]);
+                                    $CLASS::setAdvertisements($advertiseName, self::$advertiseRegister[$advertiseName]);
                                 }
                             }
                         } else {
@@ -171,7 +172,7 @@ class Modules {
                             }
                         }
 
-                        $CLASS->setModuleConfig($cfg);
+                        $CLASS::setModuleConfig($cfg);
                     }
 
                     // And finally check if it can be loaded

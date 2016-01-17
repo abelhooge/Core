@@ -42,14 +42,15 @@ use \FuzeWorks\DatabaseException;
  * @author      Abel Hoogeveen <abel@techfuze.net>
  * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
  */
-class Main extends Module implements ModelServer {
+class Main implements ModelServer {
+	use Module;
 
     public $fields  = array();
 	public $primary = 'id';
     public $table   = '';
 
     public function onLoad() {
-    	require_once($this->getModulePath() . '/class.query.php');
+    	require_once(self::getModulePath() . '/class.query.php');
     }
 
     public function giveModel($type) {

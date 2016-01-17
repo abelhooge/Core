@@ -47,7 +47,7 @@ use \FuzeWorks\Logger;
  * @method $this or() or(string $field, string $arg2) OR $arg2 is the value of the field, or an operator in which case the value is pushed to the third argument
  * @method $this and() and(string $field, string $arg2) AND $arg2 is the value of the field, or an operator in which case the value is pushed to the third argument
  */
-class Query extends Module {
+class Query {
 
     /**
      * @var array An array containing all the counted functions
