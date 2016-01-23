@@ -359,14 +359,14 @@ class QueryTests extends \CoreTestAbstract {
 
     public function testUpdateSimple(){
 
-        $this->query->update('table')->set(array('field' => 'value'));
+        $this->query->setTable('table')->update()->set(array('field' => 'value'));
         $this->assertEquals('UPDATE table SET field=?', $this->query->getSql());
         $this->assertEquals(array('value'), $this->query->getBinds());
     }
 
     public function testUpdateMultiple(){
 
-        $this->query->update('table')->set(array('field1' => 'value1', "field2" => 'value2'));
+        $this->query->setTable('table')->update()->set(array('field1' => 'value1', "field2" => 'value2'));
         $this->assertEquals('UPDATE table SET field1=?, field2=?', $this->query->getSql());
         $this->assertEquals(array('value1', 'value2'), $this->query->getBinds());
     }
@@ -377,7 +377,7 @@ class QueryTests extends \CoreTestAbstract {
 
     public function testDeleteSimple(){
 
-        $this->query->delete()->from('table');
+        $this->query->setTable('table')->delete();
         $this->assertEquals('DELETE FROM table', $this->query->getSql());
     }
 
@@ -407,7 +407,7 @@ class QueryTests extends \CoreTestAbstract {
 
     public function testReplaceSimple(){
 
-        $this->query->replace(array('field' => 'value'), 'table');
+        $this->query->setTable('table')->replace(array('field' => 'value'));
         $this->assertEquals('REPLACE INTO table (field) VALUES (?)', $this->query->getSql());
         $this->assertEquals(array('value'), $this->query->getBinds());
 
@@ -415,7 +415,7 @@ class QueryTests extends \CoreTestAbstract {
 
     public function testReplaceMultiple(){
 
-        $this->query->replace(array('field1' => 'value1', 'field2' => 'value2'), 'table');
+        $this->query->setTable('table')->replace(array('field1' => 'value1', 'field2' => 'value2'));
         $this->assertEquals('REPLACE INTO table (field1,field2) VALUES (?,?)', $this->query->getSql());
         $this->assertEquals(array('value1', 'value2'), $this->query->getBinds());
 

@@ -49,6 +49,7 @@ class LayoutTest extends CoreTestAbstract
 
     /**
      * @depends testGetFileExtensions
+     * @todo  Add malformed paths
      */
     public function testGetFilePath(){
 

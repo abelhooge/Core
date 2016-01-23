@@ -50,9 +50,9 @@ class Layout {
 
 	/**
 	 * The directory of the file to be loaded by the layout manager
-	 * @var null|string
+	 * @var string
 	 */
-	public static $directory = null;
+	public static $directory = 'Application/Views';
 
 	/**
 	 * All assigned currently assigned to the template
@@ -96,7 +96,8 @@ class Layout {
 	 * @return void
 	 * @throws LayoutException   On error
 	 */
-	public static function view($file, $directory = 'Application/Views') {
+	public static function view($file, $directory = null) {
+		$directory = (is_null($directory) ? self::$directory : $directory);
 		echo self::get($file, $directory);
 		return;
 	}
@@ -114,7 +115,8 @@ class Layout {
 	 * @return String            The output of the template
 	 * @throws LayoutException   On error
 	 */
-	public static function get($file, $directory = 'Application/Views') {
+	public static function get($file, $directory = null) {
+		$directory = (is_null($directory) ? self::$directory : $directory);
 		Logger::newLevel("Loading template file '".$file."' in '".$directory."'");
 
 		// First load the template engines
@@ -198,7 +200,7 @@ class Layout {
 	 * @throws LayoutException    On error
 	 */
 	public static function getFileFromString($string, $directory, $extensions = array()) {
-		$directory = preg_replace('#/+#','/',(!is_null($directory) ? $directory : "Application/Views") . "/");
+		$directory = preg_replace('#/+#','/',(!is_null($directory) ? $directory : self::$directory) . "/");
 
 		if (!file_exists($directory)) {
 			throw new LayoutException("Could not get file. Directory does not exist", 1);
@@ -260,7 +262,7 @@ class Layout {
 	 */
 	public static function setFileFromString($string, $directory, $extensions = array()) {
 		self::$file = self::getFileFromString($string, $directory, $extensions);
-		self::$directory = preg_replace('#/+#','/',(!is_null($directory) ? $directory : "Application/Views") . "/");
+		self::$directory = preg_replace('#/+#','/',(!is_null($directory) ? $directory : self::$directory) . "/");
 	}
 
 	/**
