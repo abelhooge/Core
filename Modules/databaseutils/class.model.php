@@ -35,6 +35,9 @@ use \FuzeWorks\Modules;
 use \FuzeWorks\Bus;
 use \FuzeWorks\ModelServer;
 use \FuzeWorks\DatabaseException;
+use \FuzeWorks\Config;
+use \FuzeWorks\Logger;
+use \PDOException;
 
 /**
  * Main class of the database utilities and model providers
@@ -91,12 +94,12 @@ class Model {
 	 */
 	public function query($query, $binds = null){
 
-		if($this->config->database->debug)
-			$this->logger->log("Manuel Query: ".$query, "Database Model");
+		if(Config::get('database')->debug)
+			Logger::log("Manuel Query: ".$query, "Database Model");
 
 		try{
 
-			$sth = $this->mods->database->prepare($query);
+			$sth = Modules::get('core/database')->prepare($query);
 			if($binds === null){
 
 				$sth->execute();
@@ -104,7 +107,7 @@ class Model {
 
 				$sth->execute($binds);
 			}
-		}catch (\PDOException $e){
+		}catch (PDOException $e){
 
 			throw new DatabaseException('Could not execute SQL-query due PDO-exception '.$e->getMessage());
 		}
@@ -120,6 +123,15 @@ class Model {
         }
 
 		return $result;
+	}
+
+	/**
+	 * Set the table you wish to approach
+	 * @param String $table Table name
+	 */
+	public function setTable($table) {
+		$this->table = $table;
+		return $this;
 	}
 
 	/**
@@ -147,7 +159,7 @@ class Model {
 
 		$queryBuilder = new Query();
 		$queryBuilder->setTable($this->table);
-        call_user_func_array(array($queryBuilder, 'update'), func_get_args());
+		$queryBuilder->update($this->table);
 
 		return $queryBuilder;
 	}
@@ -163,6 +175,7 @@ class Model {
 		$queryBuilder = new Query();
 		$queryBuilder->setTable($this->table);
         call_user_func_array(array($queryBuilder, 'delete'), func_get_args());
+        $queryBuilder->from();
 
 		return $queryBuilder;
 	}
@@ -207,7 +220,7 @@ class Model {
 	 * @return mixed
 	 */
 	public function getLastInsertId(){
-		return $this->mods->database->lastInsertId();
+		return Modules::get('core/database')->lastInsertId();
 	}
 
 	public function __call($name, $params) {
