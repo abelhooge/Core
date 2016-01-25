@@ -31,8 +31,132 @@
 namespace Module\Admin;
 
 class Page {
-	public $pagePath;
-	public $data = array();
+
+	private $pagePath;
+	private $subPath = array();
+	private $html;
+	private $title;
+	private $breadcrumbs = array();
+
+    /**
+     * Gets the value of pagePath.
+     *
+     * @return mixed
+     */
+    public function getPagePath()
+    {
+        return $this->pagePath;
+    }
+
+    /**
+     * Sets the value of pagePath.
+     *
+     * @param mixed $pagePath the page path
+     *
+     * @return self
+     */
+    public function setPagePath($pagePath)
+    {
+        $this->pagePath = $pagePath;
+
+        return $this;
+    }
+
+    /**
+     * Gets the value of subPath.
+     *
+     * @return mixed
+     */
+    public function getSubPath()
+    {
+        return $this->subPath;
+    }
+
+    /**
+     * Sets the value of subPath.
+     *
+     * @param mixed $subPath the sub path
+     *
+     * @return self
+     */
+    public function setSubPath($subPath)
+    {
+        $this->subPath = $subPath;
+
+        return $this;
+    }
+
+    /**
+     * Gets the value of html.
+     *
+     * @return mixed
+     */
+    public function getHtml()
+    {
+        return $this->html;
+    }
+
+    /**
+     * Sets the value of html.
+     *
+     * @param mixed $html the html
+     *
+     * @return self
+     */
+    public function setHtml($html)
+    {
+        $this->html = $html;
+
+        return $this;
+    }
+
+    /**
+     * Gets the value of title.
+     *
+     * @return mixed
+     */
+    public function getTitle()
+    {
+        return $this->title;
+    }
+
+    /**
+     * Sets the value of title.
+     *
+     * @param mixed $title the title
+     *
+     * @return self
+     */
+    public function setTitle($title)
+    {
+        $this->title = $title;
+
+        return $this;
+    }
+
+    /**
+     * Gets the value of breadcrumbs.
+     *
+     * @return mixed
+     */
+    public function getBreadcrumbs()
+    {
+        return $this->breadcrumbs;
+    }
+
+    /**
+     * Sets the value of breadcrumbs.
+     *
+     * @param mixed $breadcrumbs the breadcrumbs
+     *
+     * @return self
+     */
+    public function setBreadcrumbs($breadcrumbs)
+    {
+        $this->breadcrumbs = $breadcrumbs;
+
+        return $this;
+    }
 }
 
 ?>

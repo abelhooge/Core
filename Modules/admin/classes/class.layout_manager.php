@@ -54,13 +54,14 @@ class LayoutManager {
 		PageLoader::setPageList(self::$pageList);
 
 		// Get the page we are trying to load
-		$pageHTML = PageLoader::getPage(self::$matches);
+		PageLoader::loadPage(self::$matches);
+		$html = PageLoader::getHtml();
 		$activePage = PageLoader::getActivePage();
 
 		// And add the pageList
 		Layout::assign('pageList', self::$pageList);
 		Layout::assign('activePage', $activePage);
-		Layout::assign('pageHTML', $pageHTML);
+		Layout::assign('pageHTML', $html);
 
 		// And add more basic variables
 		foreach (self::getVariables() as $key => $value) {

@@ -32,8 +32,23 @@ namespace Module\Admin;
 
 class AdminRouter implements PageRouterInterface {
 
-	public function route($pagePath) {
+	private $pageObject;
+
+	public function route() {
 		//echo $pagePath;
+	}
+
+	/**
+	 * Import the page object from the Admin Module
+	 * @param  Page   $pageObject Page object
+	 * @return void
+	 */
+	public function importPage($pageObject) {
+		$this->pageObject = $pageObject;
+	}
+
+	public function getPage() {
+		return $this->pageObject;
 	}
 
 }

@@ -32,6 +32,9 @@ namespace Module\Admin;
 
 interface PageRouterInterface {
 
+	public function importPage($pageObject);
+	public function getPage();
+
 }
 
 ?>

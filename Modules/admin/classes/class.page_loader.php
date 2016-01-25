@@ -37,6 +37,9 @@ class PageLoader {
 
 	private static $pageList;
 	private static $activePage;
+	private static $html;
+	private static $breadcrumbs = array();
+	private static $title;
 
 	/**
 	 * Set the pageList
@@ -46,13 +49,13 @@ class PageLoader {
 		self::$pageList = $pageList;
 	}
 
-	public static function getPage($matches) {
+	public static function loadPage($matches) {
 		// First check if any data is given at all
 		Logger::newLevel("Retrieving page from module");
 		if (!isset($matches['identifier']) && !isset($matches['page'])) {
 			// If nothing is provided, load the dashboard
 			Logger::log("No input retrieved. Loading dashboard");
-			$html = self::dashboard();
+			return self::dashboard();
 		} elseif (!isset($matches['identifier']) || !isset($matches['page'])) {
 			// If incomplete data is provided, load a 404
 			Logger::log("Invalid input retrieved. Loading 404 not found page");
@@ -81,8 +84,22 @@ class PageLoader {
 
 				// Route the request into the module
 				Logger::log("Input valid and module loaded. Attempting to route request");
-				$htmlPage = new Page();
-				$router->route($matches['page']);
+
+				// Generating page object
+				$pageObject = new Page();
+				$pageObject->setPagePath($matches['page']);
+				$pageObject->setSubPath( (isset($matches['subdata']) ? $matches['subdata'] : null) );
+
+				// And send it
+				$router->importPage($pageObject);
+				$router->route();
+
+				// And retrieve it
+				$pageObject = $router->getPage();
+
+				// And retrieve some data
+				self::$html = $pageObject->getHtml();
+				// $html = $pageObject->getHtml();
 
 				Logger::stopLevel();
 				return '';
@@ -99,6 +116,10 @@ class PageLoader {
 		return self::error404();
 
 
+	}
+
+	public static function getHtml() {
+		return self::$html;
 	}
 
 	public static function getActivePage() {
