@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,35 +19,37 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 return array(
 
-    'module_class'    => 'Module\Database\Main',
-    'module_file'     => 'class.main.php',
-    'module_name'     => 'Database',
+    'module_class' => 'Module\Database\Main',
+    'module_file' => 'class.main.php',
+    'module_name' => 'Database',
 
-    'abstract'      => false,
-    'dependencies'  => array(),
-    'events'        => array(),
-    'sections'      => array(),
-    'aliases'       => array(),
+    'abstract' => false,
+    'dependencies' => array(),
+    'events' => array(),
+    'sections' => array(),
+    'aliases' => array(),
 
-    'name'          => 'FuzeWorks Database Module',
-    'description'   => 'PDO Wrapper class for FuzeWorks',
-    'author'        => 'core',
-    'version'       => '1.0.0',
-    'website'       => 'http://fuzeworks.techfuze.net/',
+    'name' => 'FuzeWorks Database Module',
+    'description' => 'PDO Wrapper class for FuzeWorks',
+    'author' => 'core',
+    'version' => '1.0.0',
+    'website' => 'http://fuzeworks.techfuze.net/',
 
-    'date_created'  => '30-04-2015',
-    'date_updated'  => '30-04-2015',
+    'date_created' => '30-04-2015',
+    'date_updated' => '30-04-2015',
 
-    'enabled'       => true,
+    'enabled' => true,
 );

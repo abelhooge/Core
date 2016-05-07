@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,45 +19,48 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 namespace FuzeWorks\Event;
-use \FuzeWorks\Event;
+
+use FuzeWorks\Event;
 
 /**
  * Event that gets loaded when a model is loaded.
  *
  * Use this to cancel the loading of a model, or change the model to be loaded
  *
- * @package     net.techfuze.fuzeworks.core.event
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
-class ModelLoadEvent extends Event {
-
-	/**
-	 * The directory the model gets loaded from
-	 * @var string|null
-	 */
+class ModelLoadEvent extends Event
+{
+    /**
+     * The directory the model gets loaded from.
+     *
+     * @var string|null
+     */
     public $directory = null;
 
     /**
-     * The name of the model to be loaded
+     * The name of the model to be loaded.
+     *
      * @var string|null
      */
     public $model = null;
 
-    public function init($model, $directory){
+    public function init($model, $directory)
+    {
         $this->model = $model;
         $this->directory = $directory;
     }
 }
-
-?>

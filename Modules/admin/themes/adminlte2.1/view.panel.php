@@ -7,18 +7,18 @@
     <!-- Tell the browser to be responsive to screen width -->
     <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
     <!-- Bootstrap 3.3.5 -->
-    <link rel="stylesheet" href="<?php echo($vars['viewDir']); ?>/assets/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="<?php echo $vars['viewDir']; ?>/assets/bootstrap/css/bootstrap.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
     <!-- Ionicons -->
     <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <!-- Theme style -->
-    <link rel="stylesheet" href="<?php echo($vars['viewDir']); ?>/assets/dist/css/AdminLTE.min.css">
+    <link rel="stylesheet" href="<?php echo $vars['viewDir']; ?>/assets/dist/css/AdminLTE.min.css">
     <!-- AdminLTE Skins. We have chosen the skin-blue for this starter
           page. However, you can choose any other skin. Make sure you
           apply the skin class to the body tag so the changes take effect.
     -->
-    <link rel="stylesheet" href="<?php echo($vars['viewDir']); ?>/assets/dist/css/skins/skin-blue.min.css">
+    <link rel="stylesheet" href="<?php echo $vars['viewDir']; ?>/assets/dist/css/skins/skin-blue.min.css">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -131,7 +131,7 @@
           <!-- Sidebar Menu -->
           <ul class="sidebar-menu">
             <li class="header">Navigate</li>
-            <?php include('view.sidebar.php'); ?>
+            <?php require 'view.sidebar.php'; ?>
           </ul><!-- /.sidebar-menu -->
         </section>
         <!-- /.sidebar -->
@@ -153,7 +153,7 @@
 
         <!-- Main content -->
         <section class="content">
-        <?php echo($vars['pageHTML']); ?>
+        <?php echo $vars['pageHTML']; ?>
           <!-- Your Page Content Here -->
 
         </section><!-- /.content -->
@@ -236,14 +236,14 @@
     <!-- REQUIRED JS SCRIPTS -->
 
     <!-- jQuery 2.1.4 -->
-    <script src="<?php echo($vars['viewDir']); ?>/assets/plugins/jQuery/jQuery-2.1.4.min.js"></script>
+    <script src="<?php echo $vars['viewDir']; ?>/assets/plugins/jQuery/jQuery-2.1.4.min.js"></script>
     <!-- Bootstrap 3.3.5 -->
-    <script src="<?php echo($vars['viewDir']); ?>/assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="<?php echo $vars['viewDir']; ?>/assets/bootstrap/js/bootstrap.min.js"></script>
     <!-- AdminLTE App -->
-    <script src="<?php echo($vars['viewDir']); ?>/assets/dist/js/app.min.js"></script>
+    <script src="<?php echo $vars['viewDir']; ?>/assets/dist/js/app.min.js"></script>
 
     <!-- SlimScroll -->
-    <script src="<?php echo($vars['viewDir']); ?>/assets/plugins/slimScroll/jquery.slimscroll.min.js"></script>
+    <script src="<?php echo $vars['viewDir']; ?>/assets/plugins/slimScroll/jquery.slimscroll.min.js"></script>
 
     <!-- Optionally, you can add Slimscroll and FastClick plugins.
          Both of these plugins are recommended to enhance the

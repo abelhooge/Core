@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,33 +19,35 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 return array(
 
-    'module_class'    => 'Module\Admin\Main',
-    'module_file'     => 'class.main.php',
-    'module_name'     => 'Admin',
-    'abstract'      => false,
-    'aliases'       => array(),
-    'dependencies'  => array(),
-    'events'        => array(),
-    'routes'        => array('/^admin(|\/(?P<identifier>.*?)(|\/(?<page>.*?)(|\/(?P<subdata>.*?))))$/'),
-    'advertise'     => array('admin' => array( 'identifier' => 'fuzeadmin', 'pages' => array( array( 'name' => 'TEST', 'page_path' => 'testPage', 'icon' => 'fa-plane'))    )),
-    'listenFor'     => array('admin'),
-    'name'          => 'FuzeWorks Admin Panel',
-    'description'   => 'Control Panel for FuzeWorks Modules and FrameWork',
-    'author'        => 'core',
-    'version'       => '1.0.0',
-    'website'       => 'http://fuzeworks.techfuze.net/',
-    'date_created'  => '13-01-2016',
-    'date_updated'  => '17-01-2016',
-    'enabled'       => true
+    'module_class' => 'Module\Admin\Main',
+    'module_file' => 'class.main.php',
+    'module_name' => 'Admin',
+    'abstract' => false,
+    'aliases' => array(),
+    'dependencies' => array(),
+    'events' => array(),
+    'routes' => array('/^admin(|\/(?P<identifier>.*?)(|\/(?<page>.*?)(|\/(?P<subdata>.*?))))$/'),
+    'advertise' => array('admin' => array('identifier' => 'fuzeadmin', 'pages' => array(array('name' => 'TEST', 'page_path' => 'testPage', 'icon' => 'fa-plane')))),
+    'listenFor' => array('admin'),
+    'name' => 'FuzeWorks Admin Panel',
+    'description' => 'Control Panel for FuzeWorks Modules and FrameWork',
+    'author' => 'core',
+    'version' => '1.0.0',
+    'website' => 'http://fuzeworks.techfuze.net/',
+    'date_created' => '13-01-2016',
+    'date_updated' => '17-01-2016',
+    'enabled' => true,
 );

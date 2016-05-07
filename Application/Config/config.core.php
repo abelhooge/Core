@@ -1,4 +1,6 @@
-<?php return array (
+<?php
+
+return array(
   'enable_composer' => true,
-  'composer_autoloader' => ''
-) ;
+  'composer_autoloader' => '',
+);

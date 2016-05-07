@@ -1,4 +1,6 @@
-<?php return array (
+<?php
+
+return array(
   'type' => '',
   'host' => '',
   'database' => '',
@@ -6,4 +8,4 @@
   'password' => '',
   'prefix' => '',
   'debug' => false,
-) ;
+);

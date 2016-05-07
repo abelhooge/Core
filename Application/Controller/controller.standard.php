@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,18 +19,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 namespace Application\Controller;
-use \FuzeWorks\ControllerAbstract;
-use \FuzeWorks\Layout;
+
+use FuzeWorks\ControllerAbstract;
+use FuzeWorks\Layout;
 
 /**
  * The default controller of FuzeWorks.
@@ -38,23 +41,20 @@ use \FuzeWorks\Layout;
  * This controller gets loaded when the '/' path is provided, eg. the home page.
  * By default, the index function gets loaded.
  *
- * @package     net.techfuze.fuzeworks.core
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
-class Standard extends ControllerAbstract {
-
-	/**
-	 * The default function of FuzeWorks.
-	 *
-	 * This code gets loaded for the Home page
-	 * @param  array  $path The path provided by the HTTP Server
-	 * @return void
-	 */
-	public function index($path = null) {
-		Layout::view('home');
-	}
+class Standard extends ControllerAbstract
+{
+    /**
+     * The default function of FuzeWorks.
+     *
+     * This code gets loaded for the Home page
+     *
+     * @param array $path The path provided by the HTTP Server
+     */
+    public function index($path = null)
+    {
+        Layout::view('home');
+    }
 }
-
-
-?>

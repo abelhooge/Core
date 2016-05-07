@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,116 +19,125 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 namespace Module\Example;
-use \FuzeWorks\Module;
-use \FuzeWorks\Event;
-use \FuzeWorks\EventPriority;
-use \FuzeWorks\Events;
-use \FuzeWorks\Logger;
+
+use FuzeWorks\Module;
+use FuzeWorks\Event;
+use FuzeWorks\EventPriority;
+use FuzeWorks\Events;
+use FuzeWorks\Logger;
 
 /**
  * Example module.
  *
  * Use this is a reference to create new modules.
- * @package     net.techfuze.fuzeworks.example
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ *
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
-class Main {
+class Main
+{
+    use Module;
 
-	use Module;
+    /**
+     * Loads the module and registers the events.
+     *
+     * Every main moduleclass needs an onLoad method. This method is called first before anything else and cam be used to do some global actions.
+     */
+    public function onLoad()
+    {
+        // Here we register an eventListener for the ExampleEvent. See ExampleListener for more info
+        Events::addListener(array($this, 'exampleListener'), 'ExampleEvent', EventPriority::NORMAL);
+    }
 
-	/**
-	 * Loads the module and registers the events
-	 *
-	 * Every main moduleclass needs an onLoad method. This method is called first before anything else and cam be used to do some global actions.
-	 * @access public
-	 */
-	public function onLoad() {
-		// Here we register an eventListener for the ExampleEvent. See ExampleListener for more info
-		Events::addListener(array($this, 'exampleListener'), 'ExampleEvent', EventPriority::NORMAL);
-	}
+    /**
+     * Test method that can be called.
+     *
+     * @return string Example text
+     */
+    public function test()
+    {
+        return 'It works!';
+    }
 
-	/**
-	 * Test method that can be called
-	 * @return String Example text
-	 */
-	public function test() {
-		return "It works!";
-	}
+    /**
+     * An example listener that introduces you to the basics of event handling.
+     *
+     * @param ExampleEvent $event The event to listen for
+     *
+     * @return ExampleEvent The event after it has been handled
+     */
+    public function exampleListener($event)
+    {
+        Logger::log('Called the eventListener. This listener can now handle the event and change some data');
+        // For this listener, we only change one variable
+        $event->setVariable('New Value');
 
-	/**
-	 * An example listener that introduces you to the basics of event handling
-	 * @param  ExampleEvent $event  The event to listen for
-	 * @return ExampleEvent         The event after it has been handled
-	 */
-	public function exampleListener($event) {
-		Logger::log("Called the eventListener. This listener can now handle the event and change some data");
-		// For this listener, we only change one variable
-		$event->setVariable("New Value");
+        // And then we return it
+        return $event;
+    }
 
-		// And then we return it
-		return $event;
-	}
+    /**
+     * In this example we create a simple event. This event will be created, passed around and then received in the example listener.
+     */
+    public function createEvent()
+    {
+        // First we log some data
+        Logger::log('Now creating a test event.');
 
-	/**
-	 * In this example we create a simple event. This event will be created, passed around and then received in the example listener.
-	 */
-	public function createEvent() {
-		// First we log some data
-		Logger::log("Now creating a test event.");
+        // First we create the event object and some variables to assign to it
+        $eventObject = new ExampleEvent();
+        $variable = 'Test Variable';
 
-		// First we create the event object and some variables to assign to it
-		$eventObject = new ExampleEvent();
-		$variable = "Test Variable";
+        // Then we fire the event by parsing the event object and the variables into the fireEvent function.
+        $event = Events::fireEvent($eventObject, $variable);
 
-		// Then we fire the event by parsing the event object and the variables into the fireEvent function.
-		$event = Events::fireEvent($eventObject, $variable);
+        // Here we can read some variables from the event
+        $result = $event->getVariable();
 
-		// Here we can read some variables from the event
-		$result = $event->getVariable();
+        // And now we can do things with the data. For now we just return it
+        return $result;
+    }
 
-		// And now we can do things with the data. For now we just return it
-		return $result;
-	}
-
-	/**
-	 * Gets called when the path matches the regex of this module.
-	 * @access public
-	 * @param  array   Regex matches
-	 * @return void
-	 */
-	public function route($matches = array()) {
-		// Just print the inputted data:
-		echo "<h3>Input data: ".$matches['data']."</h3>";
-	}
-
+    /**
+     * Gets called when the path matches the regex of this module.
+     *
+     * @param array   Regex matches
+     */
+    public function route($matches = array())
+    {
+        // Just print the inputted data:
+        echo '<h3>Input data: '.$matches['data'].'</h3>';
+    }
 }
 
-class ExampleEvent extends Event {
+class ExampleEvent extends Event
+{
+    private $var1;
 
-	private $var1;
+    public function init($variable)
+    {
+        $this->var1 = $variable;
+    }
 
-	public function init($variable) {
-		$this->var1 = $variable;
-	}
+    public function getVariable()
+    {
+        return $this->var1;
+    }
 
-	public function getVariable() {
-		return $this->var1;
-	}
-
-	public function setVariable($var) {
-		$this->var1 = $var;
-	}
+    public function setVariable($var)
+    {
+        $this->var1 = $var;
+    }
 }
-
-?>

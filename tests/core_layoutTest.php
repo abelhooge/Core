@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -20,28 +20,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
  * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
  * @link        http://fuzeworks.techfuze.net
  * @since       Version 0.0.1
+ *
  * @version     Version 0.0.1
  */
-
-use \FuzeWorks\Core;
 use \FuzeWorks\Layout;
-use \FuzeWorks\Events;
-use \FuzeWorks\TemplateEngine\TemplateEngine;
 
 /**
- * Class LayoutTest
+ * Class LayoutTest.
  *
  * This test will test the layout manager and the default TemplateEngines
  */
-class LayoutTest extends CoreTestAbstract
+class layoutTest extends CoreTestAbstract
 {
-
-    public function testGetFileExtensions() {
+    public function testGetFileExtensions()
+    {
         // Test getting php files
         $this->assertEquals('php', Layout::getExtensionFromFile('class.test.php'));
         $this->assertEquals('php', Layout::getExtensionFromFile('class.test.org.php'));
@@ -49,9 +47,11 @@ class LayoutTest extends CoreTestAbstract
 
     /**
      * @depends testGetFileExtensions
+     *
      * @todo  Add malformed paths
      */
-    public function testGetFilePath(){
+    public function testGetFilePath()
+    {
 
         // Extensions to be used in this test
         $extensions = array('php', 'json');
@@ -75,7 +75,8 @@ class LayoutTest extends CoreTestAbstract
     /**
      * @expectedException \FuzeWorks\LayoutException
      */
-    public function testMissingDirectory() {
+    public function testMissingDirectory()
+    {
         // Directory that does not exist
         Layout::setFileFromString('test', 'tests/layout/doesNotExist/', array('php'));
     }
@@ -83,18 +84,21 @@ class LayoutTest extends CoreTestAbstract
     /**
      * @expectedException \FuzeWorks\LayoutException
      */
-    public function testMissingFile() {
+    public function testMissingFile()
+    {
         Layout::setFileFromString('test', 'tests/layout/testMissingFile/', array('php'));
     }
 
     /**
      * @expectedException \FuzeWorks\LayoutException
      */
-    public function testUnknownFileExtension() {
+    public function testUnknownFileExtension()
+    {
         Layout::setFileFromString('test', 'tests/layout/testUnknownFileExtension/', array('php'));
     }
 
-    public function testGetEngineFromExtension() {
+    public function testGetEngineFromExtension()
+    {
         Layout::loadTemplateEngines();
 
         // Test all the default engines
@@ -107,14 +111,16 @@ class LayoutTest extends CoreTestAbstract
      * @depends testGetEngineFromExtension
      * @expectedException \FuzeWorks\LayoutException
      */
-    public function testGetEngineFromExtensionFail() {
+    public function testGetEngineFromExtensionFail()
+    {
         Layout::getEngineFromExtension('faulty');
     }
 
     /**
      * @depends testGetEngineFromExtension
      */
-    public function testCustomEngine() {
+    public function testCustomEngine()
+    {
 
         // Create the engine
         $mock = $this->getMockBuilder('\FuzeWorks\TemplateEngine\TemplateEngine')->getMock();
@@ -132,7 +138,8 @@ class LayoutTest extends CoreTestAbstract
         $this->assertEquals('output', Layout::get('test', 'tests/layout/testCustomEngine/'));
     }
 
-    public function testPHPEngine() {
+    public function testPHPEngine()
+    {
 
         // Directory of these tests
         $directory = 'tests/layout/testEngines/';
@@ -140,7 +147,8 @@ class LayoutTest extends CoreTestAbstract
         $this->assertEquals('PHP Template Check', Layout::get('php', $directory));
     }
 
-    public function testJSONEngine() {
+    public function testJSONEngine()
+    {
 
         // Directory of these tests
         $directory = 'tests/layout/testEngines/';

@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,20 +19,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 namespace Module\Admin;
 
-class PageList {
-
-	public $pages = array();
+class PageList
+{
+    public $pages = array();
 
     /**
      * Gets the value of pages.
@@ -45,23 +47,24 @@ class PageList {
     }
 
     /**
-     * Retrieve a page
-     * @param  string $unique_identifier Unique name for the page
-     * @return PageData                  PageData Object
+     * Retrieve a page.
+     *
+     * @param string $unique_identifier Unique name for the page
+     *
+     * @return PageData PageData Object
      */
-    public function getPage($unique_identifier) {
+    public function getPage($unique_identifier)
+    {
         return $this->pages[$unique_identifier];
     }
 
     /**
-     * Add a page to the array
-     * @param PageData  $page PageData Object
+     * Add a page to the array.
      *
-     * @return void
+     * @param PageData $page PageData Object
      */
-    public function addPage($page, $unique_identifier) {
-    	$this->pages[$unique_identifier] = $page;
+    public function addPage($page, $unique_identifier)
+    {
+        $this->pages[$unique_identifier] = $page;
     }
 }
-
-?>

@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -20,28 +20,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
  * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
  * @link        http://fuzeworks.techfuze.net
  * @since       Version 0.0.1
+ *
  * @version     Version 0.0.1
  */
-
 use \FuzeWorks\Events;
 use \FuzeWorks\Router;
 use \FuzeWorks\EventPriority;
 
 /**
- * Class RouterSetPathEventTest
+ * Class RouterSetPathEventTest.
  */
-class RouterSetPathEventTest extends CoreTestAbstract{
-
+class routerSetPathEventTest extends CoreTestAbstract
+{
     /**
-     * Check if the event is fired when it should be
+     * Check if the event is fired when it should be.
      */
-    public function testRouterSetPathEvent(){
-
+    public function testRouterSetPathEvent()
+    {
         $mock = $this->getMock('MockEvent', array('mockMethod'));
         $mock->expects($this->once())->method('mockMethod');
 
@@ -50,10 +51,10 @@ class RouterSetPathEventTest extends CoreTestAbstract{
     }
 
     /**
-     * Intercept and change
+     * Intercept and change.
      */
-    public function testRouterSetPathEvent_change(){
-
+    public function testRouterSetPathEvent_change()
+    {
         Events::addListener(array($this, 'listener_change'), 'routerSetPathEvent', EventPriority::NORMAL);
         Router::setPath('a/b/c');
 
@@ -61,17 +62,17 @@ class RouterSetPathEventTest extends CoreTestAbstract{
     }
 
     // Change title from new to other
-    public function listener_change($event){
-
+    public function listener_change($event)
+    {
         $this->assertEquals('a/b/c', $event->path);
         $event->path = 'x/y/z';
     }
 
     /**
-     * Cancel events
+     * Cancel events.
      */
-    public function testLayoutFunctionCallEvent_cancel(){
-
+    public function testLayoutFunctionCallEvent_cancel()
+    {
         Router::setPath('a/b/c');
 
         Events::addListener(array($this, 'listener_cancel'), 'routerSetPathEvent', EventPriority::NORMAL);
@@ -81,17 +82,16 @@ class RouterSetPathEventTest extends CoreTestAbstract{
     }
 
     // Cancel all calls
-    public function listener_cancel($event){
-
+    public function listener_cancel($event)
+    {
         $event->setCancelled(true);
     }
 
-
     /**
-     * Do not cancel events
+     * Do not cancel events.
      */
-    public function testLayoutFunctionCallEvent_dontcancel(){
-
+    public function testLayoutFunctionCallEvent_dontcancel()
+    {
         Router::setPath('a/b/c');
 
         Events::addListener(array($this, 'listener_dontcancel'), 'routerSetPathEvent', EventPriority::NORMAL);
@@ -101,8 +101,8 @@ class RouterSetPathEventTest extends CoreTestAbstract{
     }
 
     // Cancel all calls
-    public function listener_dontcancel($event){
-
+    public function listener_dontcancel($event)
+    {
         $event->setCancelled(false);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,71 +19,73 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 return array(
 
     // The class name of the module. This class will be loaded upon requesting the module
-    'module_class'    => 'Module\Example\Main',
+    'module_class' => 'Module\Example\Main',
 
     // The file that will be loaded upon requesting the module
-    'module_file'     => 'class.main.php',
+    'module_file' => 'class.main.php',
 
     // The name of the module; Appended into Modules::get('namespace/module_name');
-    'module_name'     => 'Example',
+    'module_name' => 'Example',
 
     // whether this module is an abstract. Making this abstract will only load the file, but not the class.
-    'abstract'      => false,
+    'abstract' => false,
 
     // Other names for this module. Setting an alias will allow you to load the module with a different name.
-    'aliases'       => array(),
+    'aliases' => array(),
 
     // Array of modules that should be loaded before this module
-    'dependencies'  => array(),
+    'dependencies' => array(),
 
     // Events that this module listens for. When the exampleEvent is fired, this module will be loaded so the module can handle the event
-    'events'        => array('exampleEvent'),
+    'events' => array('exampleEvent'),
 
     // Routes that this module listens on. Any URL that matches this pattern will load this module
     // If the URL /example/ gets called, this module will be loaded
     // Everything after /example/ will be sent to the route() function in the matches array under the, in this example, 'data' key
-    'routes'        => array('/^example(|\/(?P<data>.*?))$/'),
+    'routes' => array('/^example(|\/(?P<data>.*?))$/'),
 
     // Advertises some data with the key 'exampleAdvertisement'. This data will be sent to a module which listens for this key.
     // This allows for some data to be sent to a module which listens to this key.
-    'advertise'     => array('exampleAdvertisement' => array('exampleData')),
+    'advertise' => array('exampleAdvertisement' => array('exampleData')),
 
     // Tells the module engine that this module would like all the data with the key 'exampleAdvertisement'.
-    'listenFor'     => array('exampleAdvertisement'),
+    'listenFor' => array('exampleAdvertisement'),
 
     // The name of the module as it will be logged. This does not affect usage of the module in any way
-    'name'          => 'FuzeWorks Example Module',
+    'name' => 'FuzeWorks Example Module',
 
     // A description of the module.
-    'description'   => 'A descriptive module that functions as an example',
+    'description' => 'A descriptive module that functions as an example',
 
     // The author of the module. The author is the first part of the module name used for requesting. eg mycorp/example
-    'author'        => 'MyCorp',
+    'author' => 'MyCorp',
 
     // The current version of the module. Will be used for looking for updates
-    'version'       => '1.0.0',
+    'version' => '1.0.0',
 
     // The website to look at for the module update
-    'website'       => 'http://fuzeworks.techfuze.net/',
+    'website' => 'http://fuzeworks.techfuze.net/',
 
     // The initial creation of the module.
-    'date_created'  => '29-04-2015',
+    'date_created' => '29-04-2015',
 
     // The last update of this module
-    'date_updated'  => '29-04-2015',
+    'date_updated' => '29-04-2015',
 
     // whether the module is enabled or not. If it is disabled, it can not be loaded.
-    'enabled'       => true
+    'enabled' => true,
 );

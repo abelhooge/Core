@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,37 +19,37 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 return array(
 
-		# Sendmail Settings
-		'sendmail_enabled'	=> true,
+        // Sendmail Settings
+        'sendmail_enabled' => true,
 
-		# SMTP Settings
-		'smtp_enabled' 		=> false,
-		'smtp_host'			=> '',
-		'smtp_port'			=> 25,
-		'smtp_auth'			=> false,
-		'smtp_username'		=> '',
-		'smtp_password'		=> '',
-		/**
-		 * 0 = off
-		 * 1 = client messages
-		 * 2 = client and server messages
-		 */
-		'smtp_debug_level'	=> 0,
+        // SMTP Settings
+        'smtp_enabled' => false,
+        'smtp_host' => '',
+        'smtp_port' => 25,
+        'smtp_auth' => false,
+        'smtp_username' => '',
+        'smtp_password' => '',
+        /*
+         * 0 = off
+         * 1 = client messages
+         * 2 = client and server messages
+         */
+        'smtp_debug_level' => 0,
 
-		# Common sender information
-		'sender_name'		=> '',
-		'sender_mail'		=> '',
-	);
-
-?>
+        // Common sender information
+        'sender_name' => '',
+        'sender_mail' => '',
+    );
