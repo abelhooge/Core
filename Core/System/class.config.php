@@ -108,7 +108,7 @@ class Config
     }
 
     /**
-     * Magic config getter.
+     * Retrieves a config file from the Application folder
      *
      * @param string config file name
      *
