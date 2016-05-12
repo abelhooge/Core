@@ -1,4 +1,5 @@
 <?php
+
 /**
  * FuzeWorks.
  *
@@ -37,18 +38,26 @@ namespace FuzeWorks;
  *
  * The main tool to handle errors and exceptions. Provides some tools for debugging and tracking where errors take place
  * All fatal errors get catched by this class and get displayed if configured to do so.
+ * Also provides utilities to benchmark the application.
  *
  * @author    Abel Hoogeveen <abel@techfuze.net>
  * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
-class Logger
-{
+class Logger {
+
     /**
      * Log entries which display information entries.
      *
      * @var array
      */
     public static $infoErrors = array();
+
+    /**
+     * Log entries which display debugging entries.
+     *
+     * @var array
+     */
+    public static $debugErrors = array();
 
     /**
      * Log entries which display critical error entries.
@@ -86,12 +95,18 @@ class Logger
     public static $debug = false;
 
     /**
+     * List of all benchmark markpoints.
+     * 
+     * @var array
+     */
+    public static $markPoints = array();
+
+    /**
      * Initiates the Logger.
      *
      * Registers the error and exception handler, when required to do so by configuration
      */
-    public static function init()
-    {
+    public static function init() {
         // Register the error handler
         if (Config::get('error')->error_reporting == true) {
             set_error_handler(array('\FuzeWorks\Logger', 'errorHandler'), E_ALL);
@@ -107,8 +122,7 @@ class Logger
      *
      * Logs a fatal error and outputs the log when configured or requested to do so
      */
-    public static function shutdown()
-    {
+    public static function shutdown() {
         // Load last error if thrown
         $errfile = 'Unknown file';
         $errstr = 'shutdown';
@@ -145,8 +159,7 @@ class Logger
      * @param int Line. The line on which the error occured.
      * @param array context. Some of the error's relevant variables
      */
-    public static function errorHandler($type = E_USER_NOTICE, $error = 'Undefined Error', $errFile = null, $errLine = null, $context = null)
-    {
+    public static function errorHandler($type = E_USER_NOTICE, $error = 'Undefined Error', $errFile = null, $errLine = null, $context = null) {
         // Check type
         $thisType = self::getType($type);
         $LOG = array('type' => (!is_null($thisType) ? $thisType : 'ERROR'),
@@ -154,7 +167,7 @@ class Logger
             'logFile' => (!is_null($errFile) ? $errFile : ''),
             'logLine' => (!is_null($errLine) ? $errLine : ''),
             'context' => (!is_null($context) ? $context : ''),
-            'runtime' => round(self::getRelativeTime(), 4), );
+            'runtime' => round(self::getRelativeTime(), 4),);
         self::$Logs[] = $LOG;
     }
 
@@ -165,15 +178,14 @@ class Logger
      *
      * @param Exception $exception The occured exception.
      */
-    public static function exceptionHandler($exception)
-    {
+    public static function exceptionHandler($exception) {
         $message = $exception->getMessage();
         $code = $exception->getCode();
         $file = $exception->getFile();
         $line = $exception->getLine();
         $context = $exception->getTraceAsString();
 
-        self::logError('Exception thrown: '.$message.' | '.$code, null, $file, $line);
+        self::logError('Exception thrown: ' . $message . ' | ' . $code, null, $file, $line);
     }
 
     /**
@@ -181,8 +193,7 @@ class Logger
      *
      * @return string Output of the log
      */
-    public static function logToScreen()
-    {
+    public static function logToScreen() {
         // Send a screenLogEvent, allows for new screen log designs
         $event = Events::fireEvent('screenLogEvent');
         if ($event->isCancelled()) {
@@ -197,19 +208,21 @@ class Logger
             if ($log['type'] == 'LEVEL_START') {
                 ++$layer;
                 $color = 255 - ($layer * 25);
-                $string .= '<div style="background: rgb(188 , 232 ,'.$color.');border: 1px black solid;margin: 5px 0;padding: 5px 20px;">';
-                $string .= '<div style="font-weight: bold; font-size: 11pt;">'.$log['message'].'<span style="float: right">'.(!empty($log['runtime']) ? '('.round($log['runtime'] * 1000, 4).'ms)' : '').'</span></div>';
+                $string .= '<div style="background: rgb(188 , 232 ,' . $color . ');border: 1px black solid;margin: 5px 0;padding: 5px 20px;">';
+                $string .= '<div style="font-weight: bold; font-size: 11pt;">' . $log['message'] . '<span style="float: right">' . (!empty($log['runtime']) ? '(' . round($log['runtime'] * 1000, 4) . 'ms)' : '') . '</span></div>';
             } elseif ($log['type'] == 'LEVEL_STOP') {
                 --$layer;
                 $string .= '</div>';
             } elseif ($log['type'] == 'ERROR') {
-                $string .= '<div style="'.($layer == 0 ? 'padding-left: 21px;' : '').'font-size: 11pt; background-color:#f56954;">['.$log['type'].']'.(!empty($log['context']) && is_string($log['context']) ? '<u>['.$log['context'].']</u>' : '').' '.$log['message'].'
-	            	<span style="float: right">'.(!empty($log['logFile']) ? $log['logFile'] : '').' : '.(!empty($log['logLine']) ? $log['logLine'] : '').'('.round($log['runtime'] * 1000, 4).' ms)</span></div>';
+                $string .= '<div style="' . ($layer == 0 ? 'padding-left: 21px;' : '') . 'font-size: 11pt; background-color:#f56954;">[' . $log['type'] . ']' . (!empty($log['context']) && is_string($log['context']) ? '<u>[' . $log['context'] . ']</u>' : '') . ' ' . $log['message'] . '
+	            	<span style="float: right">' . (!empty($log['logFile']) ? $log['logFile'] : '') . ' : ' . (!empty($log['logLine']) ? $log['logLine'] : '') . '(' . round($log['runtime'] * 1000, 4) . ' ms)</span></div>';
             } elseif ($log['type'] == 'WARNING') {
-                $string .= '<div style="'.($layer == 0 ? 'padding-left: 21px;' : '').'font-size: 11pt; background-color:#f39c12;">['.$log['type'].']'.(!empty($log['context']) && is_string($log['context']) ? '<u>['.$log['context'].']</u>' : '').' '.$log['message'].'
-	            	<span style="float: right">'.(!empty($log['logFile']) ? $log['logFile'] : '').' : '.(!empty($log['logLine']) ? $log['logLine'] : '').'('.round($log['runtime'] * 1000, 4).' ms)</span></div>';
+                $string .= '<div style="' . ($layer == 0 ? 'padding-left: 21px;' : '') . 'font-size: 11pt; background-color:#f39c12;">[' . $log['type'] . ']' . (!empty($log['context']) && is_string($log['context']) ? '<u>[' . $log['context'] . ']</u>' : '') . ' ' . $log['message'] . '
+	            	<span style="float: right">' . (!empty($log['logFile']) ? $log['logFile'] : '') . ' : ' . (!empty($log['logLine']) ? $log['logLine'] : '') . '(' . round($log['runtime'] * 1000, 4) . ' ms)</span></div>';
             } elseif ($log['type'] == 'INFO') {
-                $string .= '<div style="'.($layer == 0 ? 'padding-left: 21px;' : '').'font-size: 11pt;">'.(!empty($log['context']) ? '<u>['.$log['context'].']</u>' : '').' '.$log['message'].'<span style="float: right">('.round($log['runtime'] * 1000, 4).' ms)</span></div>';
+                $string .= '<div style="' . ($layer == 0 ? 'padding-left: 21px;' : '') . 'font-size: 11pt;">' . (!empty($log['context']) ? '<u>[' . $log['context'] . ']</u>' : '') . ' ' . $log['message'] . '<span style="float: right">(' . round($log['runtime'] * 1000, 4) . ' ms)</span></div>';
+            } elseif ($log['type'] == 'DEBUG') {
+                $string .= '<div style="' . ($layer == 0 ? 'padding-left: 21px;' : '') . 'font-size: 11pt; background-color:#CCCCCC;">[' . $log['type'] . ']' . (!empty($log['context']) ? '<u>[' . $log['context'] . ']</u>' : '') . ' ' . $log['message'] . '<span style="float: right">(' . round($log['runtime'] * 1000, 4) . ' ms)</span></div>';
             }
         }
 
@@ -221,8 +234,7 @@ class Logger
      *
      * @return string HTML backtrace
      */
-    public static function backtrace()
-    {
+    public static function backtrace() {
         $e = new Exception();
         $trace = explode("\n", $e->getTraceAsString());
         // reverse array to make steps line up chronologically
@@ -233,13 +245,26 @@ class Logger
         $result = array();
 
         for ($i = 0; $i < $length; ++$i) {
-            $result[] = ($i + 1).')'.substr($trace[$i], strpos($trace[$i], ' ')); // replace '#someNum' with '$i)', set the right ordering
+            $result[] = ($i + 1) . ')' . substr($trace[$i], strpos($trace[$i], ' ')); // replace '#someNum' with '$i)', set the right ordering
         }
 
-        return "<b>BACKTRACE: <br/>\t".implode('<br/>', $result).'</b>';
+        return "<b>BACKTRACE: <br/>\t" . implode('<br/>', $result) . '</b>';
     }
 
-    /* =========================================LOGGING METHODS==============================================================*/
+    /* =========================================LOGGING METHODS============================================================== */
+
+    /**
+     * Set a benchmark markpoint.
+     * 
+     * Multiple calls to this function can be made so that several
+     * execution points can be timed.
+     * 
+     * @param   string    $name   Marker name
+     * @return  void
+     */
+    public static function mark($name) {
+        self::$markPoints[$name] = microtime(TRUE);
+    }
 
     /**
      * Create a information log entry.
@@ -249,8 +274,7 @@ class Logger
      * @param string $file The file where the log occured
      * @param int    $line The line where the log occured
      */
-    public static function log($msg, $mod = null, $file = 0, $line = 0)
-    {
+    public static function log($msg, $mod = null, $file = 0, $line = 0) {
         self::logInfo($msg, $mod, $file, $line);
     }
 
@@ -262,16 +286,35 @@ class Logger
      * @param string $file The file where the log occured
      * @param int    $line The line where the log occured
      */
-    public static function logInfo($msg, $mod = null, $file = 0, $line = 0)
-    {
+    public static function logInfo($msg, $mod = null, $file = 0, $line = 0) {
         $LOG = array('type' => 'INFO',
             'message' => (!is_null($msg) ? $msg : ''),
             'logFile' => (!is_null($file) ? $file : ''),
             'logLine' => (!is_null($line) ? $line : ''),
             'context' => (!is_null($mod) ? $mod : ''),
-            'runtime' => round(self::getRelativeTime(), 4), );
+            'runtime' => round(self::getRelativeTime(), 4),);
 
         self::$infoErrors[] = $LOG;
+        self::$Logs[] = $LOG;
+    }
+
+    /**
+     * Create a information log entry.
+     *
+     * @param string $msg  The information to be logged
+     * @param string $mod  The name of the module
+     * @param string $file The file where the log occured
+     * @param int    $line The line where the log occured
+     */
+    public static function logDebug($msg, $mod = null, $file = 0, $line = 0) {
+        $LOG = array('type' => 'DEBUG',
+            'message' => (!is_null($msg) ? $msg : ''),
+            'logFile' => (!is_null($file) ? $file : ''),
+            'logLine' => (!is_null($line) ? $line : ''),
+            'context' => (!is_null($mod) ? $mod : ''),
+            'runtime' => round(self::getRelativeTime(), 4),);
+
+        self::$debugErrors[] = $LOG;
         self::$Logs[] = $LOG;
     }
 
@@ -283,14 +326,13 @@ class Logger
      * @param string $file The file where the log occured
      * @param int    $line The line where the log occured
      */
-    public static function logError($msg, $mod = null, $file = 0, $line = 0)
-    {
+    public static function logError($msg, $mod = null, $file = 0, $line = 0) {
         $LOG = array('type' => 'ERROR',
             'message' => (!is_null($msg) ? $msg : ''),
             'logFile' => (!is_null($file) ? $file : ''),
             'logLine' => (!is_null($line) ? $line : ''),
             'context' => (!is_null($mod) ? $mod : ''),
-            'runtime' => round(self::getRelativeTime(), 4), );
+            'runtime' => round(self::getRelativeTime(), 4),);
 
         self::$criticalErrors[] = $LOG;
         self::$Logs[] = $LOG;
@@ -304,14 +346,13 @@ class Logger
      * @param string $file The file where the log occured
      * @param int    $line The line where the log occured
      */
-    public static function logWarning($msg, $mod = null, $file = 0, $line = 0)
-    {
+    public static function logWarning($msg, $mod = null, $file = 0, $line = 0) {
         $LOG = array('type' => 'WARNING',
             'message' => (!is_null($msg) ? $msg : ''),
             'logFile' => (!is_null($file) ? $file : ''),
             'logLine' => (!is_null($line) ? $line : ''),
             'context' => (!is_null($mod) ? $mod : ''),
-            'runtime' => round(self::getRelativeTime(), 4), );
+            'runtime' => round(self::getRelativeTime(), 4),);
 
         self::$warningErrors[] = $LOG;
         self::$Logs[] = $LOG;
@@ -325,14 +366,13 @@ class Logger
      * @param string $file The file where the log occured
      * @param int    $line The line where the log occured
      */
-    public static function newLevel($msg, $mod = null, $file = null, $line = null)
-    {
+    public static function newLevel($msg, $mod = null, $file = null, $line = null) {
         $LOG = array('type' => 'LEVEL_START',
             'message' => (!is_null($msg) ? $msg : ''),
             'logFile' => (!is_null($file) ? $file : ''),
             'logLine' => (!is_null($line) ? $line : ''),
             'context' => (!is_null($mod) ? $mod : ''),
-            'runtime' => round(self::getRelativeTime(), 4), );
+            'runtime' => round(self::getRelativeTime(), 4),);
 
         self::$Logs[] = $LOG;
     }
@@ -345,19 +385,18 @@ class Logger
      * @param string $file The file where the log occured
      * @param int    $line The line where the log occured
      */
-    public static function stopLevel($msg = null, $mod = null, $file = null, $line = null)
-    {
+    public static function stopLevel($msg = null, $mod = null, $file = null, $line = null) {
         $LOG = array('type' => 'LEVEL_STOP',
             'message' => (!is_null($msg) ? $msg : ''),
             'logFile' => (!is_null($file) ? $file : ''),
             'logLine' => (!is_null($line) ? $line : ''),
             'context' => (!is_null($mod) ? $mod : ''),
-            'runtime' => round(self::getRelativeTime(), 4), );
+            'runtime' => round(self::getRelativeTime(), 4),);
 
         self::$Logs[] = $LOG;
     }
 
-    /* =========================================OTHER METHODS==============================================================*/
+    /* =========================================OTHER METHODS============================================================== */
 
     /**
      * Returns a string representation of an error
@@ -367,8 +406,7 @@ class Logger
      *
      * @return string String representation
      */
-    public static function getType($type)
-    {
+    public static function getType($type) {
         switch ($type) {
             case E_ERROR:
                 return 'ERROR';
@@ -402,7 +440,7 @@ class Logger
                 return 'WARNING';
         }
 
-        return $type = 'Unknown error: '.$type;
+        return $type = 'Unknown error: ' . $type;
     }
 
     /**
@@ -411,10 +449,8 @@ class Logger
      * @param int  $errno HTTP error code
      * @param bool $view  true to view error on website
      */
-    public static function http_error($errno = 500, $view = true)
-    {
+    public static function http_error($errno = 500, $view = true) {
         $http_codes = array(
-
             400 => 'Bad Request',
             401 => 'Unauthorized',
             402 => 'Payment Required',
@@ -450,9 +486,9 @@ class Logger
             511 => 'Network Authentication Required',
         );
 
-        self::logError('HTTP-error '.$errno.' called');
-        self::log('Sending header HTTP/1.1 '.$errno.' '.$http_codes[$errno]);
-        header('HTTP/1.1 '.$errno.' '.$http_codes[$errno]);
+        self::logError('HTTP-error ' . $errno . ' called');
+        self::log('Sending header HTTP/1.1 ' . $errno . ' ' . $http_codes[$errno]);
+        header('HTTP/1.1 ' . $errno . ' ' . $http_codes[$errno]);
 
         // Do we want the error-view with it?
         if ($view == false) {
@@ -460,31 +496,29 @@ class Logger
         }
 
         // Load the view
-        $view = 'errors/'.$errno;
-        self::log('Loading view '.$view);
+        $view = 'errors/' . $errno;
+        self::log('Loading view ' . $view);
 
         // Try and load the view, if impossible, load HTTP code instead.
         try {
             Layout::view($view);
         } catch (LayoutException $exception) {
             // No error page could be found, just echo the result
-            echo "<h1>$errno</h1><h3>".$http_codes[$errno].'</h3>';
+            echo "<h1>$errno</h1><h3>" . $http_codes[$errno] . '</h3>';
         }
     }
 
     /**
      * Enable error to screen logging.
      */
-    public static function enable()
-    {
+    public static function enable() {
         self::$print_to_screen = true;
     }
 
     /**
      * Disable error to screen logging.
      */
-    public static function disable()
-    {
+    public static function disable() {
         self::$print_to_screen = false;
     }
 
@@ -495,11 +529,45 @@ class Logger
      *
      * @return int Time passed since FuzeWorks init
      */
-    private static function getRelativeTime()
-    {
+    private static function getRelativeTime() {
         $startTime = STARTTIME;
         $time = microtime(true) - $startTime;
 
         return $time;
     }
+
+    /**
+     * Elapsed time
+     *
+     * Calculates the time difference between two marked points.
+     *
+     * If the first parameter is empty this function instead returns the
+     * {elapsed_time} pseudo-variable. This permits the full system
+     * execution time to be shown in a template. The output class will
+     * swap the real value for this variable.
+     *
+     * @param	string	$point1		A particular marked point
+     * @param	string	$point2		A particular marked point
+     * @param	int	$decimals	Number of decimal places
+     *
+     * @return	string	Calculated elapsed time on success,
+     * 			an '{elapsed_string}' if $point1 is empty
+     * 			or an empty string if $point1 is not found.
+     */
+    public static function elapsedTime($point1 = '', $point2 = '', $decimals = 4) {
+        if ($point1 === '') {
+            return '{elapsed_time}';
+        }
+
+        if (!isset(self::$markPoints[$point1])) {
+            return '';
+        }
+
+        if (!isset(self::$markPoints[$point2])) {
+            self::$markPoints[$point2] = microtime(TRUE);
+        }
+
+        return number_format(self::$markPoints[$point2] - self::$markPoints[$point1], $decimals);
+    }
+
 }
