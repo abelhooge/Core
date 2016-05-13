@@ -187,4 +187,24 @@ class Core
 
         return false;
     }
+
+    /**
+     * Checks whether the current running version of PHP is equal to the input string.
+     *
+     * @param   string
+     * @return  bool    true if running higher than input string
+     *
+     */
+    public static function isPHP($version)
+    {
+        static $_is_php;
+        $version = (string) $version;
+
+        if ( ! isset($_is_php[$version]))
+        {
+            $_is_php[$version] = version_compare(PHP_VERSION, $version, '>=');
+        }
+
+        return $_is_php[$version];
+    }
 }

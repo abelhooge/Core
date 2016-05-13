@@ -48,7 +48,7 @@ class Libraries
 
 	protected static $libraries = array();
 
-	public static function get($libraryName, $parameters = null, $directory = null) 
+	public static function get($libraryName, array $parameters = null, $directory = null) 
 	{
 		if (empty($libraryName)) 
 		{
@@ -246,6 +246,7 @@ class Libraries
 		}
 
 		// Now load the class
+		$parameters = (is_null($parameters) ? array() : $parameters);
 		self::$libraries[$class] = new $class($parameters);
 		Logger::log("Loaded Library: ".$class);
 		return $c = self::$libraries[$class];
