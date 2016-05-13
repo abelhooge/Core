@@ -73,6 +73,7 @@ class Core
         // Defines the time the framework starts. Used for timing functions in the framework
         if (!defined('STARTTIME')) {
             define('STARTTIME', microtime(true));
+            define('DS', DIRECTORY_SEPARATOR);
         }
 
         // Load basics
@@ -135,8 +136,9 @@ class Core
         include_once 'Core/System/class.router.php';
         include_once 'Core/System/class.abstract.module.php';
         include_once 'Core/System/class.modules.php';
+        include_once 'Core/System/class.libraries.php';
 
-        // Create the module holder
+        // Load the core classes
         new Config();
         new Logger();
         new Events();
@@ -144,6 +146,7 @@ class Core
         new Layout();
         new Router();
         new Modules();
+        new Libraries();
 
         self::$loaded = true;
     }
