@@ -350,6 +350,8 @@ class Router
 
                 return true;
             }
+        } else {
+            self::$callable = $event->callable;
         }
 
         // And log the input to the logger
@@ -386,21 +388,31 @@ class Router
 
         // Construct file paths and classes
         $class = '\Application\Controller\\'.ucfirst($controller);
-        $file = 'Application/Controller/controller.'.$controller.'.php';
+        $directory = 'Application/Controller/';
+        $file = $directory . 'controller.'.$controller.'.php';
 
-        Logger::log('Loading controller '.$class.' from file: '.$file);
+        $event = Events::fireEvent('routerLoadControllerEvent', 
+            $file, 
+            $directory, 
+            $class, 
+            $controller, 
+            $function, 
+            $parameters
+        );
+
+        Logger::log('Loading controller '.$event->className.' from file: '.$event->file);
 
         // Check if the file exists
-        if (file_exists($file)) {
-            if (!class_exists($class)) {
-                include $file;
+        if (file_exists($event->file)) {
+            if (!class_exists($event->className)) {
+                include $event->file;
             }
 
             // Get the path the controller should know about
             $path = substr(self::getPath(), ($pos = strpos(self::getPath(), '/')) !== false ? $pos + 1 : 0);
 
             // And create the controller
-            self::$callable = new $class($path);
+            self::$callable = new $event->className($path);
 
             // If the controller does not want a function to be loaded, provide a halt parameter.
             if (isset(self::$callable->halt)) {
@@ -408,17 +420,17 @@ class Router
             }
 
             // Check if method exists or if there is a caller function
-            if (method_exists(self::$callable, $function) || method_exists(self::$callable, '__call')) {
+            if (method_exists(self::$callable, $event->function) || method_exists(self::$callable, '__call')) {
                 // Execute the function on the controller
-                echo self::$callable->{$function}($parameters);
+                echo self::$callable->{$event->function}($event->parameters);
             } else {
                 // Function could not be found
-                Logger::log('Could not find function '.$function.' on controller '.$class);
+                Logger::log('Could not find function '.$event->function.' on controller '.$event->className);
                 Logger::http_error(404);
             }
         } else {
             // Controller could not be found
-            Logger::log('Could not find controller '.$class);
+            Logger::log('Could not find controller '.$event->className);
             Logger::http_error(404);
         }
     }
