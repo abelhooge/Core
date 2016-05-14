@@ -375,9 +375,29 @@ class Modules
      * Create a register with all the module headers from all the existing modules.
      *
      * Used to correctly load all modules
+     * @param   bool    $cache          true if loading from cache
+     * @param   string  $cachingMethod  the driver used in the caching library
+     * @param   int     $cachingTime    The time the registers are cached
      */
-    public static function buildRegister()
+    public static function buildRegister($cache = false, $cachingMethod = 'file', $cachingTime = 300)
     {
+        // First check if the caching engine can be used
+        if ($cache)
+        {
+            $cache = Libraries::getDriver('cache');
+            $moduleRegister = $cache->$cachingMethod->get('moduleRegister');
+            $eventRegister = $cache->$cachingMethod->get('eventRegister');
+
+            if ( ! is_bool($moduleRegister) && ! is_bool($eventRegister) )
+            {
+                Logger::newLevel("Loadig Module Headers from Cache");
+                self::$register = $moduleRegister;
+                Events::$register = $eventRegister;
+                Logger::stopLevel();
+                return true;
+            }
+        }
+
         Logger::newLevel('Loading Module Headers', 'Core');
 
         // Get all the module directories
@@ -509,6 +529,13 @@ class Modules
                 Logger::newLevel("[ON]  '".$name."'");
                 Logger::stopLevel();
             }
+        }
+
+        if ($cache)
+        {
+            Logger::log("Saving registry to cache");
+            $cache->$cachingMethod->save('moduleRegister', $register, $cachingTime);
+            $cache->$cachingMethod->save('eventRegister', $event_register, $cachingTime);
         }
 
         // And apply the registers to their dedicate location

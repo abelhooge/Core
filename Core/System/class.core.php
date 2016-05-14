@@ -93,7 +93,10 @@ class Core
         Router::init();
 
         // Build all the registers for correct operation
-        Modules::buildRegister();
+        Modules::buildRegister($config->registry_caching, 
+            $config->registry_caching_method,
+            $config->registry_caching_time
+            );
 
         // Load Composer
         if ($config->enable_composer) {
