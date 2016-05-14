@@ -49,9 +49,26 @@ class Libraries
 	{
 		if (empty($libraryName)) 
 		{
-			return Logger::logError("Could not load library. No name provided");
+			throw new LibraryException("Could not load library. No name provided", 1);
 		}
 
+		return self::loadLibrary($libraryName, $parameters, $directory);
+	}
+
+	public static function getDriver($libraryName, array $parameters = null, $directory = null)
+	{
+		if (empty($libraryName))
+		{
+			throw new LibraryException("Could not load driver. No name provided", 1);
+		}
+
+		// Load the driver class if it is not yet loaded
+		if ( ! class_exists('FuzeWorks\FW_Driver_Library', false))
+		{
+			require_once('Core'.DS.'Libraries'.DS.'Driver.php');
+		}
+
+		// And then load and return the library
 		return self::loadLibrary($libraryName, $parameters, $directory);
 	}
 
@@ -174,7 +191,7 @@ class Libraries
 			return self::initLibrary('\FuzeWorks\Library\FW_'.$class, $parameters);
 		}
 
-		throw new Exception("Could not load library. File ".'Core'.DS.'Libraries'.DS.$subdir.$class.'.php'." exists but does not declare \FuzeWorks\Library\FW_$class", 1);
+		throw new LibraryException("Could not load library. File ".'Core'.DS.'Libraries'.DS.$subdir.$class.'.php'." exists but does not declare \FuzeWorks\Library\FW_$class", 1);
 	}
 
 	private static function loadAppLibrary($class, $subdir, $parameters, array $directories) 
@@ -196,26 +213,26 @@ class Libraries
 
 			// Determine the file
 			$file = $directory . DS . $subdir . $class . '.php';
-			$class = '\Application\Library\\'.$class;
+			$className = '\Application\Library\\'.$class;
 
 			// Check if the file was already loaded
-			if (class_exists($class, false)) 
+			if (class_exists($className, false)) 
 			{
 				// Return existing instance
-				if (!isset(self::$libraries[$class])) 
+				if (!isset(self::$libraries[$className])) 
 				{
-					return self::initLibrary($class, $parameters);
+					return self::initLibrary($className, $parameters);
 				}
 
-				Logger::log("Library '".$class."' already loaded. Returning existing instance");
-				return self::$libraries[$class];
+				Logger::log("Library '".$className."' already loaded. Returning existing instance");
+				return self::$libraries[$className];
 			}
 
 			// Otherwise load the file first
 			if (file_exists($file))
 			{
 				include_once($file);
-				return self::initLibrary($class, $parameters);
+				return self::initLibrary($className, $parameters);
 			}
 
 			// Maybe it's in a subdirectory with the same name as the class

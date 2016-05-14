@@ -31,11 +31,11 @@
  */
 
 /**
- * CodeIgniter Array Helpers
+ * FuzeWorks Array Helpers
  *
- * Converted to FuzeWorks.
+ * Converted from CodeIgniter.
  *
- * @package		CodeIgniter
+ * @package		FuzeWorks
  * @subpackage	Helpers
  * @category	Helpers
  * @author		EllisLab Dev Team
