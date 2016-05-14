@@ -400,6 +400,11 @@ class Router
             $parameters
         );
 
+        // Cancel if requested to do so
+        if ($event->isCancelled()) {
+            return;
+        }
+
         Logger::log('Loading controller '.$event->className.' from file: '.$event->file);
 
         // Check if the file exists

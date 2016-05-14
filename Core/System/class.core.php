@@ -137,6 +137,7 @@ class Core
         include_once 'Core/System/class.abstract.module.php';
         include_once 'Core/System/class.modules.php';
         include_once 'Core/System/class.libraries.php';
+        include_once 'Core/System/class.helpers.php';
 
         // Load the core classes
         new Config();
@@ -147,6 +148,7 @@ class Core
         new Router();
         new Modules();
         new Libraries();
+        new Helpers();
 
         self::$loaded = true;
     }

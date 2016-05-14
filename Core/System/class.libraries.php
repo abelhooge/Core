@@ -32,9 +32,6 @@
 
 namespace FuzeWorks;
 
-use FuzeWorks\Logger;
-use FuzeWorks\Config;
-
 /**
  * @todo add documentation
  *
@@ -101,7 +98,7 @@ class Libraries
 
 		// Retrieve the subclass prefix
 		$corePrefix = '\FuzeWorks\Library\FW_';
-		$appPrefix = '\Application\Library\\' . Config::get('main')->application_library_prefix;
+		$appPrefix = '\Application\Library\\' . Config::get('main')->application_prefix;
 		$prefix = $corePrefix;
 
 		// Perform a check to see if the library is already loaded
@@ -151,7 +148,7 @@ class Libraries
 		include_once('Core'.DS.'Libraries'.DS.$subdir.$class.'.php');
 		
 		// Now let's check for extensions
-		$subclass = Config::get('main')->application_library_prefix . $class;
+		$subclass = Config::get('main')->application_prefix . $class;
 		foreach ($directories as $directory) 
 		{
 			$file = $directory . DS . $subdir . $subclass . '.php';
@@ -251,24 +248,25 @@ class Libraries
 		Logger::log("Loaded Library: ".$class);
 		return $c = self::$libraries[$class];
 	}
+
+	public static function addLibraryPath($directory)
+	{
+		if (!in_array($directory, self::$libraryPaths))
+		{
+			self::$libraryPaths[] = $directory;
+		}
+	}
+
+	public static function removeLibraryPath($directory)
+	{
+		if (($key = array_search($directory, self::$libraryPaths)) !== false) 
+		{
+		    unset(self::$libraryPaths[$key]);
+		}
+	}
+
+	public static function getLibraryPaths()
+	{
+		return self::$libraryPaths;
+	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
