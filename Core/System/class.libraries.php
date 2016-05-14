@@ -45,17 +45,17 @@ class Libraries
 
 	protected static $libraries = array();
 
-	public static function get($libraryName, array $parameters = null, $directory = null) 
+	public static function get($libraryName, array $parameters = null, $directory = null, $keepInstance = false) 
 	{
 		if (empty($libraryName)) 
 		{
 			throw new LibraryException("Could not load library. No name provided", 1);
 		}
 
-		return self::loadLibrary($libraryName, $parameters, $directory);
+		return self::loadLibrary($libraryName, $parameters, $directory, $keepInstance);
 	}
 
-	public static function getDriver($libraryName, array $parameters = null, $directory = null)
+	public static function getDriver($libraryName, array $parameters = null, $directory = null, $keepInstance = false)
 	{
 		if (empty($libraryName))
 		{
@@ -69,10 +69,10 @@ class Libraries
 		}
 
 		// And then load and return the library
-		return self::loadLibrary($libraryName, $parameters, $directory);
+		return self::loadLibrary($libraryName, $parameters, $directory, $keepInstance);
 	}
 
-	private static function loadLibrary($libraryName, $parameters = null, $directory = null) 
+	private static function loadLibrary($libraryName, $parameters = null, $directory = null, $keepInstance = false) 
 	{
 		// First get the directories where the library can be located
 		$directories = (is_null($directory) ? self::$libraryPaths : array($directory));
@@ -98,14 +98,14 @@ class Libraries
 		if (file_exists('Core'.DS.'Libraries'.DS.$subdir.$class.'.php'))
 		{
 			// Load base library
-			return self::loadCoreLibrary($class, $subdir, $parameters, $directories);
+			return self::loadCoreLibrary($class, $subdir, $parameters, $directories, $keepInstance);
 		}
 
 		// Otherwise try and load an Application Library
-		return self::loadAppLibrary($class, $subdir, $parameters, $directories);
+		return self::loadAppLibrary($class, $subdir, $parameters, $directories, $keepInstance);
 	}
 
-	private static function loadCoreLibrary($class, $subdir, $parameters, array $directories) 
+	private static function loadCoreLibrary($class, $subdir, $parameters, array $directories, $keepInstance = false) 
 	{
 		// First check if the input is correct
 		if (!is_array($directories)) 
@@ -132,8 +132,15 @@ class Libraries
 				return self::initLibrary($prefix.$class, $parameters);
 			}
 
-			Logger::log("Library '".$prefix.$class."' already loaded. Returning existing instance");
-			return self::$libraries[$prefix.$class];
+			// If required to do so, return the existing instance or load a new one
+			if ($keepInstance)
+			{
+				Logger::log("Library '".$prefix.$class."' already loaded. Returning existing instance");
+				return self::$libraries[$prefix.$class];	
+			}
+
+			Logger::log("Library '".$prefix.$class."' already loaded. Returning new instance");
+			return self::initLibrary($prefix.$class, $parameters);
 		}
 
 		// Remove the core directory from the checklist
@@ -194,7 +201,7 @@ class Libraries
 		throw new LibraryException("Could not load library. File ".'Core'.DS.'Libraries'.DS.$subdir.$class.'.php'." exists but does not declare \FuzeWorks\Library\FW_$class", 1);
 	}
 
-	private static function loadAppLibrary($class, $subdir, $parameters, array $directories) 
+	private static function loadAppLibrary($class, $subdir, $parameters, array $directories, $keepInstance = false) 
 	{
 		// First check if the input is correct
 		if (!is_array($directories)) 
@@ -224,8 +231,15 @@ class Libraries
 					return self::initLibrary($className, $parameters);
 				}
 
-				Logger::log("Library '".$className."' already loaded. Returning existing instance");
-				return self::$libraries[$className];
+				// If required to do so, return the existing instance or load a new one
+				if ($keepInstance)
+				{
+					Logger::log("Library '".$className."' already loaded. Returning existing instance");
+					return self::$libraries[$prefix.$class];	
+				}
+
+				Logger::log("Library '".$className."' already loaded. Returning new instance");
+				return self::initLibrary($className, $parameters);
 			}
 
 			// Otherwise load the file first
@@ -238,7 +252,7 @@ class Libraries
 			// Maybe it's in a subdirectory with the same name as the class
 			if ($subdir === '')
 			{
-				return self::loadLibrary($class."/".$class, $parameters);
+				return self::loadLibrary($class."/".$class, $parameters, $directories, $keepInstance);
 			}
 		}
 
@@ -256,14 +270,19 @@ class Libraries
 		// Check if the adress is already reserved
 		if (isset(self::$libraries[$class]))
 		{
-			return Logger::logWarning("Library is already loaded. Aborting");
+			$parameters = (is_null($parameters) ? array() : $parameters);
+			$classObject = new $class($parameters);
+			Logger::log("Loaded new Library instance of: ".$class);
+			return $classObject;
+		} 
+		else 
+		{
+			// Now load the class
+			$parameters = (is_null($parameters) ? array() : $parameters);
+			self::$libraries[$class] = new $class($parameters);
+			Logger::log("Loaded Library: ".$class);
+			return $c = self::$libraries[$class];
 		}
-
-		// Now load the class
-		$parameters = (is_null($parameters) ? array() : $parameters);
-		self::$libraries[$class] = new $class($parameters);
-		Logger::log("Loaded Library: ".$class);
-		return $c = self::$libraries[$class];
 	}
 
 	public static function addLibraryPath($directory)
