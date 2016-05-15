@@ -1,7 +1,7 @@
 <?php
 
 return array(
-  'cache_path' => '',
+  'cache_file_path' => '',
   'memcached' => array(
 		'default' => array(
 			'hostname' => '127.0.0.1',

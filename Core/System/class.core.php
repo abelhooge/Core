@@ -92,16 +92,24 @@ class Core
         // And initialize the router paths
         Router::init();
 
-        // Build all the registers for correct operation
-        Modules::buildRegister($config->registry_caching, 
-            $config->registry_caching_method,
-            $config->registry_caching_time
-            );
+        // Build all the registers for correct operation, if modules are enabled
+        if ($config->enable_modules)
+        {
+            Modules::buildRegister($config->registry_caching, 
+                $config->registry_caching_method,
+                $config->registry_caching_time
+                );
+        }
 
         // Load Composer
         if ($config->enable_composer) {
             $file = ($config->composer_autoloader != '' ? $config->composer_autoloader : 'vendor/autoload.php');
             self::loadComposer($file);
+        }
+
+        if (!$config->enable_events)
+        {
+            Events::disable();
         }
 
         // And fire the coreStartEvent

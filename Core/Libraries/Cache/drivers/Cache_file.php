@@ -66,7 +66,7 @@ class FW_Cache_file extends FW_Driver {
 		Helpers::load('file');
 		Helpers::load('common');
 
-		$path = Config::get('cache')->cache_path;
+		$path = Config::get('cache')->cache_file_path;
 		$this->_cache_path = ($path === '') ? 'Application'.DS.'Cache/' : $path;
 	}
 

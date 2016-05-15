@@ -183,8 +183,12 @@ class Events
             return false;
         }
 
-        Logger::newLevel("Firing Event: '".$eventName."'");
-        Logger::log('Initializing Event');
+        if (self::$enabled)
+        {
+            Logger::newLevel("Firing Event: '".$eventName."'");
+            Logger::log('Initializing Event');            
+        }
+
 
         if (func_num_args() > 1) {
             call_user_func_array(array($event, 'init'), array_slice(func_get_args(), 1));
@@ -192,9 +196,6 @@ class Events
 
         // Do not run if the event system is disabled
         if (!self::$enabled) {
-            Logger::log('Event system is disabled');
-            Logger::stopLevel();
-
             return $event;
         }
 
