@@ -124,6 +124,11 @@ class Helpers
         throw new HelperException("Could not load helper. Helper not found.", 1);
     }
 
+    public static function get($helperName, $directory = null)
+    {
+        return self::load($helperName, $directory);
+    }
+
     public static function addHelperPath($directory)
     {
         if (!in_array($directory, $directories))
@@ -145,15 +150,3 @@ class Helpers
         return $directories;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

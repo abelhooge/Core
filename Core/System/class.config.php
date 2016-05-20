@@ -87,7 +87,7 @@ class Config
             return $cfg = self::$cfg[$name] = new ConfigFileORM($file);
         } else {
             // Caught in a datastream
-            $module = Modules::get('core/database');
+            /*$module = Modules::get('core/database');
             // No escape from dbactive
             if (self::$dbActive) {
                 // Open your stream
@@ -97,13 +97,10 @@ class Config
                     // And see
                     return $cfg = self::$cfg[$name] = $dborm;
                 }
-            }
+            }*/
 
             // I'm just a poor exception
             throw new ConfigException("Config file '".strtolower($name)."' was not found", 1);
-
-            // I need no returnee
-            return false;
         }
     }
 

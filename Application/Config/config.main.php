@@ -8,5 +8,6 @@ return array(
   'administrator_mail' => '',
   'default_controller' => 'standard',
   'default_function' => 'index',
-  'application_prefix' => 'MY_'
+  'application_prefix' => 'MY_',
+  'charset' => 'utf8'
 );

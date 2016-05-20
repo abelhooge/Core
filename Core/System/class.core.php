@@ -92,6 +92,12 @@ class Core
         // And initialize the router paths
         Router::init();
 
+        // Disable events if requested to do so
+        if (!$config->enable_events)
+        {
+            Events::disable();
+        }
+
         // Build all the registers for correct operation, if modules are enabled
         if ($config->enable_modules)
         {
@@ -105,11 +111,6 @@ class Core
         if ($config->enable_composer) {
             $file = ($config->composer_autoloader != '' ? $config->composer_autoloader : 'vendor/autoload.php');
             self::loadComposer($file);
-        }
-
-        if (!$config->enable_events)
-        {
-            Events::disable();
         }
 
         // And fire the coreStartEvent
@@ -149,6 +150,7 @@ class Core
         include_once 'Core/System/class.modules.php';
         include_once 'Core/System/class.libraries.php';
         include_once 'Core/System/class.helpers.php';
+        include_once 'Core/System/class.database.php';
 
         // Load the core classes
         new Config();
@@ -160,6 +162,7 @@ class Core
         new Modules();
         new Libraries();
         new Helpers();
+        new Database();
 
         self::$loaded = true;
     }
@@ -206,7 +209,6 @@ class Core
      *
      * @param   string
      * @return  bool    true if running higher than input string
-     *
      */
     public static function isPHP($version)
     {
