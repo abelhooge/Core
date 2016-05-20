@@ -44,7 +44,7 @@ use FuzeWorks\DatabaseException;
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-abstract class CI_DB_forge {
+abstract class FW_DB_forge {
 
 	/**
 	 * Database object
@@ -235,7 +235,7 @@ abstract class CI_DB_forge {
 	 *
 	 * @param	string	$key
 	 * @param	bool	$primary
-	 * @return	CI_DB_forge
+	 * @return	FW_DB_forge
 	 */
 	public function add_key($key, $primary = FALSE)
 	{
@@ -273,7 +273,7 @@ abstract class CI_DB_forge {
 	 * Add Field
 	 *
 	 * @param	array	$field
-	 * @return	CI_DB_forge
+	 * @return	FW_DB_forge
 	 */
 	public function add_field($field)
 	{

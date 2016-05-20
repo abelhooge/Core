@@ -41,7 +41,7 @@
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-class CI_DB_sqlite_forge extends CI_DB_forge {
+class FW_DB_sqlite_forge extends FW_DB_forge {
 
 	/**
 	 * CREATE TABLE IF statement

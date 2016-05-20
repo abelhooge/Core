@@ -41,7 +41,7 @@
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-class CI_DB_ibase_utility extends CI_DB_utility {
+class FW_DB_ibase_utility extends FW_DB_utility {
 
 	/**
 	 * Export

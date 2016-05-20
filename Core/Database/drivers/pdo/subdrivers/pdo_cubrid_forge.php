@@ -41,7 +41,7 @@
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-class CI_DB_pdo_cubrid_forge extends CI_DB_pdo_forge {
+class FW_DB_pdo_cubrid_forge extends FW_DB_pdo_forge {
 
 	/**
 	 * CREATE DATABASE statement

@@ -46,7 +46,7 @@
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-class CI_DB_pdo_oci_driver extends CI_DB_pdo_driver {
+class FW_DB_pdo_oci_driver extends FW_DB_pdo_driver {
 
 	/**
 	 * Sub-driver
@@ -76,8 +76,8 @@ class CI_DB_pdo_oci_driver extends CI_DB_pdo_driver {
 	/**
 	 * COUNT string
 	 *
-	 * @used-by	CI_DB_driver::count_all()
-	 * @used-by	CI_DB_query_builder::count_all_results()
+	 * @used-by	FW_DB_driver::count_all()
+	 * @used-by	FW_DB_query_builder::count_all_results()
 	 *
 	 * @var	string
 	 */

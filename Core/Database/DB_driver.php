@@ -50,7 +50,7 @@ use FuzeWorks\Helpers;
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-abstract class CI_DB_driver {
+abstract class FW_DB_driver {
 
 	/**
 	 * Data Source Name / Connect string
@@ -97,7 +97,7 @@ abstract class CI_DB_driver {
 	/**
 	 * Sub-driver
 	 *
-	 * @used-by	CI_DB_pdo_driver
+	 * @used-by	FW_DB_pdo_driver
 	 * @var	string
 	 */
 	public $subdriver;
@@ -209,7 +209,7 @@ abstract class CI_DB_driver {
 	/**
 	 * Queries list
 	 *
-	 * @see	CI_DB_driver::$save_queries
+	 * @see	FW_DB_driver::$save_queries
 	 * @var	string[]
 	 */
 	public $queries			= array();
@@ -295,7 +295,7 @@ abstract class CI_DB_driver {
 	/**
 	 * DB Cache object
 	 *
-	 * @see	CI_DB_cache
+	 * @see	FW_DB_cache
 	 * @var	object
 	 */
 	public $CACHE;
@@ -347,8 +347,8 @@ abstract class CI_DB_driver {
 	/**
 	 * COUNT string
 	 *
-	 * @used-by	CI_DB_driver::count_all()
-	 * @used-by	CI_DB_query_builder::count_all_results()
+	 * @used-by	FW_DB_driver::count_all()
+	 * @used-by	FW_DB_query_builder::count_all_results()
 	 *
 	 * @var	string
 	 */
@@ -732,7 +732,7 @@ abstract class CI_DB_driver {
 			// resource ID won't be any good once we've cached the
 			// result object, so we'll have to compile the data
 			// and save it)
-			$CR = new CI_DB_result($this);
+			$CR = new FW_DB_result($this);
 			$CR->result_object	= $RES->result_object();
 			$CR->result_array	= $RES->result_array();
 			$CR->num_rows		= $RES->num_rows();
@@ -756,7 +756,7 @@ abstract class CI_DB_driver {
 	 */
 	public function load_rdriver()
 	{
-		$driver = 'CI_DB_'.$this->dbdriver.'_result';
+		$driver = 'FW_DB_'.$this->dbdriver.'_result';
 
 		if ( ! class_exists($driver, FALSE))
 		{
@@ -1685,7 +1685,7 @@ abstract class CI_DB_driver {
 	 */
 	protected function _cache_init()
 	{
-		if ( ! class_exists('CI_DB_Cache', FALSE))
+		if ( ! class_exists('FW_DB_Cache', FALSE))
 		{
 			require_once('Core'.DS.'Database'.DS.'DB_cache.php');
 		}
@@ -1694,7 +1694,7 @@ abstract class CI_DB_driver {
 			return TRUE;
 		}
 
-		$this->CACHE = new CI_DB_Cache($this); // pass db object to support multiple db connections and returned db objects
+		$this->CACHE = new FW_DB_Cache($this); // pass db object to support multiple db connections and returned db objects
 		return TRUE;
 	}
 

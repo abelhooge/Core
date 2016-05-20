@@ -33,7 +33,7 @@
 /**
  * SQLite3 Result Class
  *
- * This class extends the parent result class: CI_DB_result
+ * This class extends the parent result class: FW_DB_result
  *
  * Converted from CodeIgniter.
  *
@@ -43,7 +43,7 @@
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-class CI_DB_sqlite3_result extends CI_DB_result {
+class FW_DB_sqlite3_result extends FW_DB_result {
 
 	/**
 	 * Number of fields in the result set

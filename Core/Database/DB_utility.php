@@ -46,7 +46,7 @@ use FuzeWorks\DatabaseException;
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-abstract class CI_DB_utility {
+abstract class FW_DB_utility {
 
 	/**
 	 * Database object

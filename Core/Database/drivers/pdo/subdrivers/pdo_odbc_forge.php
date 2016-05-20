@@ -41,7 +41,7 @@
  * @link		https://codeigniter.com/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-class CI_DB_pdo_odbc_forge extends CI_DB_pdo_forge {
+class FW_DB_pdo_odbc_forge extends FW_DB_pdo_forge {
 
 	/**
 	 * UNSIGNED support

@@ -48,7 +48,7 @@ use FuzeWorks\Logger;
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-class CI_DB_mssql_driver extends CI_DB {
+class FW_DB_mssql_driver extends FW_DB {
 
 	/**
 	 * Database driver
@@ -420,7 +420,7 @@ class CI_DB_mssql_driver extends CI_DB {
 	{
 		if ($this->qb_limit)
 		{
-			return 'WITH ci_delete AS (SELECT TOP '.$this->qb_limit.' * FROM '.$table.$this->_compile_wh('qb_where').') DELETE FROM ci_delete';
+			return 'WITH fw_delete AS (SELECT TOP '.$this->qb_limit.' * FROM '.$table.$this->_compile_wh('qb_where').') DELETE FROM fw_delete';
 		}
 
 		return parent::_delete($table);
@@ -449,7 +449,7 @@ class CI_DB_mssql_driver extends CI_DB {
 			// We have to strip the ORDER BY clause
 			$sql = trim(substr($sql, 0, strrpos($sql, $orderby)));
 
-			// Get the fields to select from our subquery, so that we can avoid CI_rownum appearing in the actual results
+			// Get the fields to select from our subquery, so that we can avoid FW_rownum appearing in the actual results
 			if (count($this->qb_select) === 0)
 			{
 				$select = '*'; // Inevitable
@@ -469,9 +469,9 @@ class CI_DB_mssql_driver extends CI_DB {
 			}
 
 			return 'SELECT '.$select." FROM (\n\n"
-				.preg_replace('/^(SELECT( DISTINCT)?)/i', '\\1 ROW_NUMBER() OVER('.trim($orderby).') AS '.$this->escape_identifiers('CI_rownum').', ', $sql)
-				."\n\n) ".$this->escape_identifiers('CI_subquery')
-				."\nWHERE ".$this->escape_identifiers('CI_rownum').' BETWEEN '.($this->qb_offset + 1).' AND '.$limit;
+				.preg_replace('/^(SELECT( DISTINCT)?)/i', '\\1 ROW_NUMBER() OVER('.trim($orderby).') AS '.$this->escape_identifiers('FW_rownum').', ', $sql)
+				."\n\n) ".$this->escape_identifiers('FW_subquery')
+				."\nWHERE ".$this->escape_identifiers('FW_rownum').' BETWEEN '.($this->qb_offset + 1).' AND '.$limit;
 		}
 
 		return preg_replace('/(^\SELECT (DISTINCT)?)/i','\\1 TOP '.$limit.' ', $sql);

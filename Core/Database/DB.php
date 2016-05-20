@@ -149,25 +149,25 @@ function &DB($params = '', $query_builder_override = NULL)
 	if ( ! isset($query_builder) OR $query_builder === TRUE)
 	{
 		require_once('Core'.DS.'Database'.DS.'DB_query_builder.php');
-		if ( ! class_exists('CI_DB', FALSE))
+		if ( ! class_exists('FW_DB', FALSE))
 		{
 			/**
-			 * CI_DB
+			 * FW_DB
 			 *
-			 * Acts as an alias for both CI_DB_driver and CI_DB_query_builder.
+			 * Acts as an alias for both FW_DB_driver and FW_DB_query_builder.
 			 *
-			 * @see	CI_DB_query_builder
-			 * @see	CI_DB_driver
+			 * @see	FW_DB_query_builder
+			 * @see	FW_DB_driver
 			 */
-			class CI_DB extends CI_DB_query_builder { }
+			class FW_DB extends FW_DB_query_builder { }
 		}
 	}
-	elseif ( ! class_exists('CI_DB', FALSE))
+	elseif ( ! class_exists('FW_DB', FALSE))
 	{
 		/**
 	 	 * @ignore
 		 */
-		class CI_DB extends CI_DB_driver { }
+		class FW_DB extends FW_DB_driver { }
 	}
 
 	// Load the DB driver
@@ -181,7 +181,7 @@ function &DB($params = '', $query_builder_override = NULL)
 	require_once($driver_file);
 
 	// Instantiate the DB adapter
-	$driver = 'CI_DB_'.$params['dbdriver'].'_driver';
+	$driver = 'FW_DB_'.$params['dbdriver'].'_driver';
 	$DB = new $driver($params);
 
 	// Check for a subdriver
@@ -192,7 +192,7 @@ function &DB($params = '', $query_builder_override = NULL)
 		if (file_exists($driver_file))
 		{
 			require_once($driver_file);
-			$driver = 'CI_DB_'.$DB->dbdriver.'_'.$DB->subdriver.'_driver';
+			$driver = 'FW_DB_'.$DB->dbdriver.'_'.$DB->subdriver.'_driver';
 			$DB = new $driver($params);
 		}
 	}

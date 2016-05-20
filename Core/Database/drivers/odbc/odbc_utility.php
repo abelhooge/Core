@@ -42,7 +42,7 @@
  * @link		https://codeigniter.com/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-class CI_DB_odbc_utility extends CI_DB_utility {
+class FW_DB_odbc_utility extends FW_DB_utility {
 
 	/**
 	 * Export

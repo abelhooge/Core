@@ -58,7 +58,7 @@ use FuzeWorks\Core;
  *
  * @author	  Kelly McArdle
  */
-class CI_DB_oci8_driver extends CI_DB {
+class FW_DB_oci8_driver extends FW_DB {
 
 	/**
 	 * Database driver
@@ -86,7 +86,6 @@ class CI_DB_oci8_driver extends CI_DB {
 	 *
 	 * @var	int
 	 */
-	public $commit_mode = OCI_COMMIT_ON_SUCCESS;
 
 	/**
 	 * Limit used flag
@@ -127,8 +126,8 @@ class CI_DB_oci8_driver extends CI_DB {
 	/**
 	 * COUNT string
 	 *
-	 * @used-by	CI_DB_driver::count_all()
-	 * @used-by	CI_DB_query_builder::count_all_results()
+	 * @used-by	FW_DB_driver::count_all()
+	 * @used-by	FW_DB_query_builder::count_all_results()
 	 *
 	 * @var	string
 	 */

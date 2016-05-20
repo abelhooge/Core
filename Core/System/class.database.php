@@ -31,11 +31,13 @@
  */
 
 namespace FuzeWorks;
+use FW_DB;
 
 /**
  * Database Class.
  *
  * @todo Add documentation
+ * @todo Implement Logger
  *
  * @author    Abel Hoogeveen <abel@techfuze.net>
  * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
@@ -43,11 +45,13 @@ namespace FuzeWorks;
 class Database
 {
 
-	protected static $defaultDB = null;
+	public static $defaultDB = null;
+    public static $defaultForge = null;
+    public static $defaultUtil = null;
 
-    protected static $databasePaths = array('Application'.DS.'Database', 'Core'.DS.'Database');
+    public static $databasePaths = array('Application'.DS.'Database', 'Core'.DS.'Database');
 
-    public static function get($parameters = '', $newInstance = true, $queryBuilder = null) 
+    public static function get($parameters = '', $newInstance = false, $queryBuilder = null) 
     {
         if (!$newInstance && is_object(self::$defaultDB) && ! empty(self::$defaultDB->conn_id))
         {
@@ -66,14 +70,76 @@ class Database
         }
     }
 
-    public static function getForge($database = null, $newInstance = null)
+    public static function getForge($database = null, $newInstance = false)
     {
+        // First check if we're talking about the default forge and that one is already set
+        if (is_object($database) && $database === self::$defaultDB && is_object(self::$defaultForge))
+        {
+            return $reference = self::$defaultForge;
+        }
 
+
+        if ( ! is_object($database) OR ! ($database instanceof FW_DB))
+        {
+            isset(self::$defaultDB) OR self::get('', false);
+            $database =& self::$defaultDB;
+        }
+
+        require_once ('Core'.DS.'Database'.DS.'DB_forge.php');
+        require_once('Core'.DS.'Database'.DS.'drivers'.DS.$database->dbdriver.DS.$database->dbdriver.'_forge.php');
+
+        if ( ! empty($database->subdriver))
+        {
+            $driver_path = 'Core'.DS.'Database'.DS.'drivers'.DS.$database->dbdriver.DS.'subdrivers'.DS.$database->dbdriver.'_'.$database->subdriver.'_forge.php';
+            if (file_exists($driver_path))
+            {
+                require_once($driver_path);
+                $class = 'FW_DB_'.$database->dbdriver.'_'.$database->subdriver.'_forge';
+            }
+        }
+        else
+        {
+            $class = 'FW_DB_'.$database->dbdriver.'_forge';
+        }
+
+        // Create a new instance of set the default database
+        if ($newInstance)
+        {
+            return new $class($database);
+        }
+        else 
+        {
+            return self::$defaultForge = new $class($database);
+        }
     }
 
-    public static function getUtil($database = null, $newInstance = null)
+    public static function getUtil($database = null, $newInstance = false)
     {
+        // First check if we're talking about the default util and that one is already set
+        if (is_object($database) && $database === self::$defaultDB && is_object(self::$defaultUtil))
+        {
+            echo "CALLED";
+            return $reference = self::$defaultUtil;
+        }
 
+        if ( ! is_object($database) OR ! ($database instanceof FW_DB))
+        {
+            isset(self::$defaultDB) OR self::get('', false);
+            $database = & self::$defaultDB;
+        }
+
+        require_once ('Core'.DS.'Database'.DS.'DB_utility.php');
+        require_once('Core'.DS.'Database'.DS.'drivers'.DS.$database->dbdriver.DS.$database->dbdriver.'_utility.php');
+        $class = 'FW_DB_'.$database->dbdriver.'_utility';
+
+        if ($newInstance)
+        {
+            return new $class($database);
+        }      
+        else
+        {
+            return self::$defaultUtil = new $class($database);
+        }
     }
 
     public static function addDatabasePath($directory)

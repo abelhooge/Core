@@ -46,7 +46,7 @@
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-class CI_DB_pdo_ibm_driver extends CI_DB_pdo_driver {
+class FW_DB_pdo_ibm_driver extends FW_DB_pdo_driver {
 
 	/**
 	 * Sub-driver

@@ -45,7 +45,7 @@ use FuzeWorks\Logger;
  * @license		http://opensource.org/licenses/MIT	MIT License
  * @todo		Fix URI
  */
-class CI_DB_Cache {
+class FW_DB_Cache {
 
 	/**
 	 * CI Singleton

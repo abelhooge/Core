@@ -48,7 +48,7 @@ use FuzeWorks\DatabaseException;
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-class CI_DB_result {
+class FW_DB_result {
 
 	/**
 	 * Connection ID

@@ -46,7 +46,7 @@
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-class CI_DB_ibase_driver extends CI_DB {
+class FW_DB_ibase_driver extends FW_DB {
 
 	/**
 	 * Database driver

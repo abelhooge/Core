@@ -50,7 +50,7 @@ use PDOException;
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-class CI_DB_pdo_driver extends CI_DB {
+class FW_DB_pdo_driver extends FW_DB {
 
 	/**
 	 * Database driver

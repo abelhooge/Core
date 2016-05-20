@@ -33,7 +33,7 @@
 /**
  * MySQLi Result Class
  *
- * This class extends the parent result class: CI_DB_result
+ * This class extends the parent result class: FW_DB_result
  *
  * Converted from CodeIgniter.
  *
@@ -44,7 +44,7 @@
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-class CI_DB_mysqli_result extends CI_DB_result {
+class FW_DB_mysqli_result extends FW_DB_result {
 
 	/**
 	 * Number of rows in the result set

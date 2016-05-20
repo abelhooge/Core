@@ -33,7 +33,7 @@
 /**
  * oci8 Result Class
  *
- * This class extends the parent result class: CI_DB_result
+ * This class extends the parent result class: FW_DB_result
  *
  * Converted from CodeIgniter.
  *
@@ -43,7 +43,7 @@
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
  */
-class CI_DB_oci8_result extends CI_DB_result {
+class FW_DB_oci8_result extends FW_DB_result {
 
 	/**
 	 * Statement ID
