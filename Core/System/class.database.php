@@ -34,23 +34,58 @@ namespace FuzeWorks;
 use FW_DB;
 
 /**
- * Database Class.
- *
- * @todo Add documentation
- * @todo Implement Logger
- *
- * @author    Abel Hoogeveen <abel@techfuze.net>
- * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * Database loading class
+ * 
+ * Loads databases, forges and utilities in a standardized manner. 
+ * 
+ * @author  TechFuze <contact@techfuze.net>
+ * @copyright (c) 2013 - 2014, TechFuze. (https://techfuze.net)
+ * 
  */
 class Database
 {
-
-	public static $defaultDB = null;
-    public static $defaultForge = null;
-    public static $defaultUtil = null;
-
-    public static $databasePaths = array('Application'.DS.'Database', 'Core'.DS.'Database');
-
+    
+    /**
+     * The default database forge.
+     * @var type FW_DB|null
+     */
+    protected static $defaultDB = null;
+    
+    /**
+     * The default database forge.
+     * @var type FW_DB_forge|null
+     */
+    protected static $defaultForge = null;
+    
+    /**
+     * The default database utility.
+     * @var type FW_DB_utility|null
+     */
+    protected static $defaultUtil = null;
+    
+    /**
+     * Retrieve a database using a DSN or the default configuration.
+     * 
+     * If a string is provided like this: 'dbdriver://username:password@hostname/database',
+     * the string will be interpreted and converted into a database connection parameter array.
+     * 
+     * If a string is provided with a name, like this: 'default' the 'default' connection from the
+     * configuration file will be loaded. If no string is provided the default database will be loaded.
+     * 
+     * If the $newInstance is a true boolean, a new instance will be loaded instead of loading the 
+     * default one. $newInstance will also make sure that the loaded database is not default one. 
+     * This behaviour will be changed in the future. 
+     * 
+     * @todo Change $newInstance behaviour related to self::$defaultDB
+     * 
+     * If $queryBuilder = false is provided, the database will load without a queryBuilder. 
+     * By default the queryBuilder will load.
+     * 
+     * @param string $parameters      
+     * @param bool $newInstance
+     * @param bool $queryBuilder
+     * @return type FW_DB
+     */
     public static function get($parameters = '', $newInstance = false, $queryBuilder = null) 
     {
         if (!$newInstance && is_object(self::$defaultDB) && ! empty(self::$defaultDB->conn_id))
@@ -69,7 +104,18 @@ class Database
             return self::$defaultDB = DB($parameters, $queryBuilder);
         }
     }
-
+    
+    /**
+     * Retrieves a database forge from the provided or default database.
+     * 
+     * If no database is provided, the default database will be used.
+     * @todo Change $newInstance behaviour with default instances.
+     * 
+     * 
+     * @param FW_DB $database
+     * @param bool $newInstance
+     * @return FW_DB_forge
+     */
     public static function getForge($database = null, $newInstance = false)
     {
         // First check if we're talking about the default forge and that one is already set
@@ -112,7 +158,18 @@ class Database
             return self::$defaultForge = new $class($database);
         }
     }
-
+    
+    /**
+     * Retrieves a database utility from the provided or default database.
+     * 
+     * If no database is provided, the default database will be used.
+     * @todo Change $newInstance behaviour with default instances.
+     * 
+     * 
+     * @param FW_DB $database
+     * @param bool $newInstance
+     * @return FW_DB_utility
+     */
     public static function getUtil($database = null, $newInstance = false)
     {
         // First check if we're talking about the default util and that one is already set
@@ -141,42 +198,4 @@ class Database
             return self::$defaultUtil = new $class($database);
         }
     }
-
-    public static function addDatabasePath($directory)
-    {
-        if (!in_array($directory, self::$databasePaths))
-        {
-            self::$databasePaths[] = $directory;
-        }
-    }
-
-    public static function removeDatabasePath($directory)
-    {
-        if (($key = array_search($directory, self::$databasePaths)) !== false) 
-        {
-            unset(self::$databasePaths[$key]);
-        }
-    }
-
-    public static function getDatabasePaths()
-    {
-        return self::$databasePaths;
-    }
-
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
