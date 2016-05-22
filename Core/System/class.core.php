@@ -151,6 +151,7 @@ class Core
         include_once 'Core/System/class.libraries.php';
         include_once 'Core/System/class.helpers.php';
         include_once 'Core/System/class.database.php';
+        include_once 'Core/System/class.language.php';
 
         // Load the core classes
         new Config();
@@ -163,6 +164,7 @@ class Core
         new Libraries();
         new Helpers();
         new Database();
+        new Language();
 
         self::$loaded = true;
     }

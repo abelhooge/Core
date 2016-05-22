@@ -151,3 +151,13 @@ class LibraryException extends Exception
 class HelperException extends Exception
 {
 }
+
+/**
+ * Class LanguageException.
+ *
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ */
+class LanguageException extends Exception
+{
+}

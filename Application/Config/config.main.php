@@ -9,5 +9,6 @@ return array(
   'default_controller' => 'standard',
   'default_function' => 'index',
   'application_prefix' => 'MY_',
-  'charset' => 'utf8'
+  'charset' => 'utf8',
+  'language' => 'english'
 );
