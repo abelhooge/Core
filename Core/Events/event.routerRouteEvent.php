@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,51 +19,54 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 namespace FuzeWorks\Event;
-use \FuzeWorks\Event;
+
+use FuzeWorks\Event;
 
 /**
- * Class routerRouteEvent
+ * Class routerRouteEvent.
  *
  * Fired after the router has extracted the path, and is about to find out what route matches the path.
  *
  * This Event is usefull for adding routes.
  *
- * @package     net.techfuze.fuzeworks.core.event
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
-class routerRouteEvent extends Event{
-
+class routerRouteEvent extends Event
+{
     /**
      * @var array The routing table
      */
     public $routes;
 
     /**
-     * @var boolean Whether the callable will be loaded directly after or not
+     * @var bool Whether the callable will be loaded directly after or not
      */
     public $loadCallable;
 
     /**
-     * The current path input to FuzeWorks
+     * The current path input to FuzeWorks.
+     *
      * @var null|string
      */
     public $path;
 
-    public function init($routes, $loadCallable, $path){
-
-        $this->routes       = $routes;
+    public function init($routes, $loadCallable, $path)
+    {
+        $this->routes = $routes;
         $this->loadCallable = $loadCallable;
-        $this->path         = $path;
+        $this->path = $path;
     }
 }

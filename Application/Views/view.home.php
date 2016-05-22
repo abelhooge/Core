@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -20,79 +20,87 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
  * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
  * @link        http://fuzeworks.techfuze.net
  * @since       Version 0.0.1
+ *
  * @version     Version 0.0.1
  */
 ?>
 
 <html>
 <head>
-	<title>FuzeWorks - Home</title>
-	<link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
-	<style>
-		body {
-			background: #ecf0f1;
-			border-bottom: 1px solid #DDD;
-			padding: 100px 0 100px;
-			font-size: 16px;
-		}
+    <title>FuzeWorks - Home</title>
+    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #ecf0f1;
+            border-bottom: 1px solid #DDD;
+            padding: 100px 0 100px;
+            font-size: 16px;
+        }
 
-		#setupcontainer {
-			max-width: 950px;
-			margin-left: auto;
-			margin-right: auto;
-		}
+        #setupcontainer {
+            max-width: 950px;
+            margin-left: auto;
+            margin-right: auto;
+        }
 
-		.col-centered{
-		    float: none;
-		    margin: 0 auto;
-		}
+        .col-centered{
+            float: none;
+            margin: 0 auto;
+        }
 
-	</style>
+    </style>
 </head>
 <body>
-	<div id='setupcontainer'>
-		<div class='row'>
-			<div class='col-lg-12 col-md-4 col-sm-12'>
-				<div id='contentPanel' class="panel panel-default" style='display:none'>
-				    <div id='1' class="panel-body" style='display:none'>
-				       <p class="lead">Welcome to FuzeWorks</p>
-				       <p>
-				       		This website is currently under development.
-				       </p>
-				       <p>
-				       		<?php if ($vars['adminMail'] == '') { ?>
-				       		For further information, please contact the website administrator</a> 
-				       		<?php } else { ?>
-				       		For further information, please contact <a href='mailto:<?php echo($vars['adminMail']); ?>'><?php echo($vars['adminMail']); ?></a> 
-				       		<?php } ?>
+    <div id='setupcontainer'>
+        <div class='row'>
+            <div class='col-lg-12 col-md-4 col-sm-12'>
+                <div id='contentPanel' class="panel panel-default" style='display:none'>
+                    <div id='1' class="panel-body" style='display:none'>
+                       <p class="lead">Welcome to FuzeWorks</p>
+                       <p>
+                            This website is currently under development.
+                       </p>
+                       <p>
+                            <?php if ($vars['adminMail'] == '') {
+    ?>
+                            For further information, please contact the website administrator</a> 
+                            <?php
+} else {
+    ?>
+                            For further information, please contact <a href='mailto:<?php echo $vars['adminMail'];
+    ?>'><?php echo $vars['adminMail'];
+    ?></a> 
+                            <?php
+} ?>
 
-				       </p>
-				    </div>
-            	</div>
+                       </p>
+                    </div>
+                </div>
 
 
-			</div>
-		</div>
-	</div>
-	<footer>
-		<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
-		<script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
 
-		<script>
-			var currentPage = 0;
-			var currentProgress = 0;
+        <script>
+            var currentPage = 0;
+            var currentProgress = 0;
 
-			start();
-			function start() {
-				$("#contentPanel").fadeIn(500);
-				$("#1").fadeIn(500);
-			}
-		</script>
-	</footer>
+            start();
+            function start() {
+                $("#contentPanel").fadeIn(500);
+                $("#1").fadeIn(500);
+            }
+        </script>
+    </footer>
 </body>
 </html>

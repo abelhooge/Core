@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -20,25 +20,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
  * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
  * @link        http://fuzeworks.techfuze.net
  * @since       Version 0.0.1
+ *
  * @version     Version 0.0.1
  */
-
-use \FuzeWorks\Core;
 use \FuzeWorks\Router;
 
 /**
- * Class RouterTest
+ * Class RouterTest.
  *
  * This test will test the router
  */
-class RouterTest extends CoreTestAbstract
+class routerTest extends CoreTestAbstract
 {
-    public function testParsePath(){
+    public function testParsePath()
+    {
 
         // Act and assert
         Router::setPath('a/b/c/d/');
@@ -63,7 +64,8 @@ class RouterTest extends CoreTestAbstract
     /**
      * @depends testParsePath
      */
-    public function testDoRoute(){
+    public function testDoRoute()
+    {
 
         // Act
         Router::setPath('a/b/c/d/');
@@ -71,7 +73,7 @@ class RouterTest extends CoreTestAbstract
 
         // Assert
         // Whole route
-        $this->assertEquals(array('a','b','c/d'), array(Router::getMatches()['controller'], Router::getMatches()['function'], Router::getMatches()['parameters']));
+        $this->assertEquals(array('a', 'b', 'c/d'), array(Router::getMatches()['controller'], Router::getMatches()['function'], Router::getMatches()['parameters']));
         $this->assertEquals('a', Router::getMatches()['controller']);
 
         // Parameters
@@ -85,7 +87,8 @@ class RouterTest extends CoreTestAbstract
     /**
      * @depends testDoRoute
      */
-    public function testOddRoutes(){
+    public function testOddRoutes()
+    {
 
         // Empty path
         Router::setPath(null);
@@ -95,23 +98,23 @@ class RouterTest extends CoreTestAbstract
         // Double slashes
         Router::setPath('a///b');
         Router::route(false);
-        $this->assertEquals(array('a','b'), array(Router::getMatches()['controller'], Router::getMatches()['function']));
+        $this->assertEquals(array('a', 'b'), array(Router::getMatches()['controller'], Router::getMatches()['function']));
 
         // Escaped path path
         Router::setPath('/a\/b\/c/');
         Router::route(false);
-        $this->assertEquals(array('a\\','b\\','c'), array(Router::getMatches()['controller'], Router::getMatches()['function'], Router::getMatches()['parameters']));
+        $this->assertEquals(array('a\\', 'b\\', 'c'), array(Router::getMatches()['controller'], Router::getMatches()['function'], Router::getMatches()['parameters']));
         $this->assertNotEquals('a', Router::getMatches()['controller']);
     }
 
-    public function testCustomRoute(){
-
+    public function testCustomRoute()
+    {
         Router::addRoute('/test1\/test2/', 'callable');
         $this->assertArraySubset(array('/test1\/test2/' => 'callable'), Router::getRoutes());
     }
 
-    public function testCustomRouteWithParameters(){
-
+    public function testCustomRouteWithParameters()
+    {
         Router::addRoute('/^b\/(?P<controller>[^\/]+)\/?(?P<function>.+?)$/', 'callable');
         Router::addRoute('/e\/(?P<function>[^\/]+)/', 'callable');
         Router::addRoute('/b\/b$/', 'callable');

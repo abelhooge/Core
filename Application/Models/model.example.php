@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,34 +19,36 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 namespace Application\Model;
-use \FuzeWorks\Model;
+
+use FuzeWorks\Model;
 
 /**
- * Example model to show how to use models
+ * Example model to show how to use models.
  *
  * This model connects to an example table if present in the database
- * @package     net.techfuze.fuzeworks.application.model
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ *
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
-class Example extends Model{
-
-    public function __construct(&$core){
+class Example extends Model
+{
+    public function __construct(&$core)
+    {
         parent::__construct($core);
 
         $this->setType('core/databaseutils', 'Model');
-        $this->table    = 'example';
+        $this->table = 'example';
     }
 }
-
-?>

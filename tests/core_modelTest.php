@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -20,91 +20,86 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
  * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
  * @link        http://fuzeworks.techfuze.net
  * @since       Version 0.0.1
+ *
  * @version     Version 0.0.1
  */
-
 use \FuzeWorks\Core;
 use \FuzeWorks\Models;
 
 /**
- * Class ModelTest
+ * Class ModelTest.
  *
  * Core model testing suite, will test basic model functionality
- *
  */
-class ModelTest extends CoreTestAbstract
+class modelTest extends CoreTestAbstract
 {
     /**
-     * Select
+     * Select.
      */
-
     public function testSelectSimple()
     {
         $query = Models::get('sqltable')->select();
         $this->assertEquals('SELECT * FROM table', $query->getSql());
     }
 
-    public function testSelectSimpleOneField(){
-
+    public function testSelectSimpleOneField()
+    {
         $query = Models::get('sqltable')->select('field1');
         $this->assertEquals('SELECT field1 FROM table', $query->getSql());
     }
 
-    public function testSelectSimpleTwoFields(){
-
+    public function testSelectSimpleTwoFields()
+    {
         $query = Models::get('sqltable')->select('field1', 'field2');
         $this->assertEquals('SELECT field1, field2 FROM table', $query->getSql());
     }
 
     /**
-     * Delete
+     * Delete.
      */
-
-    public function testDeleteSimple(){
-
+    public function testDeleteSimple()
+    {
         $query = Models::get('sqltable')->delete()->from('table');
         $this->assertEquals('DELETE FROM table', $query->getSql());
     }
 
     /**
-     * Insert
+     * Insert.
      */
-
-    public function testInsertSimple(){
-
+    public function testInsertSimple()
+    {
         $query = Models::get('sqltable')->insert(array('field' => 'value'));
         $this->assertEquals('INSERT INTO table (field) VALUES (?)', $query->getSql());
         $this->assertEquals(array('value'), $query->getBinds());
     }
 
-    public function testInsertMultiple(){
-
+    public function testInsertMultiple()
+    {
         $query = Models::get('sqltable')->insert(array('field1' => 'value1', 'field2' => 'value2'), 'table');
         $this->assertEquals('INSERT INTO table (field1,field2) VALUES (?,?)', $query->getSql());
         $this->assertEquals(array('value1', 'value2'), $query->getBinds());
     }
 
     /**
-     * Replace
+     * Replace.
      */
-
-    public function testReplaceSimple(){
-
+    public function testReplaceSimple()
+    {
         $query = Models::get('sqltable')->replace(array('field' => 'value'));
         $this->assertEquals('REPLACE INTO table (field) VALUES (?)', $query->getSql());
         $this->assertEquals(array('value'), $query->getBinds());
     }
 
-    public function testReplaceMultiple(){
-
+    public function testReplaceMultiple()
+    {
         $query = Models::get('sqltable')->replace(array('field1' => 'value1', 'field2' => 'value2'), 'table');
         $this->assertEquals('REPLACE INTO table (field1,field2) VALUES (?,?)', $query->getSql());
         $this->assertEquals(array('value1', 'value2'), $query->getBinds());
     }
-
 }

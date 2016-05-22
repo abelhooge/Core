@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -20,33 +20,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
  * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
  * @link        http://fuzeworks.techfuze.net
  * @since       Version 0.0.1
+ *
  * @version     Version 0.0.1
  */
-
 use \FuzeWorks\Events;
 use \FuzeWorks\Router;
 use \FuzeWorks\EventPriority;
 
 /**
- * Class RouterLoadCallableEventTest
+ * Class RouterLoadCallableEventTest.
  */
-class RouterLoadCallableEventTest extends CoreTestAbstract{
-
+class routerLoadCallableEventTest extends CoreTestAbstract
+{
     /**
-     * Check if the event is fired when it should be
+     * Check if the event is fired when it should be.
      */
-    public function test_basic(){
-
+    public function test_basic()
+    {
         $mock = $this->getMock('MockEvent', array('mockMethod'));
         $mock->expects($this->once())->method('mockMethod');
 
         Router::setPath('/');
-        Events::addListener(function($event){$event->setCancelled(true);}, 'layoutLoadViewEvent', EventPriority::HIGHEST);
+        Events::addListener(function ($event) {
+            $event->setCancelled(true);
+
+        }, 'layoutLoadViewEvent', EventPriority::HIGHEST);
         Events::addListener(array($mock, 'mockMethod'), 'routerLoadCallableEvent', EventPriority::NORMAL);
 
         //Prevent ouputting HTML
@@ -56,17 +60,23 @@ class RouterLoadCallableEventTest extends CoreTestAbstract{
     }
 
     /**
-     * Intercept and change
+     * Intercept and change.
      */
-    public function test_change(){
+    public function test_change()
+    {
+        Events::addListener(function ($event) {
+            $event->setCancelled(true);
 
-        Events::addListener(function($event){$event->setCancelled(true);}, 'layoutLoadViewEvent', EventPriority::HIGHEST);
+        }, 'layoutLoadViewEvent', EventPriority::HIGHEST);
         Events::addListener(array($this, 'listener_change'), 'routerLoadCallableEvent', EventPriority::NORMAL);
         Router::setPath('x/y/z');
         Router::route(true);
 
         Events::$listeners = array();
-        Events::addListener(function($event){$event->setCancelled(true);}, 'layoutLoadViewEvent', EventPriority::HIGHEST);
+        Events::addListener(function ($event) {
+            $event->setCancelled(true);
+
+        }, 'layoutLoadViewEvent', EventPriority::HIGHEST);
         Events::addListener(array($this, 'listener_change'), 'routerLoadCallableEvent', EventPriority::NORMAL);
         Router::setPath('x/y/z');
         Router::route(true);
@@ -76,23 +86,25 @@ class RouterLoadCallableEventTest extends CoreTestAbstract{
     }
 
     // Change title from new to other
-    public function listener_change($event){
+    public function listener_change($event)
+    {
 
         // This controller should not exist
         $this->assertEquals('x', $event->matches['controller']);
         $this->assertEquals('y', $event->matches['function']);
 
         // It should exist now
-        $event->matches['controller']  = 'standard';
-        $event->matches['function']    = 'index';
+        $event->matches['controller'] = 'standard';
+        $event->matches['function'] = 'index';
+
         return $event;
     }
 
     /**
-     * Cancel events
+     * Cancel events.
      */
-    public function test_cancel(){
-
+    public function test_cancel()
+    {
         ob_start();
         // When the callable may execute, the callable will change to the controller
         // (because '' will trigger the default callable)
@@ -105,7 +117,10 @@ class RouterLoadCallableEventTest extends CoreTestAbstract{
         // When disabled, the default controller will be loaded and the callable will be overwritten
         // Remove the listener
         Events::$listeners = array();
-        Events::addListener(function($event){$event->setCancelled(true);}, 'layoutLoadViewEvent', EventPriority::HIGHEST);
+        Events::addListener(function ($event) {
+            $event->setCancelled(true);
+
+        }, 'layoutLoadViewEvent', EventPriority::HIGHEST);
 
         Router::route();
         $this->assertFalse(is_callable(Router::getCallable()));
@@ -113,8 +128,8 @@ class RouterLoadCallableEventTest extends CoreTestAbstract{
     }
 
     // Cancel all calls
-    public function listener_cancel($event){
-
+    public function listener_cancel($event)
+    {
         $event->setCancelled(true);
     }
 }

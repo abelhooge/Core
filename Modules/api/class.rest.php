@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,73 +19,76 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 namespace Module\Api;
-use \FuzeWorks\Module;
-use \FuzeWorks\Layout;
+
+use FuzeWorks\Layout;
 
 /**
- * RestAPI class for creating API's out of modules or contrllers
+ * RestAPI class for creating API's out of modules or contrllers.
  *
  * Extend a Controller with this class, and be sure to return the data from methods of your controller.
  * This data will be parsed by this class and returned as valid JSON data.
  * The necessity of API keys can be configured in the controller by settings $this->requireApiKey = false;
- * @package     net.techfuze.fuzeworks.core
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ *
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
 abstract class RestAPI
 {
     /**
      * Property: method
-     * The HTTP method this request was made in, either GET, POST, PUT or DELETE
+     * The HTTP method this request was made in, either GET, POST, PUT or DELETE.
      */
     protected $method = '';
     /**
      * Property: endpoint
-     * The Model requested in the URI. eg: /files
+     * The Model requested in the URI. eg: /files.
      */
     protected $endpoint = '';
     /**
      * Property: verb
      * An optional additional descriptor about the endpoint, used for things that can
-     * not be handled by the basic methods. eg: /files/process
+     * not be handled by the basic methods. eg: /files/process.
      */
     protected $verb = '';
     /**
      * Property: args
      * Any additional URI components after the endpoint and verb have been removed, in our
      * case, an integer ID for the resource. eg: /<endpoint>/<verb>/<arg0>/<arg1>
-     * or /<endpoint>/<arg0>
+     * or /<endpoint>/<arg0>.
      */
-    protected $args = Array();
+    protected $args = array();
     /**
      * Property: file
-     * Stores the input of the PUT request
+     * Stores the input of the PUT request.
      */
-     protected $file = Null;
+    protected $file = null;
 
-     /**
-      * Whether API authentication is needed before interacting with the API
-      */
-     protected $requireApiKey = true;
+    /**
+     * Whether API authentication is needed before interacting with the API.
+     */
+    protected $requireApiKey = true;
 
     /**
      * Constructor: __construct
-     * Allow for CORS, assemble and pre-process the data
+     * Allow for CORS, assemble and pre-process the data.
      */
-    public function __construct($request) {
-        header("Access-Control-Allow-Orgin: *");
-        header("Access-Control-Allow-Methods: *");
-        header("Content-Type: application/json");
+    public function __construct($request)
+    {
+        header('Access-Control-Allow-Orgin: *');
+        header('Access-Control-Allow-Methods: *');
+        header('Content-Type: application/json');
 
         // Return layout data as string
         Layout::setEngine('JSON');
@@ -101,28 +104,28 @@ abstract class RestAPI
         if ($this->method == 'POST' && array_key_exists('HTTP_X_HTTP_METHOD', $_SERVER)) {
             if ($_SERVER['HTTP_X_HTTP_METHOD'] == 'DELETE') {
                 $this->method = 'DELETE';
-            } else if ($_SERVER['HTTP_X_HTTP_METHOD'] == 'PUT') {
+            } elseif ($_SERVER['HTTP_X_HTTP_METHOD'] == 'PUT') {
                 $this->method = 'PUT';
             } else {
-                throw new Exception("Unexpected Header");
+                throw new Exception('Unexpected Header');
             }
         }
 
-        switch($this->method) {
-        case 'DELETE':
-        case 'POST':
-            $this->request = $this->_cleanInputs($_POST);
-            break;
-        case 'GET':
-            $this->request = $this->_cleanInputs($_GET);
-            break;
-        case 'PUT':
-            $this->request = $this->_cleanInputs($_GET);
-            $this->file = file_get_contents("php://input");
-            break;
-        default:
-            $this->_response('Invalid Method', 405);
-            break;
+        switch ($this->method) {
+            case 'DELETE':
+            case 'POST':
+                $this->request = $this->_cleanInputs($_POST);
+                break;
+            case 'GET':
+                $this->request = $this->_cleanInputs($_GET);
+                break;
+            case 'PUT':
+                $this->request = $this->_cleanInputs($_GET);
+                $this->file = file_get_contents('php://input');
+                break;
+            default:
+                $this->_response('Invalid Method', 405);
+                break;
         }
 
         // And afterwards process the data
@@ -134,23 +137,29 @@ abstract class RestAPI
     }
 
     /**
-     * Process an API request when retrieving
-     * @return String JSON encoded response
+     * Process an API request when retrieving.
+     *
+     * @return string JSON encoded response
      */
-    public function processAPI() {
+    public function processAPI()
+    {
         if (method_exists($this, $this->endpoint)) {
             return $this->_response($this->{$this->endpoint}($this->args));
         }
+
         return $this->_response("No Endpoint: $this->endpoint", 404);
     }
 
-    private function _response($data, $status = 200) {
-        header("HTTP/1.1 " . $status . " " . $this->_requestStatus($status));
+    private function _response($data, $status = 200)
+    {
+        header('HTTP/1.1 '.$status.' '.$this->_requestStatus($status));
+
         return json_encode($data);
     }
 
-    private function _cleanInputs($data) {
-        $clean_input = Array();
+    private function _cleanInputs($data)
+    {
+        $clean_input = array();
         if (is_array($data)) {
             foreach ($data as $k => $v) {
                 $clean_input[$k] = $this->_cleanInputs($v);
@@ -158,16 +167,19 @@ abstract class RestAPI
         } else {
             $clean_input = trim(strip_tags($data));
         }
+
         return $clean_input;
     }
 
-    private function _requestStatus($code) {
-        $status = array(  
+    private function _requestStatus($code)
+    {
+        $status = array(
             200 => 'OK',
-            404 => 'Not Found',   
+            404 => 'Not Found',
             405 => 'Method Not Allowed',
             500 => 'Internal Server Error',
-        ); 
-        return ($status[$code])?$status[$code]:$status[500]; 
+        );
+
+        return ($status[$code]) ? $status[$code] : $status[500];
     }
 }

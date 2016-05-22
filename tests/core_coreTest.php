@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -20,29 +20,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
  * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
  * @link        http://fuzeworks.techfuze.net
  * @since       Version 0.0.1
+ *
  * @version     Version 0.0.1
  */
 
 /**
- * Class CoreTest
+ * Class CoreTest.
  *
  * Core testing suite, will test basic core functionality
  */
-class CoreTest extends CoreTestAbstract
+class coreTest extends CoreTestAbstract
 {
-	public function testCanLoadStartupFiles(){
+    public function testCanLoadStartupFiles()
+    {
 
-		// Assert
-		$this->assertTrue(class_exists('\FuzeWorks\Config'));
-		$this->assertTrue(class_exists('\FuzeWorks\Logger'));
-		$this->assertTrue(class_exists('\FuzeWorks\Events'));
-		$this->assertTrue(class_exists('\FuzeWorks\Router'));
-		$this->assertTrue(class_exists('\FuzeWorks\Layout'));
-		$this->assertTrue(class_exists('\FuzeWorks\Models'));
-	}
+        // Assert
+        $this->assertTrue(class_exists('\FuzeWorks\Config'));
+        $this->assertTrue(class_exists('\FuzeWorks\Logger'));
+        $this->assertTrue(class_exists('\FuzeWorks\Events'));
+        $this->assertTrue(class_exists('\FuzeWorks\Router'));
+        $this->assertTrue(class_exists('\FuzeWorks\Layout'));
+        $this->assertTrue(class_exists('\FuzeWorks\Models'));
+    }
 }

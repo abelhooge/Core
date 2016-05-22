@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,43 +19,47 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 namespace FuzeWorks;
 
 /**
- * Class Event
+ * Class Event.
  *
  * A simple class for events. The only current purpose is to be able to cancel events, but it can be easily extended.
- * @package     net.techfuze.fuzeworks.core
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ *
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
-class Event {
-
-	private $cancelled = false;
-
-    /**
-     * @return boolean True if the event is cancelled, false if the event is not cancelled
-     */
-	public function isCancelled() {
-		return $this->cancelled;
-	}
+class Event
+{
+    private $cancelled = false;
 
     /**
-     * @param boolean $cancelled True if the event is cancelled, false if the event is not cancelled
+     * @return bool True if the event is cancelled, false if the event is not cancelled
      */
-    public function setCancelled($cancelled) {
-        if ($cancelled == true){
+    public function isCancelled()
+    {
+        return $this->cancelled;
+    }
+
+    /**
+     * @param bool $cancelled True if the event is cancelled, false if the event is not cancelled
+     */
+    public function setCancelled($cancelled)
+    {
+        if ($cancelled == true) {
             $this->cancelled = true;
-        } else{
+        } else {
             $this->cancelled = false;
         }
     }
@@ -64,11 +68,11 @@ class Event {
 namespace FuzeWorks\Event;
 
 /**
- * Simple event which will notify components of an event, but does not contain any data
- * @package     net.techfuze.fuzeworks.core
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * Simple event which will notify components of an event, but does not contain any data.
+ *
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
-class NotifierEvent extends \FuzeWorks\Event {}
-
-?>
+class NotifierEvent extends \FuzeWorks\Event
+{
+}

@@ -1,4 +1,5 @@
 <?php
+
 return array(
 
 //    '/^alias(|\-(?P<function>.*?))$/' => array(

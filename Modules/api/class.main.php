@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,34 +19,39 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 namespace Module\Api;
-use \FuzeWorks\Module;
+
+use FuzeWorks\Module;
 
 /**
- * Loading class for multiple API types
+ * Loading class for multiple API types.
  *
  * Currently loads a REST API class which controllers can extend so they provide a standardized API
- * @package     net.techfuze.fuzeworks.core
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ *
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
-class Main extends Module {
-
-	/**
-	 * Gets loaded upon module initialization
-	 *
-	 * Loads all the API types
-	 */
-    public function onLoad() {
-        require_once($this->getModulePath() . "/class.rest.php");
+class Main
+{
+    use Module;
+    /**
+     * Gets loaded upon module initialization.
+     *
+     * Loads all the API types
+     */
+    public function onLoad()
+    {
+        include_once self::getModulePath().'/class.rest.php';
     }
 }

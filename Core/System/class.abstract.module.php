@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,146 +19,185 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 namespace FuzeWorks;
 
 /**
- * Class Module
+ * Trait Module.
  *
- * Abstract Class for modules
- * @package     net.techfuze.fuzeworks.core
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * Contains all the methods modules should have
+ *
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
-class Module {
+trait Module
+{
+    /**
+     * @var null|string Relative path to the module
+     */
+    protected static $modulePath = null;
 
-	/**
-	 * @var null|string Relative path to the module
-	 */
-	protected $modulePath = null;
+    /**
+     * @var string Internal name of the module
+     */
+    protected static $moduleName = 'placeholder';
 
-	/**
-	 * @var string Internal name of the module
-	 */
-	protected $moduleName = 'placeholder';
+    /**
+     * @var string name used in the mod array
+     */
+    protected static $linkName = 'placeholder';
 
-	/**
-	 * @var String name used in the mod array 
-	 */
-	protected $linkName = 'placeholder';
+    /**
+     * @var moduleInfo object of the module
+     */
+    protected static $cfg;
 
-	/**
-	 * @var moduleInfo object of the module
-	 */
-	protected $cfg;
+    /**
+     * @var array Advertisements send from other modules
+     */
+    protected static $advertisements = array();
 
-	/**
-	 * Returns the name of the module
-	 *
-	 * @return string Returns the name of the module
-	 */
-	public function getModuleName(){
-
-        return $this->moduleName;
-    }
-
-	/**
-	 * Returns the path to the module
-	 * @return null|string
-	 */
-	public function getModulePath(){
-
-        return $this->modulePath;
+    /**
+     * Returns the name of the module.
+     *
+     * @return string Returns the name of the module
+     */
+    public static function getModuleName()
+    {
+        return self::$moduleName;
     }
 
     /**
-     * Returns the config of the module (moduleInfo.php)
-     * @access public
- 	 * @return stdClass module config
+     * Returns the path to the module.
+     *
+     * @return null|string
      */
-    public function getModuleConfig() {
-    	return $this->cfg;
+    public static function getModulePath()
+    {
+        return self::$modulePath;
     }
 
-	/**
-	 * Changes the path to the location of the module
-	 *
-	 * This function can only be executed once, because when the path has been set this function won't save changes anymore.
-	 * This prevents modules or other systems to mess with modules and their stability.
-	 *
-	 * @param string $modulePath
-	 */
-	public function setModulePath($modulePath = null){
+    /**
+     * Returns the config of the module (moduleInfo.php).
+     *
+     * @return stdClass module config
+     */
+    public static function getModuleConfig()
+    {
+        return self::$cfg;
+    }
 
+    /**
+     * Changes the path to the location of the module.
+     *
+     * This function can only be executed once, because when the path has been set this function won't save changes anymore.
+     * This prevents modules or other systems to mess with modules and their stability.
+     *
+     * @param string $modulePath
+     */
+    public static function setModulePath($modulePath = null)
+    {
         // Only allow one change of this variable from outside
-        if($this->modulePath === null)
-            $this->modulePath = $modulePath;
+        if (self::$modulePath === null) {
+            self::$modulePath = $modulePath;
+        }
     }
 
     /**
      * Set the link name of the module. The link name is the address in the module array so that the module can self reference.
-     * @access public
-     * @param String link name
+     *
+     * @param string link name
      */
-    public function setModuleLinkName($linkName) {
-    	$this->linkName = $linkName;
+    public static function setModuleLinkName($linkName)
+    {
+        self::$linkName = $linkName;
     }
 
     /**
-     * The name that is required to load itself, eg 'exampleauthor/examplemodulename' or 'techfuze/cms'
-     * @access public
-     * @param String module name
+     * The name that is required to load itself, eg 'exampleauthor/examplemodulename' or 'techfuze/cms'.
+     *
+     * @param string module name
      */
-    public function setModuleName($modName) {
-    	$this->moduleName = $modName;
+    public static function setModuleName($modName)
+    {
+        self::$moduleName = $modName;
     }
 
     /**
-     * Add the moduleInfo.php to the module for direct interaction
-     * @access public
+     * Add the moduleInfo.php to the module for direct interaction.
+     *
      * @param stdClass module config
      */
-    public function setModuleConfig($config) {
-    	$this->cfg = $config;
+    public static function setModuleConfig($config)
+    {
+        self::$cfg = $config;
     }
 
     /**
-     * Set a value in the modules moduleInfo.php
-     * @access protected
-     * @param Mixed config Key
-     * @param Mixed config value
+     * Set a value in the modules moduleInfo.php.
+     *
+     * @param mixed config Key
+     * @param mixed config value
      */
-	public function setConfigValue($key, $value) {
-		$file = $this->getModulePath() . "moduleInfo.php";
-		$this->cfg->$key = $value;
+    public static function setConfigValue($key, $value)
+    {
+        $file = self::getModulePath().'moduleInfo.php';
+        self::$cfg->$key = $value;
 
-		// Check if the module path is set yet
-		if ($this->getModulePath() == null) {
-			Logger::logWarning("Could not write module config. ModulePath is not set", get_class($this));
-			return false;
-		}
+        // Check if the module path is set yet
+        if (self::getModulePath() == null) {
+            Logger::logWarning('Could not write module config. ModulePath is not set', get_class($this));
 
-		if (file_exists($file) && is_writable($file)) {
-			$config = var_export($this->cfg, true);
-			file_put_contents($file, "<?php return $config ;");
-		}
-	}
+            return false;
+        }
 
-	/**
-	 * Return a value from the module configuration
-	 * @access public
-	 * @param Mixed config Key
-	 * @return Mixed config value
-	 */
-	public function getConfigValue($key) {
-		return $this->cfg->$key;
-	}
+        if (file_exists($file) && is_writable($file)) {
+            $config = var_export($this->cfg, true);
+            file_put_contents($file, "<?php return $config ;");
+        }
+    }
+
+    /**
+     * Set the advertisements send by other modules.
+     *
+     * @param array $advertisements Advertisement data
+     */
+    public static function setAdvertisements($advertiseName, $advertiseData)
+    {
+        self::$advertisements[$advertiseName] = $advertiseData;
+    }
+
+    /**
+     * Get the advertisements with a specific name.
+     *
+     * @param string $advertiseName AdvertisementName
+     *
+     * @return array AdvertisementData
+     */
+    public static function getAdvertisements($advertiseName)
+    {
+        return self::$advertisements[$advertiseName];
+    }
+
+    /**
+     * Return a value from the module configuration.
+     *
+     * @param mixed config Key
+     *
+     * @return mixed config value
+     */
+    public static function getConfigValue($key)
+    {
+        return self::$cfg->$key;
+    }
 }

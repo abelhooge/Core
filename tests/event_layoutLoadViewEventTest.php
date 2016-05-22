@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -20,28 +20,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @copyright   Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
  * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
  * @link        http://fuzeworks.techfuze.net
  * @since       Version 0.0.1
+ *
  * @version     Version 0.0.1
  */
-
 use \FuzeWorks\Events;
 use \FuzeWorks\Layout;
 use \FuzeWorks\EventPriority;
 
 /**
- * Class LayoutLoadViewEventTest
+ * Class LayoutLoadViewEventTest.
  */
-class LayoutLoadViewEventTest extends CoreTestAbstract{
-
+class layoutLoadViewEventTest extends CoreTestAbstract
+{
     /**
-     * Check if the event is fired when it should be
+     * Check if the event is fired when it should be.
      */
-    public function test_basic(){
-
+    public function test_basic()
+    {
         $mock = $this->getMock('MockEvent', array('mockMethod'));
         $mock->expects($this->once())->method('mockMethod');
 
@@ -52,31 +53,35 @@ class LayoutLoadViewEventTest extends CoreTestAbstract{
     }
 
     /**
-     * Intercept and change the event
+     * Intercept and change the event.
+     *
      * @expectedException \FuzeWorks\LayoutException
      */
-    public function test_change(){
-
+    public function test_change()
+    {
         Events::addListener(array($this, 'listener_change'), 'layoutLoadViewEvent', EventPriority::NORMAL);
         Layout::get('home');
     }
 
     // Change title from new to other
-    public function listener_change($event){
+    public function listener_change($event)
+    {
 
         // This controller should not exist
         $this->assertEquals('Application/Views/view.home.php', $event->file);
         $this->assertEquals('Application/Views/', $event->directory);
 
         // It should exist now
-        $event->file  = 'Application/Views/view.test.not_found';
+        $event->file = 'Application/Views/view.test.not_found';
+
         return $event;
     }
 
     /**
-     * Cancel events
+     * Cancel events.
      */
-    public function test_cancel(){
+    public function test_cancel()
+    {
 
         // Listen for the event and cancel it
         Events::addListener(array($this, 'listener_cancel'), 'layoutLoadViewEvent', EventPriority::NORMAL);
@@ -84,8 +89,8 @@ class LayoutLoadViewEventTest extends CoreTestAbstract{
     }
 
     // Cancel all calls
-    public function listener_cancel($event){
-
+    public function listener_cancel($event)
+    {
         $event->setCancelled(true);
     }
 }

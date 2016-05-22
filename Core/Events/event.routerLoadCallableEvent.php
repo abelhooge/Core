@@ -1,6 +1,6 @@
 <?php
 /**
- * FuzeWorks
+ * FuzeWorks.
  *
  * The FuzeWorks MVC PHP FrameWork
  *
@@ -19,29 +19,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- * @author      TechFuze
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
- * @copyright   Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
- * @license     http://opensource.org/licenses/GPL-3.0 GPLv3 License
- * @link        http://fuzeworks.techfuze.net
- * @since       Version 0.0.1
- * @version     Version 0.0.1
+ * @author    TechFuze
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @copyright Copyright (c) 1996 - 2015, Free Software Foundation, Inc. (http://www.fsf.org/)
+ * @license   http://opensource.org/licenses/GPL-3.0 GPLv3 License
+ *
+ * @link  http://fuzeworks.techfuze.net
+ * @since Version 0.0.1
+ *
+ * @version Version 0.0.1
  */
 
 namespace FuzeWorks\Event;
-use \FuzeWorks\Event;
+
+use FuzeWorks\Event;
 
 /**
- * Class routerLoadCallableEvent
+ * Class routerLoadCallableEvent.
  *
  * Called when a callable is about to be loaded
  *
- * @package     net.techfuze.fuzeworks.core.event
- * @author      Abel Hoogeveen <abel@techfuze.net>
- * @copyright   Copyright (c) 2013 - 2015, Techfuze. (http://techfuze.net)
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
-class routerLoadCallableEvent extends Event{
-
+class routerLoadCallableEvent extends Event
+{
     /**
      * @var callable The callable
      */
@@ -53,15 +55,16 @@ class routerLoadCallableEvent extends Event{
     public $matches = array();
 
     /**
-     * The route which was matched
+     * The route which was matched.
+     *
      * @var null|string
      */
     public $route = null;
 
-    public function init($callable, $matches, $route){
-
+    public function init($callable, $matches, $route)
+    {
         $this->callable = $callable;
-        $this->matches  = $matches;
-        $this->route    = $route;
+        $this->matches = $matches;
+        $this->route = $route;
     }
 }

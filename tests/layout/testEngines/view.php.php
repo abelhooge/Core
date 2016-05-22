@@ -1,1 +1,1 @@
-<?php echo "PHP Template Check"; ?>
+<?php echo 'PHP Template Check';
