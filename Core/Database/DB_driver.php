@@ -33,6 +33,7 @@
 use FuzeWorks\Logger;
 use FuzeWorks\DatabaseException;
 use FuzeWorks\Helpers;
+use FuzeWorks\Language;
 
 /**
  * Database Driver Class
@@ -1741,12 +1742,8 @@ abstract class FW_DB_driver {
 	 */
 	public function display_error($error = '', $swap = '', $native = FALSE)
 	{
-		throw new DatabaseException($error, 1);
-		return false;
-
-
-		$LANG =& load_class('Lang', 'core');
-		$LANG->load('db');
+		// First load the language
+		$LANG = Language::get('db');
 
 		$heading = $LANG->line('db_error_heading');
 
@@ -1783,8 +1780,8 @@ abstract class FW_DB_driver {
 			}
 		}
 
-		$error =& load_class('Exceptions', 'core');
-		echo $error->show_error($heading, $message, 'error_db');
+		Logger::logError($heading ' || ' . $message);
+		Logger::http_error(500);
 		exit(8); // EXIT_DATABASE
 	}
 
