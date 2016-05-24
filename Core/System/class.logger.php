@@ -106,7 +106,7 @@ class Logger {
      *
      * Registers the error and exception handler, when required to do so by configuration
      */
-    public static function init() {
+    public function __construct() {
         // Register the error handler
         if (Config::get('error')->error_reporting == true) {
             set_error_handler(array('\FuzeWorks\Logger', 'errorHandler'), E_ALL);
@@ -138,7 +138,6 @@ class Logger {
 
             // Log it!
             self::errorHandler($errno, $errstr, $errfile, $errline);
-            self::logInfo(self::backtrace());
         }
 
         // And finally stop the Logging

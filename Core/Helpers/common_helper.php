@@ -154,108 +154,6 @@ if ( ! function_exists('is_cli'))
 
 // ------------------------------------------------------------------------
 
-if ( ! function_exists('show_error'))
-{
-	/**
-	 * Error Handler
-	 *
-	 * This function lets us invoke the exception class and
-	 * display errors using the standard error template located
-	 * in application/views/errors/error_general.php
-	 * This function will send the error page directly to the
-	 * browser and exit.
-	 *
-	 * @param	string
-	 * @param	int
-	 * @param	string
-	 * @return	void
-	 */
-	function show_error($message, $status_code = 500, $heading = 'An Error Was Encountered')
-	{
-		$status_code = abs($status_code);
-		if ($status_code < 100)
-		{
-			$exit_status = $status_code + 9; // 9 is EXIT__AUTO_MIN
-			if ($exit_status > 125) // 125 is EXIT__AUTO_MAX
-			{
-				$exit_status = 1; // EXIT_ERROR
-			}
-
-			$status_code = 500;
-		}
-		else
-		{
-			$exit_status = 1; // EXIT_ERROR
-		}
-
-		Logger::logError($heading . ' | ' . $message . ' | ' . $status_code);
-		Logger::http_error(500);
-		exit($exit_status);
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('show_404'))
-{
-	/**
-	 * 404 Page Handler
-	 *
-	 * This function is similar to the show_error() function above
-	 * However, instead of the standard error template it displays
-	 * 404 errors.
-	 *
-	 * @param	string
-	 * @param	bool
-	 * @return	void
-	 */
-	function show_404($page = '', $log_error = TRUE)
-	{
-		Logger::http_error(404);
-		exit(4); // EXIT_UNKNOWN_FILE
-	}
-}
-
-// ------------------------------------------------------------------------
-
-if ( ! function_exists('log_message'))
-{
-	/**
-	 * Error Logging Interface
-	 *
-	 * We use this as a simple mechanism to access the logging
-	 * class and send messages to be logged.
-	 *
-	 * @param	string	the error level: 'error', 'debug' or 'info'
-	 * @param	string	the error message
-	 * @return	void
-	 */
-	function log_message($level, $message)
-	{
-        switch (strtoupper($level)) {
-            case 'INFO':
-                Logger::logInfo($message);
-                break;
-            case 'ERROR':
-                Logger::logError($message);
-                break;
-            case 'DEBUG':
-                Logger::logDebug($message);
-                break;
-            case 'ALL':
-                Logger::logInfo($message);
-                break;
-            default:
-                Logger::newLevel("Invalid logging message of type '".$level."'");
-                Logger::logWarning($message);
-                Logger::stopLevel();
-                break;
-        }
-	}
-}
-
-// ------------------------------------------------------------------------
-
 if ( ! function_exists('set_status_header'))
 {
 	/**
@@ -274,7 +172,7 @@ if ( ! function_exists('set_status_header'))
 
 		if (empty($code) OR ! is_numeric($code))
 		{
-			show_error('Status codes must be numeric', 500);
+			throw new Exception('Status codes must be numeric', 1);
 		}
 
 		if (empty($text))

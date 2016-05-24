@@ -86,12 +86,6 @@ class Core
         // Load the config file of the FuzeWorks core
         $config = Config::get('core');
 
-        // Load the logger
-        Logger::init();
-
-        // And initialize the router paths
-        Router::init();
-
         // Disable events if requested to do so
         if (!$config->enable_events)
         {
@@ -152,6 +146,11 @@ class Core
         include_once 'Core/System/class.helpers.php';
         include_once 'Core/System/class.database.php';
         include_once 'Core/System/class.language.php';
+        include_once 'Core/System/class.utf8.php';
+        include_once 'Core/System/class.uri.php';
+        include_once 'Core/System/class.security.php';
+        include_once 'Core/System/class.input.php';
+        include_once 'Core/System/class.output.php';
 
         // Load the core classes
         new Config();
@@ -159,12 +158,17 @@ class Core
         new Events();
         new Models();
         new Layout();
-        new Router();
         new Modules();
         new Libraries();
         new Helpers();
         new Database();
         new Language();
+        new Utf8();
+        new URI();
+        new Security();
+        new Input();
+        new Router();
+        new Output();
 
         self::$loaded = true;
     }

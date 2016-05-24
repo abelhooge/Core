@@ -383,16 +383,28 @@ class Modules
     {
         // First check if the caching engine can be used
         if ($cache)
-        {
+        {   
+            // Retrieve the cache if possible
             $cache = Libraries::getDriver('cache');
-            $moduleRegister = $cache->$cachingMethod->get('moduleRegister');
-            $eventRegister = $cache->$cachingMethod->get('eventRegister');
+            $cacheData = $cache->$cachingMethod->get('moduleRegisters');
 
-            if ( ! is_bool($moduleRegister) && ! is_bool($eventRegister) )
+            if ( ! is_bool($cacheData) )
             {
+                // Separate the data
+                $moduleRegister = $cacheData['moduleRegister'];
+                $eventRegister = $cacheData['eventRegister'];
+                $routeRegister = $cacheData['routeRegister'];
+                $advertiseRegister = $cacheData['advertiseRegister'];
+
+                // And register it all
                 Logger::newLevel("Loadig Module Headers from Cache");
                 self::$register = $moduleRegister;
                 Events::$register = $eventRegister;
+                self::$advertiseRegister = $advertiseRegister;
+                self::$module_routes = $routeRegister;
+                foreach ($routeRegister as $route => $name) {
+                    Router::addRoute($route, array('\FuzeWorks\Modules', 'moduleCallable'), true);
+                }
                 Logger::stopLevel();
                 return true;
             }
@@ -534,8 +546,13 @@ class Modules
         if ($cache)
         {
             Logger::log("Saving registry to cache");
-            $cache->$cachingMethod->save('moduleRegister', $register, $cachingTime);
-            $cache->$cachingMethod->save('eventRegister', $event_register, $cachingTime);
+            $cacheData = array(
+                    'moduleRegister' => $register,
+                    'eventRegister' => $event_register,
+                    'routeRegister' => self::$module_routes,
+                    'advertiseRegister' => self::$advertiseRegister
+                );
+            $cache->$cachingMethod->save('moduleRegisters', $cacheData, $cachingTime);
         }
 
         // And apply the registers to their dedicate location

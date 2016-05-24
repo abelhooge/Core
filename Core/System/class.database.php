@@ -84,7 +84,7 @@ class Database
      * @param string $parameters      
      * @param bool $newInstance
      * @param bool $queryBuilder
-     * @return type FW_DB
+     * @return FW_DB
      */
     public static function get($parameters = '', $newInstance = false, $queryBuilder = null) 
     {

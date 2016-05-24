@@ -106,7 +106,7 @@ class Router
     /**
      * The constructor adds the default route to the routing table.
      */
-    public static function init()
+    public function __construct()
     {
         foreach (Config::get('routes') as $route => $callable) {
             if (is_int($route)) {

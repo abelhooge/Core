@@ -161,3 +161,23 @@ class HelperException extends Exception
 class LanguageException extends Exception
 {
 }
+
+/**
+ * Class UriException.
+ *
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ */
+class UriException extends Exception
+{
+}
+
+/**
+ * Class SecurityException.
+ *
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ */
+class SecurityException extends Exception
+{
+}
