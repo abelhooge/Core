@@ -40,4 +40,112 @@ namespace FuzeWorks;
 class Factory
 {
 
+	private static $sharedFactoryInstance;
+
+	private $instances = array();
+
+	public function __construct()
+	{
+		$this->instances['Layout'] = new Layout();
+		self::$sharedFactoryInstance = $this;
+	}
+
+	public function newInstance($className, $namespace = 'FuzeWorks\\')
+	{
+		$instanceName = ucfirst($className);
+		$className = $namespace.$instanceName;
+		$this->instances[$instanceName] = new $className();
+	}
+
+	public static function getInstance()
+	{
+		return clone self::$sharedFactoryInstance;
+	}
+
+	public function getConfig()
+	{
+		return new Config();
+	}
+
+	public function getCore()
+	{
+
+	}
+
+	public function getDatabase()
+	{
+
+	}
+
+	public function getEvents()
+	{
+
+	}
+
+	public function getHelpers()
+	{
+
+	}
+
+	public function getInput()
+	{
+
+	}
+
+	public function getLanguage()
+	{
+
+	}
+
+	public function getLayout()
+	{
+		return $this->instances['Layout'];
+	}
+
+	public function getLibraries()
+	{
+
+	}
+
+	public function getLogger()
+	{
+
+	}
+
+	public function getModels()
+	{
+
+	}
+	
+	public function getModules()
+	{
+
+	}
+
+	public function getOutput()
+	{
+
+	}
+
+	public function getRouter()
+	{
+
+	}
+
+	public function getSecurity()
+	{
+
+	}
+
+	public function getUri()
+	{
+
+	}
+
+	public function getUtf8()
+	{
+
+	}
+
+
 }

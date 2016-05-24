@@ -151,6 +151,7 @@ class Core
         include_once 'Core/System/class.security.php';
         include_once 'Core/System/class.input.php';
         include_once 'Core/System/class.output.php';
+        include_once 'Core/System/class.factory.php';
 
         // Load the core classes
         new Config();
@@ -169,6 +170,7 @@ class Core
         new Input();
         new Router();
         new Output();
+        new Factory();
 
         self::$loaded = true;
     }
