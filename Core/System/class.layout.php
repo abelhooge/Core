@@ -496,6 +496,7 @@ class Layout
         }
         self::$current_engine = null;
         self::$assigned_variables = array();
+        self::$directory = 'Application/Views';
         Logger::log('Reset the layout manager to its default state');
     }
 }
