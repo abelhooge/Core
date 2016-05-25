@@ -22,4 +22,11 @@
             <directory>tests</directory>
         </testsuite>
     </testsuites>
+
+    <logging>
+      <log type="json" target="build/phpunit/logfile.json"/>
+      <log type="junit" target="build/phpunit/logfile.xml" logIncompleteSkipped="false"/>
+      <log type="testdox-html" target="build/phpunit/testdox.html"/>
+      <log type="testdox-text" target="build/phpunit/testdox.txt"/>
+    </logging>
 </phpunit>
