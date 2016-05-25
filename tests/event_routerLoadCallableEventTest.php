@@ -29,9 +29,10 @@
  *
  * @version     Version 0.0.1
  */
-use \FuzeWorks\Events;
-use \FuzeWorks\Router;
-use \FuzeWorks\EventPriority;
+use FuzeWorks\Events;
+use FuzeWorks\Router;
+use FuzeWorks\EventPriority;
+use FuzeWorks\Layout;
 
 /**
  * Class RouterLoadCallableEventTest.

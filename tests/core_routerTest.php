@@ -126,13 +126,13 @@ class routerTest extends CoreTestAbstract
 
         Router::setPath('e/function_b/c');
         Router::route(false);
-        $this->assertEquals(null, Router::getMatches()['controller']);
+        $this->assertFalse(isset(Router::getMatches()['controller']));
         $this->assertEquals('function_b', Router::getMatches()['function']);
 
         Router::setPath('b/b');
         Router::route(false);
-        $this->assertEquals(null, Router::getMatches()['controller']);
-        $this->assertEquals(null, Router::getMatches()['function']);
+        $this->assertFalse(isset(Router::getMatches()['controller']));
+        $this->assertFalse(isset(Router::getMatches()['function']));
 
         Router::setPath('a/b');
         Router::route(false);
