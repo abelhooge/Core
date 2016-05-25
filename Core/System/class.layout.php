@@ -228,6 +228,11 @@ class Layout
     {
         $directory = preg_replace('#/+#', '/', (!is_null($directory) ? $directory : self::$directory).'/');
 
+        if (strpbrk($directory, "\\/?%*:|\"<>") === TRUE || strpbrk($string, "\\/?%*:|\"<>") === TRUE)
+        {
+            throw new LayoutException('Could not get file. Invalid file string', 1);
+        }
+
         if (!file_exists($directory)) {
             throw new LayoutException('Could not get file. Directory does not exist', 1);
         }
@@ -363,6 +368,10 @@ class Layout
      */
     public static function getTitle()
     {
+        if (!isset(self::$assigned_variables['title']))
+        {
+            return false;
+        }
         return self::$assigned_variables['title'];
     }
 
@@ -494,6 +503,12 @@ class Layout
         if (!is_null(self::$current_engine)) {
             self::$current_engine->reset();
         }
+
+        // Unload the engines
+        self::$engines = array();
+        self::$engines_loaded = false;
+        self::$file_extensions = array();
+
         self::$current_engine = null;
         self::$assigned_variables = array();
         self::$directory = 'Application/Views';
@@ -800,7 +815,7 @@ class JSONEngine implements TemplateEngine
     public function reset()
     {
         $this->assigned_variables = array();
-        $this->string_return = true;
+        self::$string_return = true;
     }
 
     public function test($param1, $param2, $param3)

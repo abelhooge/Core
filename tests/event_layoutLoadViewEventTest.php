@@ -29,9 +29,9 @@
  *
  * @version     Version 0.0.1
  */
-use \FuzeWorks\Events;
-use \FuzeWorks\Layout;
-use \FuzeWorks\EventPriority;
+use FuzeWorks\Events;
+use FuzeWorks\Layout;
+use FuzeWorks\EventPriority;
 
 /**
  * Class LayoutLoadViewEventTest.
@@ -55,7 +55,7 @@ class layoutLoadViewEventTest extends CoreTestAbstract
     /**
      * Intercept and change the event.
      *
-     * @expectedException \FuzeWorks\LayoutException
+     * @expectedException FuzeWorks\LayoutException
      */
     public function test_change()
     {

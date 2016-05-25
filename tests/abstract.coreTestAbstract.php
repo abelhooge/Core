@@ -48,5 +48,6 @@ abstract class CoreTestAbstract extends PHPUnit_Framework_TestCase
     {
         Events::$listeners = array();
         Layout::reset();
+        Events::enable();
     }
 }

@@ -29,7 +29,7 @@
  *
  * @version     Version 0.0.1
  */
-use \FuzeWorks\Layout;
+use FuzeWorks\Layout;
 
 /**
  * Class LayoutTest.
@@ -43,16 +43,14 @@ class layoutTest extends CoreTestAbstract
         // Test getting php files
         $this->assertEquals('php', Layout::getExtensionFromFile('class.test.php'));
         $this->assertEquals('php', Layout::getExtensionFromFile('class.test.org.php'));
+        $this->assertEquals('random', Layout::getExtensionFromFile('class.test.something.random'));
     }
 
     /**
      * @depends testGetFileExtensions
-     *
-     * @todo  Add malformed paths
      */
     public function testGetFilePath()
     {
-
         // Extensions to be used in this test
         $extensions = array('php', 'json');
 
@@ -73,7 +71,19 @@ class layoutTest extends CoreTestAbstract
     }
 
     /**
-     * @expectedException \FuzeWorks\LayoutException
+     * @depends testGetFilePath
+     * @expectedException FuzeWorks\LayoutException
+     */
+    public function testMalformedPaths()
+    {
+        // Extensions to be used in this test
+        $extensions = array('php', 'json');
+
+        Layout::setFileFromString('test?\/<>', 'test|?/*<>', $extensions);
+    }
+
+    /**
+     * @expectedException FuzeWorks\LayoutException
      */
     public function testMissingDirectory()
     {
@@ -82,7 +92,7 @@ class layoutTest extends CoreTestAbstract
     }
 
     /**
-     * @expectedException \FuzeWorks\LayoutException
+     * @expectedException FuzeWorks\LayoutException
      */
     public function testMissingFile()
     {
@@ -90,11 +100,50 @@ class layoutTest extends CoreTestAbstract
     }
 
     /**
-     * @expectedException \FuzeWorks\LayoutException
+     * @expectedException FuzeWorks\LayoutException
      */
     public function testUnknownFileExtension()
     {
         Layout::setFileFromString('test', 'tests/layout/testUnknownFileExtension/', array('php'));
+    }
+
+    public function testLayoutGet()
+    {
+        // Directory of these tests
+        $directory = 'tests/layout/testLayoutGet/';
+
+        $this->assertEquals('Retrieved Data', Layout::get('test', $directory));
+    }
+
+    public function testLayoutView()
+    {
+        // Directory of these tests
+        $directory = 'tests/layout/testLayoutGet/';
+
+        ob_start();
+        Layout::view('test', $directory);
+        $output = ob_get_contents();
+        ob_end_clean();
+
+        $this->assertEquals('Retrieved Data', $output);
+    }
+
+    public function testReset()
+    {
+        // First the the variables
+        Layout::setTitle('Test Title');
+        Layout::setDirectory('tests/layout/testLayoutGet');
+
+        // Test if they are actually set
+        $this->assertEquals('Test Title', Layout::getTitle());
+        $this->assertEquals('tests/layout/testLayoutGet', Layout::getDirectory());
+
+        // Reset the layout system
+        Layout::reset();
+
+        // Test for default values
+        $this->assertFalse(Layout::getTitle());
+        $this->assertEquals('Application/Views', Layout::getDirectory());
     }
 
     public function testGetEngineFromExtension()
@@ -102,14 +151,14 @@ class layoutTest extends CoreTestAbstract
         Layout::loadTemplateEngines();
 
         // Test all the default engines
-        $this->assertInstanceOf('\FuzeWorks\TemplateEngine\PHPEngine', Layout::getEngineFromExtension('php'));
-        $this->assertInstanceOf('\FuzeWorks\TemplateEngine\JSONEngine', Layout::getEngineFromExtension('json'));
-        $this->assertInstanceOf('\FuzeWorks\TemplateEngine\SmartyEngine', Layout::getEngineFromExtension('tpl'));
+        $this->assertInstanceOf('FuzeWorks\TemplateEngine\PHPEngine', Layout::getEngineFromExtension('php'));
+        $this->assertInstanceOf('FuzeWorks\TemplateEngine\JSONEngine', Layout::getEngineFromExtension('json'));
+        $this->assertInstanceOf('FuzeWorks\TemplateEngine\SmartyEngine', Layout::getEngineFromExtension('tpl'));
     }
 
     /**
      * @depends testGetEngineFromExtension
-     * @expectedException \FuzeWorks\LayoutException
+     * @expectedException FuzeWorks\LayoutException
      */
     public function testGetEngineFromExtensionFail()
     {
@@ -121,9 +170,8 @@ class layoutTest extends CoreTestAbstract
      */
     public function testCustomEngine()
     {
-
         // Create the engine
-        $mock = $this->getMockBuilder('\FuzeWorks\TemplateEngine\TemplateEngine')->getMock();
+        $mock = $this->getMockBuilder('FuzeWorks\TemplateEngine\TemplateEngine')->getMock();
 
         // Add the methods
         $mock->method('get')->willReturn('output');
@@ -138,21 +186,52 @@ class layoutTest extends CoreTestAbstract
         $this->assertEquals('output', Layout::get('test', 'tests/layout/testCustomEngine/'));
     }
 
-    public function testPHPEngine()
+    /**
+     * @depends testCustomEngine
+     * @expectedException FuzeWorks\LayoutException
+     */
+    public function testInvalidCustomEngine()
     {
+        $mock = $this->getMock('MockEngine');
 
-        // Directory of these tests
-        $directory = 'tests/layout/testEngines/';
-
-        $this->assertEquals('PHP Template Check', Layout::get('php', $directory));
+        // Does not implement FuzeWorks\TemplateEngine\TemplateEngine, this should fail
+        Layout::registerEngine($mock, 'Custom', array('test'));
     }
 
-    public function testJSONEngine()
+    public function testEnginesLoadView()
     {
-
         // Directory of these tests
-        $directory = 'tests/layout/testEngines/';
+        $directory = 'tests/layout/testEngines/'; 
+        
+        // First the PHP Engine
+        $this->assertEquals('PHP Template Check', Layout::get('php', $directory));
+        Layout::reset();
 
+        // Then the JSON Engine
         $this->assertEquals('JSON Template Check', json_decode(Layout::get('json', $directory), true)[0]);
+        Layout::reset();
+
+        // And the Smarty Engine
+        $this->assertEquals('Smarty Template Check', Layout::get('smarty', $directory));
+    }
+
+    public function testEngineVariables()
+    {
+        // Directory of these tests
+        $directory = 'tests/layout/testEngineVariables/'; 
+        
+        // First the PHP Engine
+        Layout::assign('key', 'value');
+        $this->assertEquals('value', Layout::get('php', $directory));
+        Layout::reset();
+
+        // Then the JSON Engine
+        Layout::assign('key', 'value');
+        $this->assertEquals('value', json_decode(Layout::get('json', $directory), true)['data']['key']);
+        Layout::reset();
+
+        // And the Smarty Engine
+        Layout::assign('key', 'value');
+        $this->assertEquals('value', Layout::get('smarty', $directory));
     }
 }

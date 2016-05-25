@@ -29,7 +29,7 @@
  *
  * @version     Version 0.0.1
  */
-use \FuzeWorks\Router;
+use FuzeWorks\Router;
 
 /**
  * Class RouterTest.

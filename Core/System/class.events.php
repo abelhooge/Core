@@ -144,6 +144,8 @@ class Events
      * The Event gets created, passed around and then returned to the issuer.
      *
      * @param mixed $input Object for direct event, string for system event or notifierEvent
+     * @todo  Implement Application Events
+     * @todo  Implement Directory input for Events from other locations (like Modules)
      *
      * @return \FuzeWorks\Event The Event
      */

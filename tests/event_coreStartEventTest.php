@@ -29,9 +29,9 @@
  *
  * @version     Version 0.0.1
  */
-use \FuzeWorks\Core;
-use \FuzeWorks\Events;
-use \FuzeWorks\EventPriority;
+use FuzeWorks\Core;
+use FuzeWorks\Events;
+use FuzeWorks\EventPriority;
 
 /**
  * Class CoreStartEventTest.

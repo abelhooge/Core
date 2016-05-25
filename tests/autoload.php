@@ -31,8 +31,9 @@
  */
 // Load the abstract
 
-use \FuzeWorks\Config;
-use \FuzeWorks\Core;
+use FuzeWorks\Config;
+use FuzeWorks\Core;
+use FuzeWorks\Logger;
 
 require_once 'abstract.coreTestAbstract.php';
 require_once 'Core/System/class.core.php';
@@ -45,3 +46,19 @@ $cfg = Config::get('error');
 $cfg->debug = false;
 $cfg->error_reporting = false;
 $cfg->commit();
+
+restore_error_handler();
+restore_exception_handler();
+
+// Display all errors
+ini_set('display_errors', 1);
+error_reporting(E_ALL | E_STRICT);
+
+// Load the vfsStream class either through PEAR installed library or through composer
+if ( ! class_exists('vfsStream') && file_exists('vendor/autoload.php'))
+{
+	include_once 'vendor/autoload.php';
+	class_alias('org\bovigo\vfs\vfsStream', 'vfsStream');
+	class_alias('org\bovigo\vfs\vfsStreamDirectory', 'vfsStreamDirectory');
+	class_alias('org\bovigo\vfs\vfsStreamWrapper', 'vfsStreamWrapper');
+}
