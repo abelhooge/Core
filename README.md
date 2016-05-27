@@ -1,18 +1,18 @@
-FuzeWorks - Readme
+FuzeWorks - Readme [![build status](http://10.0.0.32/fuzeworks/core/badges/master/build.svg)](http://10.0.0.32/fuzeworks/core/commits/master)
 ===================
 
 Version 0.0.1-DEV
 
 A versatile PHP Framework built to perform.
 
-https://fuzeworks.techfuze.net/
+https://techfuze.net/fuzeworks
 
 Summary
 -------
 
 FuzeWorks is a flexible PHP Framework made for the requirements of todays web.
 For a summary of features, list of requirements, and installation instructions,
-please see the documentation in the ./doc/ folder or at http://fuzeworks.techfuze.net/
+please see the documentation in the ./doc/ folder or at http://techfuze.net/fuzeworks
 
 Copyright
 ---------
