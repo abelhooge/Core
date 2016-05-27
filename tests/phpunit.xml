@@ -1,5 +1,5 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.5/phpunit.xsd"
-    bootstrap="tests/autoload.php"
+    bootstrap="autoload.php"
     convertErrorsToExceptions="true"
     convertNoticesToExceptions="true"
     convertWarningsToExceptions="true"
@@ -11,15 +11,14 @@
 
     <testsuites>
         <testsuite name="Core Functionality">
-            <directory>tests</directory>
-            <directory>tests/helpers</directory>
+            <directory>.</directory>
         </testsuite>
     </testsuites>
 
     <logging>
-      <log type="json" target="build/phpunit/logfile.json"/>
-      <log type="junit" target="build/phpunit/logfile.xml" logIncompleteSkipped="false"/>
-      <log type="testdox-html" target="build/phpunit/testdox.html"/>
-      <log type="testdox-text" target="build/phpunit/testdox.txt"/>
+      <log type="json" target="../build/phpunit/logfile.json"/>
+      <log type="junit" target="../build/phpunit/logfile.xml" logIncompleteSkipped="false"/>
+      <log type="testdox-html" target="../build/phpunit/testdox.html"/>
+      <log type="testdox-text" target="../build/phpunit/testdox.txt"/>
     </logging>
 </phpunit>

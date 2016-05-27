@@ -21,7 +21,7 @@ build:composer:
 test:5.4:
   image: php:5.4
   script:
-  - vendor/bin/phpunit -c phpunit.xml --coverage-text
+  - vendor/bin/phpunit -c tests/phpunit.xml --coverage-text
   cache:
     key: "$CI_BUILD_REF/$CI_BUILD_REF_NAME"
     paths:
@@ -31,7 +31,7 @@ test:5.4:
 test:5.5:
   image: php:5.5
   script:
-  - vendor/bin/phpunit -c phpunit.xml --coverage-text
+  - vendor/bin/phpunit -c tests/phpunit.xml --coverage-text
   cache:
     key: "$CI_BUILD_REF/$CI_BUILD_REF_NAME"
     paths:
@@ -42,7 +42,7 @@ test:5.6:
   stage: test
   image: php:5.6
   script:
-  - vendor/bin/phpunit -c phpunit.xml --coverage-text
+  - vendor/bin/phpunit -c tests/phpunit.xml --coverage-text
   cache:
     key: "$CI_BUILD_REF/$CI_BUILD_REF_NAME"
     paths:
@@ -52,7 +52,7 @@ test:7.0:
   stage: test
   image: php:7.0
   script:
-  - vendor/bin/phpunit -c phpunit.xml --coverage-text
+  - vendor/bin/phpunit -c tests/phpunit.xml --coverage-text
   cache:
     key: "$CI_BUILD_REF/$CI_BUILD_REF_NAME"
     paths:
@@ -64,7 +64,7 @@ release:
   only:
   - master
   script:
-  - vendor/bin/phpunit -c phpunit.xml --coverage-text
+  - vendor/bin/phpunit -c tests/phpunit.xml --coverage-text
   - vendor/bin/apigen generate -s . -d 'build/phpdoc' --todo --title 'FuzeWorks Build' --exclude 'tests/*','build/*','vendor/*','CI/*'
   artifacts:
     name: "${CI_BUILD_NAME}_${CI_BUILD_REF_NAME}"
