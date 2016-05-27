@@ -166,8 +166,7 @@ class Utf8 {
      */
     public static function safe_ascii_for_xml($str)
     {
-        Helpers::load('common');
-        return remove_invisible_characters($str, FALSE);
+        return self::remove_invisible_characters($str, FALSE);
     }
 
     // --------------------------------------------------------------------

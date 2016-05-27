@@ -339,8 +339,8 @@ if ( ! function_exists('get_mime_by_extension'))
 
 		if ( ! is_array($mimes))
 		{
-			FuzeWorks\Helpers::load('common');
-			$mimes = get_mimes();
+			$factory = Factory::getInstance();
+			$mimes = $factory->getConfig()->get('mimes');
 
 			if (empty($mimes))
 			{

@@ -46,8 +46,23 @@ class Factory
 
 	public function __construct()
 	{
-		$this->instances['Layout'] = new Layout();
 		self::$sharedFactoryInstance = $this;
+        $this->instances['Config'] = new Config();
+        $this->instances['Logger'] = new Logger();
+        $this->instances['Events'] = new Events();
+        $this->instances['Models'] = new Models();
+        $this->instances['Layout'] = new Layout();
+        $this->instances['Modules'] = new Modules();
+        $this->instances['Libraries'] = new Libraries();
+        $this->instances['Helpers'] = new Helpers();
+        $this->instances['Database'] = new Database();
+        $this->instances['Language'] = new Language();
+        $this->instances['Utf8'] = new Utf8();
+        $this->instances['URI'] = new URI();
+        $this->instances['Security'] = new Security();
+        $this->instances['Input'] = new Input();
+        $this->instances['Router'] = new Router();
+        $this->instances['Output'] = new Output();
 	}
 
 	public function newInstance($className, $namespace = 'FuzeWorks\\')
@@ -57,44 +72,49 @@ class Factory
 		$this->instances[$instanceName] = new $className();
 	}
 
-	public static function getInstance()
-	{
-		return clone self::$sharedFactoryInstance;
+	public static function getInstance($cloneInstance = true)
+	{	
+		if ($cloneInstance === true)
+		{
+			return clone self::$sharedFactoryInstance;
+		}
+
+		return self::$sharedFactoryInstance;
 	}
 
 	public function getConfig()
 	{
-		return new Config();
+		return $this->instances['Config'];
 	}
 
 	public function getCore()
 	{
-
+		return $this->instances['Core'];
 	}
 
 	public function getDatabase()
 	{
-
+		return $this->instances['Database'];
 	}
 
 	public function getEvents()
 	{
-
+		return $this->instances['Events'];
 	}
 
 	public function getHelpers()
 	{
-
+		return $this->instances['Helpers'];
 	}
 
 	public function getInput()
 	{
-
+		return $this->instances['Input'];
 	}
 
 	public function getLanguage()
 	{
-
+		return $this->instances['Language'];
 	}
 
 	public function getLayout()
@@ -104,47 +124,47 @@ class Factory
 
 	public function getLibraries()
 	{
-
+		return $this->instances['Config'];
 	}
 
 	public function getLogger()
 	{
-
+		return $this->instances['Logger'];
 	}
 
 	public function getModels()
 	{
-
+		return $this->instances['Models'];
 	}
 	
 	public function getModules()
 	{
-
+		return $this->instances['Modules'];
 	}
 
 	public function getOutput()
 	{
-
+		return $this->instances['Output'];
 	}
 
 	public function getRouter()
 	{
-
+		return $this->instances['Router'];
 	}
 
 	public function getSecurity()
 	{
-
+		return $this->instances['Security'];
 	}
 
 	public function getUri()
 	{
-
+		return $this->instances['URI'];
 	}
 
 	public function getUtf8()
 	{
-
+		return $this->instances['Utf8'];
 	}
 
 

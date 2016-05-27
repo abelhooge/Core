@@ -33,8 +33,8 @@
 namespace FuzeWorks;
 
 use PDOException;
-use FuzeWorks\ORM\ConfigFileORM;
-use FuzeWorks\ORM\ConfigDatabaseORM;
+use FuzeWorks\ConfigORM\ConfigORMAbstract;
+use FuzeWorks\ConfigORM\ConfigFileORM;
 
 /**
  * Config Class.
@@ -44,6 +44,7 @@ use FuzeWorks\ORM\ConfigDatabaseORM;
  *
  * @author    Abel Hoogeveen <abel@techfuze.net>
  * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @todo      Fix the whole thing, it works, terribly
  */
 class Config
 {
@@ -62,18 +63,190 @@ class Config
     private static $cfg = array();
 
     /**
+     * All registered ORMs
+     * 
+     * @var array of ORM names and objects
+     */
+    private $ORMs = array();
+
+
+    /**
+     * The config tree, this is where all configs are stored whatever ORM they come from.
+     * 
+     * @var array
+     */
+    private $tree = array();
+
+    private $scope = 'Application/Config';
+
+    private static $factory;
+
+    public function __construct()
+    {
+        $this->loadDefaultORM();
+    }
+
+    public function getConfig($identifier, $scope = null, $appendRoot = true) 
+    {
+        $scope = (is_null($scope) ? $this->scope : $scope);
+        $object = $this->getEndpointFromString($identifier, $appendRoot);
+
+        // Now check if we have an ORM or a result object
+        if ($object->isLoaded() === false)
+        {
+            $object->setScope($scope);
+            $object->retrieve();
+        }  
+
+        return $object;
+    }
+
+    public function getEndpointFromString($string, $appendRoot = true)
+    {
+        // If the root directory needs to be appended, do so
+        if ($appendRoot === true)
+        {
+            $string = './' . str_replace(array('./'), '', $string);
+        }
+
+        // First sanitize the string
+        $string = preg_replace('#/+#', '/', $string);
+
+        // Check if the string is a valid filesystem string (which is the criteria for this system)
+        if (strpbrk($string, "\\/?%*:|\"<>") === TRUE)
+        {
+            throw new ConfigException('Could not get Config. Invalid string', 1);
+        }
+
+        // Prepare all variables for the search of the endpoint
+        $endpoints = explode('/', $string);
+        $ORM = null;
+        $ResultObject = null;
+        $tree = $this->tree;
+        $ORMTree = $endpoints;
+
+        // Cycle through the tree
+        for ($i=0; $i < count($endpoints); $i++) 
+        {  
+            // If this position in the tree is found, check all posibilities
+            $key = $endpoints[$i];
+            if (isset($tree[$key]))
+            {
+                // Is an ORM found? Register it as the last ORM for now
+                if (isset($tree[$key]['ORM']) && is_object($tree[$key]['ORM']))
+                {
+                    $ORM = $tree[$key]['ORM'];
+                    if ($ORM->isLoaded() === false)
+                    {
+                        $ORM = clone $ORM;
+                    }
+                    array_shift($ORMTree);
+                }
+            }
+            else
+            {
+                // Not found, use last found ORM
+                break;
+            }
+
+            // Update the working tree
+            $tree = $tree[$key];
+        }
+
+        // If absolutely nothing is found, throw an exception
+        if (is_null($ORM))
+        {
+            throw new ConfigException("Could not get Config. '".$string."'. No Object Mapper found.");
+        }
+
+        // And add the ORM to the final point
+        $last = end($endpoints);
+        reset($endpoints);
+        $endpoints[$last]['ORM'] = $ORM;
+        $this->tree = array_merge($this->tree, $endpoints);
+
+        // Determine the object to be loaded
+        if ($ORM->isLoaded() === false)
+        {
+            $ORM->setTree($ORMTree);            
+        }
+
+        return $ORM;
+    }
+
+    public function registerEndpoint($endpointString, $ORMName, $appendRoot = true)
+    {
+        if (!isset($this->ORMs[$ORMName]))
+        {
+            throw new ConfigException("Could not register endpoint. ORM '".$ORMName."' is not known (not registered?)", 1);
+        }
+
+        // If the root directory needs to be appended, do so
+        if ($appendRoot === true)
+        {
+            $endpointString = './' . str_replace(array('./'), '', $endpointString);
+        }
+
+        // First sanitize the string
+        $endpointString = preg_replace('#/+#', '/', $endpointString);
+
+        // Check if the string is a valid filesystem string (which is the criteria for this system)
+        if (strpbrk($endpointString, "\\/?%*:|\"<>") === TRUE)
+        {
+            throw new ConfigException('Could not register endpoint. Invalid string', 1);
+        }
+
+        // Prepare all variables for the search of the endpoint
+        $endpoints = explode('/', $endpointString);
+
+        // Check for illegal tags
+        if (in_array('ORM', $endpoints) || in_array('ResultObject', $endpoints))
+        {
+            throw new ConfigException('Could not register endpoint. Endpoint can not contain \'ORM\' or \'ResultObject\' values.');
+        }
+
+        // And add the ORM to the final point
+        $last = end($endpoints);
+        reset($endpoints);
+
+        $endpoints[$last]['ORM'] = clone $this->ORMs[$ORMName];
+
+        // And finally merge the tree
+        $this->tree = array_merge($this->tree, $endpoints);
+    }
+
+    public function registerORM(ConfigORMAbstract $ORMObject, $ORMName, $appendRoot = true)
+    {
+        // First check if the ORM already exists
+        if (isset($this->ORMs[$ORMName]))
+        {
+            throw new ConfigException("Could not register ORM. ORM '".$ORMName."' already registered", 1);
+        }
+
+        // Then validate the ORM
+        if ($ORMObject instanceof ConfigORMAbstract)
+        {
+            $this->ORMs[$ORMName] = $ORMObject;
+        }
+
+        // And log it
+
+        return true;
+    }
+
+    /**
      * Loads a config file and returns it as an object.
      *
      * @param string config file name
      * @param string directory, default is Application/Config
      *
-     * @throws \Exception on file not found
+     * @throws FuzeWorks\ConfigException on file not found
      *
-     * @return \FuzeWorks\ORM\ConfigORM of config
+     * @return FuzeWorks\ORM\ConfigORM of config
      */
-    public static function loadConfigFile($name, $directory = null)
+    public static function loadConfigFile($name, $scope = null)
     {
-        $dir = (isset($directory) ? $directory : 'Application/Config/');
+        $dir = (isset($scope) ? $scope : 'Application/Config/');
         $file = $dir.'config.'.strtolower($name).'.php';
 
         // If already loaded, return a reference to the ORM
@@ -104,22 +277,71 @@ class Config
         }
     }
 
+    public function loadDefaultORM()
+    {
+        $this->registerORM(new ConfigFileORM(), 'File');
+        $this->registerEndpoint('.', 'File', false);
+    }
+
+    public function reset()
+    {
+        // Reset the variables
+        $this->tree = array();
+        $this->ORMs = array();
+    }
+
+    public function getDirectory()
+    {
+        return $this->scope;
+    }
+
+    public function setDirectory($scope)
+    {
+        // Check if the string is a valid filesystem string (which is the criteria for this system)
+        if (strpbrk($scope, "\\/?%*:|\"<>") === TRUE)
+        {
+            throw new ConfigException('Could not set directory. Invalid string', 1);
+        }
+
+        $this->scope = $scope;
+    }
+
     /**
      * Retrieves a config file from the Application folder
      *
      * @param string config file name
      *
-     * @return \FuzeWorks\ORM\ConfigORM of config
+     * @return FuzeWorks\ORM\ConfigORM of config
      */
     public static function get($name)
     {
-        return self::loadConfigFile($name);
+        if (!is_object(self::$factory))
+        {
+            self::$factory = Factory::getInstance();
+        }
+        $config = self::$factory->getConfig();
+        return $config->getConfig($name);
     }
 }
 
-namespace FuzeWorks\ORM;
+namespace FuzeWorks\ConfigORM;
 
 use Iterator;
+use FuzeWorks\ConfigException;
+
+interface ConfigORMInterface {
+    public function setTree($tree);
+    public function commit();
+    public function setScope($scope);
+    public function retrieve();
+
+    /**
+     * Whether the ConfigORM is already loaded.
+     * 
+     * If true, the config should not be reloaded
+     */
+    public function isLoaded();
+}
 
 /**
  * Abstract ConfigORM class.
@@ -130,7 +352,7 @@ use Iterator;
  * @author    Abel Hoogeveen <abel@techfuze.net>
  * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
-abstract class ConfigORM implements Iterator
+abstract class ConfigORMAbstract implements Iterator
 {
     /**
      * The original state of a config file. Can be reverted to using revert().
@@ -251,162 +473,6 @@ abstract class ConfigORM implements Iterator
 }
 
 /**
- * ORM class for config files in a database.
- *
- * Handles entries in the database of FuzeWorks and is able to dynamically update them when requested
- *
- * @author    Abel Hoogeveen <abel@techfuze.net>
- * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
- */
-class ConfigDatabaseORM extends ConfigORM
-{
-    /**
-     * The current connection to the database.
-     *
-     * @var \FuzeWorks\Database Database Connection
-     */
-    private $dbh;
-
-    /**
-     * whether the database connection has been successfully established.
-     *
-     * @var bool true on success
-     */
-    public $success = false;
-
-    /**
-     * The current filename.
-     *
-     * @var string filename
-     */
-    private $file;
-
-    /**
-     * Sets up the class and the connection to the database.
-     *
-     * @param \FuzeWorks\Database $db       The Database connection
-     * @param string              $filename The current filename
-     *
-     * @throws ConfigException on fatal error
-     */
-    public function __construct($db, $filename)
-    {
-        $this->dbh = $db;
-        $this->cfg = $this->openDb($filename);
-        $this->originalCfg = $this->cfg;
-        $this->file = $filename;
-    }
-
-    /**
-     * Opens up a database connection with the requested filename.
-     *
-     * @param string $name Name of the file
-     *
-     * @return array Content of the file
-     *
-     * @throws ConfigException on fatal error
-     */
-    private function openDb($name)
-    {
-        $prefix = $this->dbh->getPrefix();
-        try {
-            $stmnt = $this->dbh->prepare('SELECT * FROM '.$prefix.'config WHERE `file` = ?');
-            $stmnt->execute(array($name));
-        } catch (PDOException $e) {
-            throw new ConfigException('Could not execute SQL-query due PDO-exception '.$e->getMessage());
-        }
-
-        // Fetch results
-        $result = $stmnt->fetchAll(\PDO::FETCH_ASSOC);
-        $return = array();
-        for ($i = 0; $i < count($result); ++$i) {
-            $return[ $result[$i]['key'] ] = $result[$i]['value'];
-        }
-
-        // Return if found in DB
-        if (!empty($return)) {
-            $this->success = true;
-
-            return (array) $return;
-        }
-    }
-
-    /**
-     * Write config updates to the database.
-     *
-     * @throws ConfigException on fatal error
-     */
-    private function writeDb()
-    {
-        // First arrays of all the fields that need to change
-        $changed_fields = array();
-        $removed_fields = array();
-        $new_fields = array();
-
-        // First check for changed and new feeds
-        foreach ($this->cfg as $key => $value) {
-            if (isset($this->originalCfg[$key])) {
-                if ($this->originalCfg[$key] != $value) {
-                    // Changed field
-                    $changed_fields[$key] = $value;
-                }
-            } else {
-                // New field
-                $new_fields[$key] = $value;
-            }
-        }
-
-        // Then check for removed fields
-        foreach ($this->originalCfg as $key => $value) {
-            if (!isset($this->cfg[$key])) {
-                $removed_fields[$key] = $value;
-            }
-        }
-
-        // First for the removed values
-        $prefix = $this->dbh->getPrefix();
-        try {
-            $stmnt = $this->dbh->prepare('DELETE FROM '.$prefix.'config WHERE `file` = :file AND `key` = :key');
-            foreach ($removed_fields as $key => $value) {
-                $stmnt->execute(array('file' => $this->file, 'key' => $key));
-            }
-        } catch (PDOException $e) {
-            throw new ConfigException('Could not change config due to PDOException: '.$e->getMessage(), 1);
-        }
-
-        // Then for the changed values
-        try {
-            $stmnt = $this->dbh->prepare('UPDATE '.$prefix.'config SET `value` = :value WHERE `file` = :file AND `key` = :key');
-            foreach ($changed_fields as $key => $value) {
-                $stmnt->execute(array('file' => $this->file, 'key' => $key, 'value' => $value));
-            }
-        } catch (PDOException $e) {
-            throw new ConfigException('Could not change config due to PDOException: '.$e->getMessage(), 1);
-        }
-
-        // And finally for the new values
-        try {
-            $stmnt = $this->dbh->prepare('INSERT INTO '.$prefix.'config (`file`,`key`,`value`) VALUES (:file,:key,:value)');
-            foreach ($new_fields as $key => $value) {
-                $stmnt->execute(array('file' => $this->file, 'key' => $key, 'value' => $value));
-            }
-        } catch (PDOException $e) {
-            throw new ConfigException('Could not change config due to PDOException: '.$e->getMessage(), 1);
-        }
-    }
-
-    /**
-     * Write updates of the config file to the database.
-     *
-     * @throws ConfigException on fatal error
-     */
-    public function commit()
-    {
-        $this->writeDb();
-    }
-}
-
-/**
  * ORM class for config files in PHP files.
  *
  * Handles entries in the config directory of FuzeWorks and is able to dynamically update them when requested
@@ -414,7 +480,7 @@ class ConfigDatabaseORM extends ConfigORM
  * @author    Abel Hoogeveen <abel@techfuze.net>
  * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
-class ConfigFileORM extends ConfigORM
+class ConfigFileORM extends ConfigORMAbstract implements ConfigORMInterface
 {
     /**
      * The current filename.
@@ -422,6 +488,12 @@ class ConfigFileORM extends ConfigORM
      * @var string filename
      */
     private $file;
+
+    private $loaded = false;
+
+    private $tree = array();
+
+    private $directory = 'Application/Config';
 
     /**
      * Sets up the class and the connection to the PHP file.
@@ -430,15 +502,53 @@ class ConfigFileORM extends ConfigORM
      *
      * @throws ConfigException on fatal error
      */
-    public function __construct($file)
+    public function __construct($file = null)
     {
-        if (file_exists($file)) {
+        if (is_null($file))
+        {
+            return;
+        }
+        elseif (file_exists($file)) {
             $this->file = $file;
             $this->openFile($file);
             $this->originalCfg = $this->cfg;
         } else {
             throw new ConfigException('Could not load config file. Config file does not exist', 1);
         }
+    }
+
+    public function isLoaded()
+    {
+        return $this->loaded;
+    }
+
+    public function setTree($tree)
+    {
+        $this->tree = $tree;
+    }
+
+    public function retrieve()
+    {
+        // Retrieve the value from the tree
+        $file = end($this->tree);
+        $fileKey = key($this->tree);
+
+        // Replace it with the new one
+        $actualFile = 'config.'.$file.'.php';
+        unset($this->tree[$fileKey]);
+        $this->tree[] = $actualFile;
+
+        // Create the filestring and open it
+        $this->file = preg_replace('#/+#', '/', $this->directory . '/' . implode('/', $this->tree));
+        $this->openFile($this->file);
+        $this->originalCfg = $this->file;
+
+        $this->loaded = true;
+    }
+
+    public function setScope($scope)
+    {
+        $this->directory = $scope;
     }
 
     /**

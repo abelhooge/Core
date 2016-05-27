@@ -154,22 +154,6 @@ class Core
         include_once 'Core/System/class.factory.php';
 
         // Load the core classes
-        new Config();
-        new Logger();
-        new Events();
-        new Models();
-        new Layout();
-        new Modules();
-        new Libraries();
-        new Helpers();
-        new Database();
-        new Language();
-        new Utf8();
-        new URI();
-        new Security();
-        new Input();
-        new Router();
-        new Output();
         new Factory();
 
         self::$loaded = true;
