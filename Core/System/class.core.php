@@ -132,6 +132,8 @@ class Core
 
         // Load the core classes
         include_once 'Core/System/class.config.php';
+        include_once 'Core/System/class.abstract.configOrmAbstract.php';
+        include_once 'Core/System/class.configOrm.php';
         include_once 'Core/System/class.abstract.eventPriority.php';
         include_once 'Core/System/class.events.php';
         include_once 'Core/System/class.logger.php';
