@@ -48,6 +48,8 @@ namespace FuzeWorks;
  * It is also possible to load a cloned instance of the Factory class, so that all properties are independant as well,
  * all to suit your very needs.
  * 
+ * The Factory class is also extendible. This allows classes that extend Factory to access all it's properties. 
+ * 
  * @author    Abel Hoogeveen <abel@techfuze.net>
  * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
@@ -81,23 +83,34 @@ class Factory
 	 */
 	public function __construct()
 	{
-		self::$sharedFactoryInstance = $this;
-        $this->instances['Config'] = new Config();
-        $this->instances['Logger'] = new Logger();
-        $this->instances['Events'] = new Events();
-        $this->instances['Models'] = new Models();
-        $this->instances['Layout'] = new Layout();
-        $this->instances['Modules'] = new Modules();
-        $this->instances['Libraries'] = new Libraries();
-        $this->instances['Helpers'] = new Helpers();
-        $this->instances['Database'] = new Database();
-        $this->instances['Language'] = new Language();
-        $this->instances['Utf8'] = new Utf8();
-        $this->instances['URI'] = new URI();
-        $this->instances['Security'] = new Security();
-        $this->instances['Input'] = new Input();
-        $this->instances['Router'] = new Router();
-        $this->instances['Output'] = new Output();
+		// If there is no sharedFactoryInstance, prepare it
+		if (is_null(self::$sharedFactoryInstance))
+		{
+			self::$sharedFactoryInstance = $this;
+	        $this->instances['Config'] = new Config();
+	        $this->instances['Logger'] = new Logger();
+	        $this->instances['Events'] = new Events();
+	        $this->instances['Models'] = new Models();
+	        $this->instances['Layout'] = new Layout();
+	        $this->instances['Modules'] = new Modules();
+	        $this->instances['Libraries'] = new Libraries();
+	        $this->instances['Helpers'] = new Helpers();
+	        $this->instances['Database'] = new Database();
+	        $this->instances['Language'] = new Language();
+	        $this->instances['Utf8'] = new Utf8();
+	        $this->instances['URI'] = new URI();
+	        $this->instances['Security'] = new Security();
+	        $this->instances['Input'] = new Input();
+	        $this->instances['Router'] = new Router();
+	        $this->instances['Output'] = new Output();
+
+	        return true;
+		}
+
+		// Otherwise, copy the existing instances
+		$this->instances = self::getInstance()->getClassInstances();
+
+		return true;
 	}
 
 	/**
@@ -137,6 +150,16 @@ class Factory
 	}
 
 	/**
+	 * Return the instance array where all the instances are loaded
+	 * 
+	 * @return array Array of all loaded classes in THIS Factory
+	 */
+	public function getClassInstances() 
+	{
+		return $this->instances;
+	}
+
+	/**
 	 * Create a new instance of one of the loaded classes.
 	 * It reloads the class. It does NOT clone it. 
 	 * 
@@ -149,6 +172,15 @@ class Factory
 		// Determine the class to load
 		$instanceName = ucfirst($className);
 		$className = $namespace.$instanceName;
+
+		if (!isset($this->instances[$instanceName]))
+		{
+			throw new FactoryException("Could not load new instance of '".$instanceName."'. Instance was not found.", 1);
+		}
+		elseif (!class_exists($className, false))
+		{
+			throw new FactoryException("Could not load new instance of '".$instanceName."'. Class not found.", 1);
+		}
 
 		// Remove the current instance
 		unset($this->instances[$instanceName]);
@@ -171,6 +203,11 @@ class Factory
 	{
 		// Determine the class to load
 		$instanceName = ucfirst($className);
+
+		if (!isset($this->instances[$instanceName]))
+		{
+			throw new FactoryException("Could not clone instance of '".$instanceName."'. Instance was not found.", 1);
+		}
 
 		// Clone the instance
 		$this->instances[$instanceName] = clone $this->instances[$instanceName];
@@ -211,6 +248,11 @@ class Factory
 		// Determine the instance name
 		$instanceName = ucfirst($className);
 
+		if (!isset($this->instances[$instanceName]))
+		{
+			throw new FactoryException("Could not remove instance of '".$instanceName."'. Instance was not found.", 1);
+		}
+
 		// Unset
 		unset($this->instances[$instanceName]);
 
@@ -232,6 +274,28 @@ class Factory
 		}
 
 		return null;
+	}
+
+	/**
+	 * Test if a class is set to the Factory instance
+	 * 
+	 * @param string $objectName Name of the class to get
+	 * @return bool  Whether the class is set
+	 */
+	public function __isset($objectName)
+	{
+		return isset($this->instances[ucfirst($objectName)]);
+	}
+
+	/**
+	 * Unset a class set to the Factory instance
+	 * 
+	 * @param string $objectName Name of the class to get
+	 * @return void
+	 */
+	public function __unset($objectName)
+	{
+		unset($this->instances[ucfirst($objectName)]);
 	}
 
 	/* --------------------------------- Compatibility classes --------------------------------- */

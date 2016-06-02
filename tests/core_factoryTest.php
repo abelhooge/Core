@@ -49,7 +49,7 @@ class factoryTest extends CoreTestAbstract
      */
     public function testLoadSameInstance()
     {
-        $this->assertTrue(Factory::getInstance() === Factory::getInstance());
+        $this->assertSame(Factory::getInstance(), Factory::getInstance());
     }
 
     /**
@@ -58,10 +58,10 @@ class factoryTest extends CoreTestAbstract
     public function testLoadDifferentInstance()
     {
         // First a situation where one is the shared instance and one is a cloned instance
-        $this->assertFalse(Factory::getInstance() === Factory::getInstance(true));
+        $this->assertNotSame(Factory::getInstance(), Factory::getInstance(true));
 
         // And a situation where both are cloned instances
-        $this->assertFalse(Factory::getInstance(true) === Factory::getInstance(true));
+        $this->assertNotSame(Factory::getInstance(true), Factory::getInstance(true));
     }
 
     /**
@@ -80,14 +80,14 @@ class factoryTest extends CoreTestAbstract
         $factory2 = Factory::getInstance()->setInstance('Mock', $mock);
 
         // Return the mocks
-        $this->assertTrue($factory1->mock === $factory2->mock);
+        $this->assertSame($factory1->mock, $factory2->mock);
 
         // Different instance factories
         $factory3 = Factory::getInstance(true)->setInstance('Mock', $mock);
         $factory4 = Factory::getInstance(true)->setInstance('Mock', $mock);
 
         // Return the mocks
-        $this->assertTrue($factory3->mock === $factory4->mock);
+        $this->assertSame($factory3->mock, $factory4->mock);
     }
 
     /**
@@ -109,7 +109,7 @@ class factoryTest extends CoreTestAbstract
         $factory2->cloneInstance('Mock');
 
         // Should be true, since both Factories use the same Mock instance
-        $this->assertTrue($factory1->mock === $factory2->mock);
+        $this->assertSame($factory1->mock, $factory2->mock);
 
         // Different instance factories
         $factory3 = Factory::getInstance(true)->setInstance('Mock', $mock);
@@ -119,31 +119,59 @@ class factoryTest extends CoreTestAbstract
         $factory4->cloneInstance('Mock');
 
         // Should be false, since both Factories use a different Mock instance
-        $this->assertFalse($factory3->mock === $factory4->mock);
+        $this->assertNotSame($factory3->mock, $factory4->mock);
     }
 
     public function testGlobalCloneInstance()
     {
         // First test without global cloning
-        $this->assertTrue(Factory::getInstance() === Factory::getInstance());
+        $this->assertSame(Factory::getInstance(), Factory::getInstance());
 
         // Now enable global cloning
         Factory::enableCloneInstances();
 
         // Now test without global cloning
-        $this->assertFalse(Factory::getInstance() === Factory::getInstance());
+        $this->assertNotSame(Factory::getInstance(), Factory::getInstance());
 
         // Disable global cloning
         Factory::disableCloneInstances();
 
         // And test again without global cloning
-        $this->assertTrue(Factory::getInstance() === Factory::getInstance());
+        $this->assertSame(Factory::getInstance(), Factory::getInstance());
+    }
+
+    public function testNewFactoryInstance()
+    {
+        // Load the different factories
+        $factory = new Factory();
+        $factory2 = Factory::getInstance();
+
+        // Test if the objects are different factory instances
+        $this->assertNotSame($factory, $factory2);
+
+        // Fetch the instances
+        $instances1 = $factory->getClassInstances();
+        $instances2 = $factory2->getClassInstances();
+
+        // And test if all ClassInstances are the same
+        foreach ($instances1 as $className => $object) {
+            $this->assertSame($object, $instances2[$className]);
+        }
+
+        // And test when changing one classInstance
+        $factory->newInstance('Layout');
+        $this->assertNotSame($factory->getLayout(), $factory2->getLayout());
     }
 
     public function tearDown()
     {
-        Factory::getInstance()->removeInstance('Mock');
         Factory::disableCloneInstances();
+        
+        $factory = Factory::getInstance();
+        if (isset($factory->Mock))
+        {
+           $factory->removeInstance('Mock'); 
+        }
     }
 
 }

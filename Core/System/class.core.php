@@ -127,6 +127,7 @@ class Core
         }
 
         // Load core abstracts
+        include_once 'Core/System/class.factory.php';
         include_once 'Core/System/class.exceptions.php';
         include_once 'Core/System/class.abstract.event.php';
 
@@ -153,7 +154,6 @@ class Core
         include_once 'Core/System/class.security.php';
         include_once 'Core/System/class.input.php';
         include_once 'Core/System/class.output.php';
-        include_once 'Core/System/class.factory.php';
 
         // Load the core classes
         new Factory();

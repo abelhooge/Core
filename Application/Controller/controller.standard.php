@@ -33,7 +33,6 @@
 namespace Application\Controller;
 
 use FuzeWorks\ControllerAbstract;
-use FuzeWorks\Layout;
 
 /**
  * The default controller of FuzeWorks.
@@ -55,6 +54,6 @@ class Standard extends ControllerAbstract
      */
     public function index($path = null)
     {
-        Layout::view('home');
+        $this->layout->view('home');
     }
 }
