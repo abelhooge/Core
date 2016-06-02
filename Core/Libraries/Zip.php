@@ -31,7 +31,7 @@
  */
 
 namespace FuzeWorks\Library;
-use FuzeWorks\Logger;
+use Fuzeworks\Factory;
 
 /**
  * FuzeWorks Zip Compression Class
@@ -120,7 +120,7 @@ class FW_Zip {
 	{
 		$this->now = time();
 		$this->factory = Factory::getInstance();
-		Logger::log('Zip Compression Class Initialized');
+		$this->factory->logger->log('Zip Compression Class Initialized');
 	}
 
 	// --------------------------------------------------------------------
