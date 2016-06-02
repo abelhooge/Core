@@ -42,7 +42,7 @@ class commonHelperTest extends CoreTestAbstract
     public function setUp()
     {
         // Load Helper
-        Factory::getInstance()->getHelpers()->load('common');
+        Factory::getInstance()->helpers->load('common');
     }
 
 	public function test_stringify_attributes()

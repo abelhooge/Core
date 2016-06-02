@@ -72,9 +72,9 @@ class FW_Cache_file extends FW_Driver {
 		$this->factory = Factory::getInstance();
 
 		// Load the required helpers
-		$this->factory->getHelpers()->load('file');
+		$this->factory->helpers->load('file');
 
-		$path = $this->factory->getConfig()->get('cache')->cache_file_path;
+		$path = $this->factory->config->get('cache')->cache_file_path;
 		$this->_cache_path = ($path === '') ? 'Application'.DS.'Cache/' : $path;
 	}
 

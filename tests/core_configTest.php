@@ -44,7 +44,7 @@ class configTest extends CoreTestAbstract
 	public function setUp()
 	{
 		$factory = Factory::getInstance();
-		$this->config = $factory->getConfig();
+		$this->config = $factory->config;
 	}
 
 	public function testGetConfigClass()

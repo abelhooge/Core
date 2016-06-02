@@ -304,7 +304,7 @@ abstract class FW_DB_utility {
 		extract($params);
 
 		// Load the xml helper
-		$this->factory->getHelpers()->load('xml');
+		$this->factory->helpers->load('xml');
 
 		// Generate the result
 		$xml = '<'.$root.'>'.$newline;

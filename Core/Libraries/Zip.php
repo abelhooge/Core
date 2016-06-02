@@ -461,7 +461,7 @@ class FW_Zip {
 			$filename .= '.zip';
 		}
 
-		$this->factory->getHelpers()->load('download');
+		$this->factory->helpers->load('download');
 		$get_zip = $this->get_zip();
 		$zip_content =& $get_zip;
 

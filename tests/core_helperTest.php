@@ -45,7 +45,7 @@ class helperTest extends CoreTestAbstract
 	public function setUp()
 	{
 		$factory = Factory::getInstance();
-		$this->helpers = $factory->getHelpers();
+		$this->helpers = $factory->helpers;
 	}
 
     public function testGetHelpersClass()

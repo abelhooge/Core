@@ -160,7 +160,7 @@ class factoryTest extends CoreTestAbstract
 
         // And test when changing one classInstance
         $factory->newInstance('Layout');
-        $this->assertNotSame($factory->getLayout(), $factory2->getLayout());
+        $this->assertNotSame($factory->layout, $factory2->layout);
     }
 
     public function tearDown()

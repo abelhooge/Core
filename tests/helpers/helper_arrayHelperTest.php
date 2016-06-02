@@ -50,7 +50,7 @@ class arrayHelperTest extends CoreTestAbstract
     public function setUp()
     {
         // Load Helper
-        Factory::getInstance()->getHelpers()->load('array');
+        Factory::getInstance()->helpers->load('array');
     }
 
 	// ------------------------------------------------------------------------

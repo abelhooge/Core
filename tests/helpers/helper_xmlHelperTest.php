@@ -42,7 +42,7 @@ class xmlHelperTest extends CoreTestAbstract
     public function setUp()
     {
         // Load Helper
-        Factory::getInstance()->getHelpers()->load('xml');
+        Factory::getInstance()->helpers->load('xml');
     }
 
     public function test_xml_convert()

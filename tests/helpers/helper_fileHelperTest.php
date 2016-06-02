@@ -42,7 +42,7 @@ class fileHelperTest extends CoreTestAbstract
     public function setUp()
     {
         // Load Helper
-        Factory::getInstance()->getHelpers()->load('file');
+        Factory::getInstance()->helpers->load('file');
 
 		vfsStreamWrapper::register();
 		vfsStreamWrapper::setRoot(new vfsStreamDirectory('testDir'));

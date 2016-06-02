@@ -135,7 +135,7 @@ class Config
         {
             self::$factory = Factory::getInstance();
         }
-        $config = self::$factory->getConfig();
+        $config = self::$factory->config;
         return $config->getConfig($configName);
     }
 
