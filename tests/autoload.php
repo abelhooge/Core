@@ -55,6 +55,9 @@ restore_exception_handler();
 ini_set('display_errors', 1);
 error_reporting(E_ALL | E_STRICT);
 
+// Set localhost "remote" IP
+isset($_SERVER['REMOTE_ADDR']) OR $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+
 // Load the vfsStream class either through PEAR installed library or through composer
 if ( ! class_exists('vfsStream') && file_exists('vendor/autoload.php'))
 {
@@ -65,3 +68,6 @@ if ( ! class_exists('vfsStream') && file_exists('vendor/autoload.php'))
 }
 
 Logger::setLoggerTemplate('logger_cli');
+
+require_once('mocks/autoloader.php');
+spl_autoload_register('autoload');

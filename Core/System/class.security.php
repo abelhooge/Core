@@ -46,7 +46,7 @@ class Security {
 	 *
 	 * @var	array
 	 */
-	public static $filename_bad_chars =	array(
+	public $filename_bad_chars =	array(
 		'../', '<!--', '-->', '<', '>',
 		"'", '"', '&', '$', '#',
 		'{', '}', '[', ']', '=',
@@ -72,7 +72,7 @@ class Security {
 	 *
 	 * @var	string
 	 */
-	public static $charset = 'UTF-8';
+	public $charset = 'UTF-8';
 
 	/**
 	 * XSS Hash
@@ -81,7 +81,7 @@ class Security {
 	 *
 	 * @var	string
 	 */
-	protected static $_xss_hash;
+	protected $_xss_hash;
 
 	/**
 	 * CSRF Hash
@@ -90,7 +90,7 @@ class Security {
 	 *
 	 * @var	string
 	 */
-	protected static $_csrf_hash;
+	protected $_csrf_hash;
 
 	/**
 	 * CSRF Expire time
@@ -100,7 +100,7 @@ class Security {
 	 *
 	 * @var	int
 	 */
-	protected static $_csrf_expire =	7200;
+	protected $_csrf_expire =	7200;
 
 	/**
 	 * CSRF Token name
@@ -109,7 +109,7 @@ class Security {
 	 *
 	 * @var	string
 	 */
-	protected static $_csrf_token_name =	'ci_csrf_token';
+	protected $_csrf_token_name =	'fw_csrf_token';
 
 	/**
 	 * CSRF Cookie name
@@ -118,14 +118,14 @@ class Security {
 	 *
 	 * @var	string
 	 */
-	protected static $_csrf_cookie_name =	'ci_csrf_token';
+	protected $_csrf_cookie_name =	'fw_csrf_token';
 
 	/**
 	 * List of never allowed strings
 	 *
 	 * @var	array
 	 */
-	protected static $_never_allowed_str =	array(
+	protected $_never_allowed_str =	array(
 		'document.cookie'	=> '[removed]',
 		'document.write'	=> '[removed]',
 		'.parentNode'		=> '[removed]',
@@ -142,7 +142,7 @@ class Security {
 	 *
 	 * @var	array
 	 */
-	protected static $_never_allowed_regex = array(
+	protected $_never_allowed_regex = array(
 		'javascript\s*:',
 		'(document|(document\.)?window)\.(location|on\w*)',
 		'expression\s*(\(|&\#40;)', // CSS and IE
@@ -159,7 +159,7 @@ class Security {
 	 *
 	 * @var ConfigORM
 	 */
-	private static $config;
+	private $config;
 
 	/**
 	 * Class constructor
@@ -168,31 +168,31 @@ class Security {
 	 */
 	public function __construct()
 	{
-		self::$config = Config::get('security');
+		$this->config = Config::get('security');
 
 		// Is CSRF protection enabled?
-		if (self::$config->csrf_protection)
+		if ($this->config->csrf_protection)
 		{
 			// CSRF config
 			foreach (array('csrf_expire', 'csrf_token_name', 'csrf_cookie_name') as $key)
 			{
-				if (NULL !== ($val = self::$config->$key))
+				if (NULL !== ($val = $this->config->$key))
 				{
-					self::${'_'.$key} = $val;
+					$this->{'_'.$key} = $val;
 				}
 			}
 
 			// Append application specific cookie prefix
 			if ($cookie_prefix = Config::get('main')->cookie_prefix)
 			{
-				self::$_csrf_cookie_name = $cookie_prefix.self::$_csrf_cookie_name;
+				$this->_csrf_cookie_name = $cookie_prefix.$this->_csrf_cookie_name;
 			}
 
 			// Set the CSRF hash
-			self::_csrf_set_hash();
+			$this->_csrf_set_hash();
 		}
 
-		self::$charset = strtoupper(Config::get('main')->charset);
+		$this->charset = strtoupper(Config::get('main')->charset);
 	}
 
 	// --------------------------------------------------------------------
@@ -200,51 +200,51 @@ class Security {
 	/**
 	 * CSRF Verify
 	 *
-	 * @return	CI_Security
+	 * @return	Security
 	 */
-	public static function csrf_verify()
+	public function csrf_verify()
 	{
 		// If it's not a POST request we will set the CSRF cookie
 		if (strtoupper($_SERVER['REQUEST_METHOD']) !== 'POST')
 		{
-			return self::csrf_set_cookie();
+			return $this->csrf_set_cookie();
 		}
 
 		// Check if URI has been whitelisted from CSRF checks
-		if ($exclude_uris = self::$config->csrf_exclude_uris)
+		if ($exclude_uris = $this->config->csrf_exclude_uris)
 		{
 			foreach ($exclude_uris as $excluded)
 			{
 				if (preg_match('#^'.$excluded.'$#i'.(UTF8_ENABLED ? 'u' : ''), URI::uri_string()))
 				{
-					return true;
+					return $this;
 				}
 			}
 		}
 
 		// Do the tokens exist in both the _POST and _COOKIE arrays?
-		if ( ! isset($_POST[self::$_csrf_token_name], $_COOKIE[self::$_csrf_cookie_name])
-			OR $_POST[self::$_csrf_token_name] !== $_COOKIE[self::$_csrf_cookie_name]) // Do the tokens match?
+		if ( ! isset($_POST[$this->_csrf_token_name], $_COOKIE[$this->_csrf_cookie_name])
+			OR $_POST[$this->_csrf_token_name] !== $_COOKIE[$this->_csrf_cookie_name]) // Do the tokens match?
 		{
-			self::csrf_show_error();
+			$this->csrf_show_error();
 		}
 
 		// We kill this since we're done and we don't want to polute the _POST array
-		unset($_POST[self::$_csrf_token_name]);
+		unset($_POST[$this->_csrf_token_name]);
 
 		// Regenerate on every submission?
-		if (self::$config->csrf_regenerate)
+		if ($this->config->csrf_regenerate)
 		{
 			// Nothing should last forever
-			unset($_COOKIE[self::$_csrf_cookie_name]);
-			self::$_csrf_hash = NULL;
+			unset($_COOKIE[$this->_csrf_cookie_name]);
+			$this->_csrf_hash = NULL;
 		}
 
-		self::_csrf_set_hash();
-		self::csrf_set_cookie();
+		$this->_csrf_set_hash();
+		$this->csrf_set_cookie();
 
 		Logger::log('CSRF token verified');
-		return true;
+		return $this;
 	}
 
 	// --------------------------------------------------------------------
@@ -253,22 +253,22 @@ class Security {
 	 * CSRF Set Cookie
 	 *
 	 * @codeCoverageIgnore
-	 * @return	CI_Security
+	 * @return	Security
 	 */
-	public static function csrf_set_cookie()
+	public function csrf_set_cookie()
 	{
-		$expire = time() + self::$_csrf_expire;
+		$expire = time() + $this->_csrf_expire;
 		$cfg = Config::get('main');
 		$secure_cookie = (bool) $cfg->cookie_secure;
 
 		if ($secure_cookie && ! is_https())
 		{
-			return FALSE;
+			return $this;
 		}
 
 		setcookie(
-			self::$_csrf_cookie_name,
-			self::$_csrf_hash,
+			$this->_csrf_cookie_name,
+			$this->_csrf_hash,
 			$expire,
 			$cfg->cookie_path,
 			$cfg->cookie_domain,
@@ -276,8 +276,7 @@ class Security {
 			$cfg->cookie_httponly
 		);
 		Logger::log('CSRF cookie sent');
-
-		return true;
+		return $this;
 	}
 
 	// --------------------------------------------------------------------
@@ -287,7 +286,7 @@ class Security {
 	 *
 	 * @return	void
 	 */
-	public static function csrf_show_error()
+	public function csrf_show_error()
 	{
 		throw new SecurityException('The action you have requested is not allowed.', 1);
 	}
@@ -297,12 +296,12 @@ class Security {
 	/**
 	 * Get CSRF Hash
 	 *
-	 * @see		CI_Security::$_csrf_hash
+	 * @see		Security::$_csrf_hash
 	 * @return 	string	CSRF hash
 	 */
-	public static function get_csrf_hash()
+	public function get_csrf_hash()
 	{
-		return self::$_csrf_hash;
+		return $this->_csrf_hash;
 	}
 
 	// --------------------------------------------------------------------
@@ -310,12 +309,12 @@ class Security {
 	/**
 	 * Get CSRF Token Name
 	 *
-	 * @see		CI_Security::$_csrf_token_name
+	 * @see		Security::$_csrf_token_name
 	 * @return	string	CSRF token name
 	 */
-	public static function get_csrf_token_name()
+	public function get_csrf_token_name()
 	{
-		return self::$_csrf_token_name;
+		return $this->_csrf_token_name;
 	}
 
 	// --------------------------------------------------------------------
@@ -346,14 +345,14 @@ class Security {
 	 * @param 	bool		$is_image	Whether the input is an image
 	 * @return	string
 	 */
-	public static function xss_clean($str, $is_image = FALSE)
+	public function xss_clean($str, $is_image = FALSE)
 	{
 		// Is the string an array?
 		if (is_array($str))
 		{
 			while (list($key) = each($str))
 			{
-				$str[$key] = self::xss_clean($str[$key]);
+				$str[$key] = $this->xss_clean($str[$key]);
 			}
 
 			return $str;
@@ -404,7 +403,7 @@ class Security {
 		$converted_string = $str;
 
 		// Remove Strings that are never allowed
-		$str = self::_do_never_allowed($str);
+		$str = $this->_do_never_allowed($str);
 
 		/*
 		 * Makes PHP tags safe
@@ -536,7 +535,7 @@ class Security {
 		// Final clean up
 		// This adds a bit of extra precaution in case
 		// something got through the above filters
-		$str = self::_do_never_allowed($str);
+		$str = $this->_do_never_allowed($str);
 
 		/*
 		 * Images are Handled in a Special Way
@@ -562,20 +561,20 @@ class Security {
 	 *
 	 * Generates the XSS hash if needed and returns it.
 	 *
-	 * @see		CI_Security::$_xss_hash
+	 * @see		Security::$_xss_hash
 	 * @return	string	XSS hash
 	 */
-	public static function xss_hash()
+	public function xss_hash()
 	{
-		if (self::$_xss_hash === NULL)
+		if ($this->_xss_hash === NULL)
 		{
-			$rand = self::get_random_bytes(16);
-			self::$_xss_hash = ($rand === FALSE)
+			$rand = $this->get_random_bytes(16);
+			$this->_xss_hash = ($rand === FALSE)
 				? md5(uniqid(mt_rand(), TRUE))
 				: bin2hex($rand);
 		}
 
-		return self::$_xss_hash;
+		return $this->_xss_hash;
 	}
 
 	// --------------------------------------------------------------------
@@ -586,7 +585,7 @@ class Security {
 	 * @param	int	$length	Output length
 	 * @return	string
 	 */
-	public static function get_random_bytes($length)
+	public function get_random_bytes($length)
 	{
 		if (empty($length) OR ! ctype_digit((string) $length))
 		{
@@ -655,7 +654,7 @@ class Security {
 	 * @param	string	$charset	Character set
 	 * @return	string
 	 */
-	public static function entity_decode($str, $charset = NULL)
+	public function entity_decode($str, $charset = NULL)
 	{
 		if (strpos($str, '&') === FALSE)
 		{
@@ -664,7 +663,7 @@ class Security {
 
 		static $_entities;
 
-		isset($charset) OR $charset = self::$charset;
+		isset($charset) OR $charset = $this->charset;
 		$flag = Core::isPHP('5.4')
 			? ENT_COMPAT | ENT_HTML5
 			: ENT_COMPAT;
@@ -730,9 +729,9 @@ class Security {
 	 * @param 	bool	$relative_path	Whether to preserve paths
 	 * @return	string
 	 */
-	public static function sanitize_filename($str, $relative_path = FALSE)
+	public function sanitize_filename($str, $relative_path = FALSE)
 	{
-		$bad = self::$filename_bad_chars;
+		$bad = $this->filename_bad_chars;
 
 		if ( ! $relative_path)
 		{
@@ -760,7 +759,7 @@ class Security {
 	 * @param	string	$str
 	 * @return	string
 	 */
-	public static function strip_image_tags($str)
+	public function strip_image_tags($str)
 	{
 		return preg_replace(
 			array(
@@ -780,11 +779,11 @@ class Security {
 	 * Callback method for xss_clean() to remove whitespace from
 	 * things like 'j a v a s c r i p t'.
 	 *
-	 * @used-by	CI_Security::xss_clean()
+	 * @used-by	Security::xss_clean()
 	 * @param	array	$matches
 	 * @return	string
 	 */
-	protected static function _compact_exploded_words($matches)
+	protected function _compact_exploded_words($matches)
 	{
 		return preg_replace('/\s+/s', '', $matches[1]).$matches[2];
 	}
@@ -796,11 +795,11 @@ class Security {
 	 *
 	 * Callback method for xss_clean() to remove naughty HTML elements.
 	 *
-	 * @used-by	CI_Security::xss_clean()
+	 * @used-by	Security::xss_clean()
 	 * @param	array	$matches
 	 * @return	string
 	 */
-	protected static function _sanitize_naughty_html($matches)
+	protected function _sanitize_naughty_html($matches)
 	{
 		static $naughty_tags    = array(
 			'alert', 'prompt', 'confirm', 'applet', 'audio', 'basefont', 'base', 'behavior', 'bgsound',
@@ -891,18 +890,18 @@ class Security {
 	 * and prevents PREG_BACKTRACK_LIMIT_ERROR from being triggered in
 	 * PHP 5.2+ on link-heavy strings.
 	 *
-	 * @used-by	CI_Security::xss_clean()
+	 * @used-by	Security::xss_clean()
 	 * @param	array	$match
 	 * @return	string
 	 */
-	protected static function _js_link_removal($match)
+	protected function _js_link_removal($match)
 	{
 		return str_replace(
 			$match[1],
 			preg_replace(
 				'#href=.*?(?:(?:alert|prompt|confirm)(?:\(|&\#40;)|javascript:|livescript:|mocha:|charset=|window\.|document\.|\.cookie|<script|<xss|data\s*:)#si',
 				'',
-				self::_filter_attributes($match[1])
+				$this->_filter_attributes($match[1])
 			),
 			$match[0]
 		);
@@ -919,18 +918,18 @@ class Security {
 	 * and prevents PREG_BACKTRACK_LIMIT_ERROR from being triggered in
 	 * PHP 5.2+ on image tag heavy strings.
 	 *
-	 * @used-by	CI_Security::xss_clean()
+	 * @used-by	Security::xss_clean()
 	 * @param	array	$match
 	 * @return	string
 	 */
-	protected static function _js_img_removal($match)
+	protected function _js_img_removal($match)
 	{
 		return str_replace(
 			$match[1],
 			preg_replace(
 				'#src=.*?(?:(?:alert|prompt|confirm|eval)(?:\(|&\#40;)|javascript:|livescript:|mocha:|charset=|window\.|document\.|\.cookie|<script|<xss|base64\s*,)#si',
 				'',
-				self::_filter_attributes($match[1])
+				$this->_filter_attributes($match[1])
 			),
 			$match[0]
 		);
@@ -941,11 +940,11 @@ class Security {
 	/**
 	 * Attribute Conversion
 	 *
-	 * @used-by	CI_Security::xss_clean()
+	 * @used-by	Security::xss_clean()
 	 * @param	array	$match
 	 * @return	string
 	 */
-	protected static function _convert_attribute($match)
+	protected function _convert_attribute($match)
 	{
 		return str_replace(array('>', '<', '\\'), array('&gt;', '&lt;', '\\\\'), $match[0]);
 	}
@@ -957,12 +956,12 @@ class Security {
 	 *
 	 * Filters tag attributes for consistency and safety.
 	 *
-	 * @used-by	CI_Security::_js_img_removal()
-	 * @used-by	CI_Security::_js_link_removal()
+	 * @used-by	Security::_js_img_removal()
+	 * @used-by	Security::_js_link_removal()
 	 * @param	string	$str
 	 * @return	string
 	 */
-	protected static function _filter_attributes($str)
+	protected function _filter_attributes($str)
 	{
 		$out = '';
 		if (preg_match_all('#\s*[a-z\-]+\s*=\s*(\042|\047)([^\\1]*?)\\1#is', $str, $matches))
@@ -981,21 +980,21 @@ class Security {
 	/**
 	 * HTML Entity Decode Callback
 	 *
-	 * @used-by	CI_Security::xss_clean()
+	 * @used-by	Security::xss_clean()
 	 * @param	array	$match
 	 * @return	string
 	 */
-	protected static function _decode_entity($match)
+	protected function _decode_entity($match)
 	{
 		// Protect GET variables in URLs
 		// 901119URL5918AMP18930PROTECT8198
-		$match = preg_replace('|\&([a-z\_0-9\-]+)\=([a-z\_0-9\-/]+)|i', self::xss_hash().'\\1=\\2', $match[0]);
+		$match = preg_replace('|\&([a-z\_0-9\-]+)\=([a-z\_0-9\-/]+)|i', $this->xss_hash().'\\1=\\2', $match[0]);
 
 		// Decode, then un-protect URL GET vars
 		return str_replace(
-			self::xss_hash(),
+			$this->xss_hash(),
 			'&',
-			self::entity_decode($match, self::$charset)
+			$this->entity_decode($match, $this->charset)
 		);
 	}
 
@@ -1004,15 +1003,15 @@ class Security {
 	/**
 	 * Do Never Allowed
 	 *
-	 * @used-by	CI_Security::xss_clean()
+	 * @used-by	Security::xss_clean()
 	 * @param 	string
 	 * @return 	string
 	 */
-	protected static function _do_never_allowed($str)
+	protected function _do_never_allowed($str)
 	{
-		$str = str_replace(array_keys(self::$_never_allowed_str), self::$_never_allowed_str, $str);
+		$str = str_replace(array_keys($this->_never_allowed_str), $this->_never_allowed_str, $str);
 
-		foreach (self::$_never_allowed_regex as $regex)
+		foreach ($this->_never_allowed_regex as $regex)
 		{
 			$str = preg_replace('#'.$regex.'#is', '[removed]', $str);
 		}
@@ -1027,27 +1026,27 @@ class Security {
 	 *
 	 * @return	string
 	 */
-	protected static function _csrf_set_hash()
+	protected function _csrf_set_hash()
 	{
-		if (self::$_csrf_hash === NULL)
+		if ($this->_csrf_hash === NULL)
 		{
 			// If the cookie exists we will use its value.
 			// We don't necessarily want to regenerate it with
 			// each page load since a page could contain embedded
 			// sub-pages causing this feature to fail
-			if (isset($_COOKIE[self::$_csrf_cookie_name]) && is_string($_COOKIE[self::$_csrf_cookie_name])
-				&& preg_match('#^[0-9a-f]{32}$#iS', $_COOKIE[self::$_csrf_cookie_name]) === 1)
+			if (isset($_COOKIE[$this->_csrf_cookie_name]) && is_string($_COOKIE[$this->_csrf_cookie_name])
+				&& preg_match('#^[0-9a-f]{32}$#iS', $_COOKIE[$this->_csrf_cookie_name]) === 1)
 			{
-				return self::$_csrf_hash = $_COOKIE[self::$_csrf_cookie_name];
+				return $this->_csrf_hash = $_COOKIE[$this->_csrf_cookie_name];
 			}
 
-			$rand = self::get_random_bytes(16);
-			self::$_csrf_hash = ($rand === FALSE)
+			$rand = $this->get_random_bytes(16);
+			$this->_csrf_hash = ($rand === FALSE)
 				? md5(uniqid(mt_rand(), TRUE))
 				: bin2hex($rand);
 		}
 
-		return self::$_csrf_hash;
+		return $this->_csrf_hash;
 	}
 
 }

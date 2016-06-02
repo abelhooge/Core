@@ -12,7 +12,7 @@ return array(
   'default_function' => 'index',
   'application_prefix' => 'MY_',
 
-  'charset' => 'utf-8',
+  'charset' => 'UTF-8',
   'language' => 'english',
 
   /*

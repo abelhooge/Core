@@ -115,6 +115,13 @@ class Input {
 	 */
 	protected $_input_stream;
 
+	/**
+	 * Factory object, allows this class to communicate with everything in FuzeWorks
+	 * 
+	 * @var Factory
+	 */
+	protected $factory;
+
 	// --------------------------------------------------------------------
 
 	/**
@@ -127,6 +134,9 @@ class Input {
 	 */
 	public function __construct()
 	{
+		// First load the factory so contact can be made with everything in FuzeWorks
+		$this->factory = Factory::getInstance();
+
 		$this->_allow_get_array		= (Config::get('routing')->allow_get_array === TRUE);
 		$this->_enable_xss		= (Config::get('security')->global_xss_filtering === TRUE);
 		$this->_enable_csrf		= (Config::get('security')->csrf_protection === TRUE);
@@ -138,7 +148,7 @@ class Input {
 		// CSRF Protection check
 		if ($this->_enable_csrf === TRUE && ! $this->is_cli_request())
 		{
-			Security::csrf_verify();
+			$this->factory->security->csrf_verify();
 		}
 	}
 
@@ -204,7 +214,7 @@ class Input {
 		}
 
 		return ($xss_clean === TRUE)
-			? Security::xss_clean($value)
+			? $this->factory->security->xss_clean($value)
 			: $value;
 	}
 
@@ -801,7 +811,7 @@ class Input {
 		}
 
 		return ($xss_clean === TRUE)
-			? Security::xss_clean($headers[$index])
+			? $this->factory->security->xss_clean($headers[$index])
 			: $headers[$index];
 	}
 

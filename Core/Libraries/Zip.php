@@ -476,7 +476,7 @@ class FW_Zip {
 	 * Lets you clear current zip data. Useful if you need to create
 	 * multiple zips with different data.
 	 *
-	 * @return	CI_Zip
+	 * @return	FW_Zip
 	 */
 	public function clear_data()
 	{
