@@ -45,6 +45,7 @@ Core::init();
 $cfg = Config::get('error');
 $cfg->debug = false;
 $cfg->error_reporting = false;
+$cfg->log_to_file = false;
 $cfg->commit();
 
 restore_error_handler();
@@ -62,3 +63,5 @@ if ( ! class_exists('vfsStream') && file_exists('vendor/autoload.php'))
 	class_alias('org\bovigo\vfs\vfsStreamDirectory', 'vfsStreamDirectory');
 	class_alias('org\bovigo\vfs\vfsStreamWrapper', 'vfsStreamWrapper');
 }
+
+Logger::setLoggerTemplate('logger_cli');

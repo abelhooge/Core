@@ -88,6 +88,20 @@ class Logger {
     private static $print_to_screen = false;
 
     /**
+     * whether to output the log to a file after FuzeWorks has run.
+     *
+     * @var bool
+     */
+    private static $log_to_file = false;
+
+    /**
+     * The template to use when parsing the debug log
+     * 
+     * @var string Template name
+     */
+    private static $logger_template = 'logger_default';
+
+    /**
      * whether to output the log after FuzeWorks has run, regardless of conditions.
      *
      * @var bool
@@ -114,6 +128,8 @@ class Logger {
             error_reporting(false);
         }
         self::$debug = Config::get('error')->debug;
+        self::$log_to_file = Config::get('error')->log_to_file;
+        self::$logger_template = Config::get('error')->logger_template;
         self::newLevel('Logger Initiated');
     }
 
@@ -145,7 +161,12 @@ class Logger {
 
         if (self::$debug == true || self::$print_to_screen) {
             self::log('Parsing debug log');
-            echo self::logToScreen();
+            self::logToScreen();
+        }
+
+        if (self::$log_to_file == true)
+        {
+            self::logToFile();
         }
     }
 
@@ -188,6 +209,16 @@ class Logger {
     }
 
     /**
+     * Set the template that FuzeWorks should use to parse debug logs
+     * 
+     * @var string Name of the template file
+     */
+    public static function setLoggerTemplate($templateName)
+    {
+        self::$logger_template = $templateName;
+    }
+
+    /**
      * Output the entire log to the screen. Used for debugging problems with your code.
      *
      * @return string Output of the log
@@ -199,33 +230,21 @@ class Logger {
             return false;
         }
 
-        // Otherwise just load it
-        $string = '<h3>FuzeWorks debug log</h3>';
-        $layer = 0;
-        for ($i = 0; $i < count(self::$Logs); ++$i) {
-            $log = self::$Logs[$i];
-            if ($log['type'] == 'LEVEL_START') {
-                ++$layer;
-                $color = 255 - ($layer * 25);
-                $string .= '<div style="background: rgb(188 , 232 ,' . $color . ');border: 1px black solid;margin: 5px 0;padding: 5px 20px;">';
-                $string .= '<div style="font-weight: bold; font-size: 11pt;">' . $log['message'] . '<span style="float: right">' . (!empty($log['runtime']) ? '(' . round($log['runtime'] * 1000, 4) . 'ms)' : '') . '</span></div>';
-            } elseif ($log['type'] == 'LEVEL_STOP') {
-                --$layer;
-                $string .= '</div>';
-            } elseif ($log['type'] == 'ERROR') {
-                $string .= '<div style="' . ($layer == 0 ? 'padding-left: 21px;' : '') . 'font-size: 11pt; background-color:#f56954;">[' . $log['type'] . ']' . (!empty($log['context']) && is_string($log['context']) ? '<u>[' . $log['context'] . ']</u>' : '') . ' ' . $log['message'] . '
-	            	<span style="float: right">' . (!empty($log['logFile']) ? $log['logFile'] : '') . ' : ' . (!empty($log['logLine']) ? $log['logLine'] : '') . '(' . round($log['runtime'] * 1000, 4) . ' ms)</span></div>';
-            } elseif ($log['type'] == 'WARNING') {
-                $string .= '<div style="' . ($layer == 0 ? 'padding-left: 21px;' : '') . 'font-size: 11pt; background-color:#f39c12;">[' . $log['type'] . ']' . (!empty($log['context']) && is_string($log['context']) ? '<u>[' . $log['context'] . ']</u>' : '') . ' ' . $log['message'] . '
-	            	<span style="float: right">' . (!empty($log['logFile']) ? $log['logFile'] : '') . ' : ' . (!empty($log['logLine']) ? $log['logLine'] : '') . '(' . round($log['runtime'] * 1000, 4) . ' ms)</span></div>';
-            } elseif ($log['type'] == 'INFO') {
-                $string .= '<div style="' . ($layer == 0 ? 'padding-left: 21px;' : '') . 'font-size: 11pt;">' . (!empty($log['context']) ? '<u>[' . $log['context'] . ']</u>' : '') . ' ' . $log['message'] . '<span style="float: right">(' . round($log['runtime'] * 1000, 4) . ' ms)</span></div>';
-            } elseif ($log['type'] == 'DEBUG') {
-                $string .= '<div style="' . ($layer == 0 ? 'padding-left: 21px;' : '') . 'font-size: 11pt; background-color:#CCCCCC;">[' . $log['type'] . ']' . (!empty($log['context']) ? '<u>[' . $log['context'] . ']</u>' : '') . ' ' . $log['message'] . '<span style="float: right">(' . round($log['runtime'] * 1000, 4) . ' ms)</span></div>';
-            }
-        }
+        Layout::reset();
+        Layout::assign('Logs', self::$Logs);
+        Layout::view(self::$logger_template, 'Core'.DS.'Views');
+    }
 
-        return $string;
+    public static function logToFile()
+    {
+        Layout::reset();
+        Layout::assign('Logs', self::$Logs);
+        $contents = Layout::get('logger_cli', 'Core'.DS.'Views');
+        $file = 'Application'.DS.'Logs'.DS.'log_latest.php';
+        if (is_writable($file))
+        {
+            file_put_contents($file, '<?php ' . $contents);
+        }
     }
 
     /**
