@@ -75,6 +75,7 @@ class Config
      * @param string $configName  Name of the config file. Eg. 'main'
      * @param array  $configPaths Optional array of where to look for the config files
      * @return FuzeWorks\ConfigORM\ConfigORM ORM of the config file. Allows for easy reading and editing of the file
+     * @throws  ConfigException
      */
     public function getConfig($configName, array $configPaths = array())
     {
@@ -101,6 +102,7 @@ class Config
      * @param string $configName  Name of the config file. Eg. 'main'
      * @param array  $configPaths Required array of where to look for the config files
      * @return FuzeWorks\ConfigORM\ConfigORM ORM of the config file. Allows for easy reading and editing of the file
+     * @throws  ConfigException
      */
     protected function loadConfigFile($configName, array $configPaths)
     {
@@ -125,6 +127,7 @@ class Config
      * @deprecated
      * @param string $configName  Name of the config file. Eg. 'main'
      * @return FuzeWorks\ConfigORM\ConfigORM ORM of the config file. Allows for easy reading and editing of the file
+     * @throws  ConfigException
      */
     public static function get($configName)
     {
