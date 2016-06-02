@@ -108,4 +108,20 @@ class configTest extends CoreTestAbstract
     	$this->assertFalse(in_array('tests/config/testRemoveConfigPath', $this->config->getConfigPaths()));
     }
 
+    public function testSameConfigObject()
+    {
+        $config = $this->config->getConfig('testsameconfigobject', array('tests/config/testSameConfigObject'));
+        $config2 = $this->config->getConfig('testsameconfigobject', array('tests/config/testSameConfigObject'));
+
+        // First test if the objects are the same instance
+        $this->assertSame($config, $config2);
+
+        // First test the existing key
+        $this->assertEquals($config->key, 'value');
+
+        // Change it and test if it's different now
+        $config->key = 'other_value';
+        $this->assertEquals($config2->key, 'other_value');
+    }
+
 }
