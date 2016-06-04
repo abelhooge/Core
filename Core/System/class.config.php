@@ -133,8 +133,11 @@ class Config
     {
         if (!is_object(self::$factory))
         {
+            // @codeCoverageIgnoreStart
             self::$factory = Factory::getInstance();
+
         }
+        // @codeCoverageIgnoreEnd
         $config = self::$factory->config;
         return $config->getConfig($configName);
     }

@@ -55,7 +55,7 @@ class utf8Test extends CoreTestAbstract
     /**
      * __construct() test
      *
-     * @covers  Utf8::__construct
+     * @covers  FuzeWorks\Utf8::__construct
      */
     public function test___construct()
     {
@@ -88,7 +88,7 @@ class utf8Test extends CoreTestAbstract
      * clean_string() test
      *
      * @depends test_is_ascii
-     * @covers  Utf8::clean_string
+     * @covers  FuzeWorks\Utf8::clean_string
      */
     public function test_clean_string()
     {
@@ -115,7 +115,7 @@ class utf8Test extends CoreTestAbstract
     /**
      * convert_to_utf8() test
      *
-     * @covers  Utf8::convert_to_utf8
+     * @covers  FuzeWorks\Utf8::convert_to_utf8
      */
     public function test_convert_to_utf8()
     {

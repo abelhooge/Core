@@ -85,18 +85,7 @@ if ( ! function_exists('get_mimes'))
 
 		if (empty($_mimes))
 		{
-			if (file_exists('Application'.DS.'Config'.DS.ENVIRONMENT.DS.'config.mimes.php'))
-			{
-				$_mimes = include('Application'.DS.'Config'.DS.ENVIRONMENT.DS.'config.mimes.php');
-			}
-			elseif (file_exists('Application'.DS.'Config'.DS.'config.mimes.php'))
-			{
-				$_mimes = include('Application'.DS.'Config'.DS.'config.mimes.php');
-			}
-			else
-			{
-				$_mimes = array();
-			}
+			$_mimes = FuzeWorks\Config::get('mimes');
 		}
 
 		return $_mimes;

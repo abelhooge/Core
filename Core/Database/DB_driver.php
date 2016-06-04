@@ -1781,7 +1781,7 @@ abstract class FW_DB_driver {
 			}
 		}
 
-		Logger::logError($heading ' || ' . $message);
+		Logger::logError($heading . ' || ' . $message);
 		Logger::http_error(500);
 		exit(8); // EXIT_DATABASE
 	}

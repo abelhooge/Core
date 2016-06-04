@@ -7,11 +7,11 @@
     stopOnFailure="false"
     stopOnIncomplete="false"
     stopOnSkipped="false"
-    colors="true">
+    colors="false">
 
     <testsuites>
         <testsuite name="Core Functionality">
-            <directory>.</directory>
+            <directory>./</directory>
         </testsuite>
     </testsuites>
 
@@ -20,5 +20,19 @@
       <log type="junit" target="../build/phpunit/logfile.xml" logIncompleteSkipped="false"/>
       <log type="testdox-html" target="../build/phpunit/testdox.html"/>
       <log type="testdox-text" target="../build/phpunit/testdox.txt"/>
+      <log type="coverage-html" target="../build/phpunit/coverage_html" lowUpperBound="35"
+       highLowerBound="70"/>
+      <log type="coverage-clover" target="../build/phpunit/coverage.xml"/>
+      <log type="coverage-php" target="../build/phpunit/coverage.serialized"/>
+      <log type="coverage-text" target="php://stdout" showUncoveredFiles="false"/>
     </logging>
+
+    <filter>
+      <whitelist processUncoveredFilesFromWhitelist="false">
+        <directory suffix=".php">../</directory>
+        <exclude>
+          <directory suffix=".php">../vendor/</directory>
+        </exclude>
+      </whitelist>
+    </filter>
 </phpunit>
