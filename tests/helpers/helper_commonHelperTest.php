@@ -87,6 +87,26 @@ class commonHelperTest extends CoreTestAbstract
 			html_escape(array('associative' => 'and', array('multi' => 'dimentional'))),
 			array('associative' => 'and', array('multi' => 'dimentional'))
 		);
+
+		$this->assertEquals(
+			html_escape(array()),
+			array()
+		);
 	}
+
+	// ------------------------------------------------------------------------
+
+    public function test_is_php()
+    {
+        $this->assertTrue(is_php('1.2.0'));
+        $this->assertFalse(is_php('9999.9.9'));
+    } 
+
+	// ------------------------------------------------------------------------
+
+    public function test_get_mimes()
+    {
+    	$this->assertFalse(empty(get_mimes()));
+    } 
 
 }
