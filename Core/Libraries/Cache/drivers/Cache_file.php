@@ -31,8 +31,7 @@
  */
 
 namespace FuzeWorks\Library;
-use FuzeWorks\Helpers;
-use FuzeWorks\Config;
+use FuzeWorks\Factory;
 
 /**
  * FuzeWorks File Caching Class
@@ -56,16 +55,26 @@ class FW_Cache_file extends FW_Driver {
 	protected $_cache_path;
 
 	/**
+	 * The FuzeWorks factory class
+	 * 
+	 * @var Fuzeworks\Factory;
+	 */
+	private $factory;
+
+	/**
 	 * Initialize file-based cache
 	 *
 	 * @return	void
 	 */
 	public function __construct()
 	{
-		// Load the required helpers
-		Helpers::load('file');
+		// Load the factory
+		$this->factory = Factory::getInstance();
 
-		$path = Config::get('cache')->cache_file_path;
+		// Load the required helpers
+		$this->factory->helpers->load('file');
+
+		$path = $this->factory->config->get('cache')->cache_file_path;
 		$this->_cache_path = ($path === '') ? 'Application'.DS.'Cache/' : $path;
 	}
 

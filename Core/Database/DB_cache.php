@@ -30,8 +30,8 @@
  * @version Version 0.0.1
  */
 
-use FuzeWorks\Helpers;
 use FuzeWorks\Logger;
+use Fuzeworks\Factory;
 
 /**
  * Database Cache Class
@@ -64,6 +64,13 @@ class FW_DB_Cache {
 	 */
 	public $db;
 
+	/**
+	 * The FuzeWorks factory class
+	 * 
+	 * @var Fuzeworks\Factory;
+	 */
+	private $factory;
+
 	// --------------------------------------------------------------------
 
 	/**
@@ -75,7 +82,8 @@ class FW_DB_Cache {
 	public function __construct(&$db)
 	{
 		// Assign the main CI object to $this->CI and load the file helper since we use it a lot
-		Helpers::load('file');
+		$this->factory = Factory::getInstance();
+		$this->factory->helpers->load('file');
 
 		$this->check_path();
 	}

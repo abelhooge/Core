@@ -31,8 +31,7 @@
  */
 
 namespace FuzeWorks\Library;
-use FuzeWorks\Logger;
-use FuzeWorks\Helpers;
+use Fuzeworks\Factory;
 
 /**
  * FuzeWorks Zip Compression Class
@@ -106,6 +105,13 @@ class FW_Zip {
 	public $compression_level = 2;
 
 	/**
+	 * The FuzeWorks factory class
+	 * 
+	 * @var Fuzeworks\Factory;
+	 */
+	private $factory;
+
+	/**
 	 * Initialize zip compression class
 	 *
 	 * @return	void
@@ -113,7 +119,8 @@ class FW_Zip {
 	public function __construct()
 	{
 		$this->now = time();
-		Logger::log('Zip Compression Class Initialized');
+		$this->factory = Factory::getInstance();
+		$this->factory->logger->log('Zip Compression Class Initialized');
 	}
 
 	// --------------------------------------------------------------------
@@ -454,7 +461,7 @@ class FW_Zip {
 			$filename .= '.zip';
 		}
 
-		Helpers::load('download');
+		$this->factory->helpers->load('download');
 		$get_zip = $this->get_zip();
 		$zip_content =& $get_zip;
 
@@ -469,7 +476,7 @@ class FW_Zip {
 	 * Lets you clear current zip data. Useful if you need to create
 	 * multiple zips with different data.
 	 *
-	 * @return	CI_Zip
+	 * @return	FW_Zip
 	 */
 	public function clear_data()
 	{

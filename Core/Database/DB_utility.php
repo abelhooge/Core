@@ -78,6 +78,13 @@ abstract class FW_DB_utility {
 	 */
 	protected $_repair_table	= FALSE;
 
+	/**
+	 * The FuzeWorks factory class
+	 * 
+	 * @var Fuzeworks\Factory;
+	 */
+	private $factory;
+
 	// --------------------------------------------------------------------
 
 	/**
@@ -89,6 +96,7 @@ abstract class FW_DB_utility {
 	public function __construct(&$db)
 	{
 		$this->db =& $db;
+		$this->factory = Factory::getInstance();
 		Logger::log('Database Utility Class Initialized');
 	}
 
@@ -296,7 +304,7 @@ abstract class FW_DB_utility {
 		extract($params);
 
 		// Load the xml helper
-		Helpers::load('xml');
+		$this->factory->helpers->load('xml');
 
 		// Generate the result
 		$xml = '<'.$root.'>'.$newline;

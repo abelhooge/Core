@@ -35,7 +35,18 @@ namespace FuzeWorks;
 /**
  * Helpers Class.
  *
- * @todo Add documentation
+ * Helpers, as the name suggests, help you with tasks. 
+ * 
+ * Each helper file is simply a collection of functions in a particular category.
+ * There are URL Helpers, that assist in creating links, there are Form Helpers that help you create form elements, 
+ * Text Helpers perform various text formatting routines, Cookie Helpers set and read cookies, 
+ * File Helpers help you deal with files, etc.
+ *
+ * Unlike most other systems in FuzeWorks, Helpers are not written in an Object Oriented format. 
+ * They are simple, procedural functions. Each helper function performs one specific task, with no dependence on other functions.
+ *
+ * FuzeWorks does not load Helper Files by default, so the first step in using a Helper is to load it. Once loaded, 
+ * it becomes globally available to everything. 
  *
  * @author    Abel Hoogeveen <abel@techfuze.net>
  * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
@@ -43,20 +54,42 @@ namespace FuzeWorks;
 class Helpers
 {
 
-    protected static $helpers = array();
+    /**
+     * Array of loadedHelpers, so that they won't be reloaded
+     * 
+     * @var array Array of loaded helperNames
+     */
+    protected $helpers = array();
 
-    protected static $helperPaths = array('Application'.DS.'Helpers', 'Core'.DS.'Helpers');
+    /**
+     * Paths where Helpers can be found. 
+     * 
+     * Libraries will only be loaded if either a directory is supplied or it is in one of the helperPaths
+     * 
+     * @var array Array of paths where helpers can be found
+     */
+    protected $helperPaths = array('Application'.DS.'Helpers', 'Core'.DS.'Helpers');
 
-    public static function load($helperName, $directory = null)
+    /**
+     * Load a helper.
+     * 
+     * Supply the name and the helper will be loaded from the supplied directory,
+     * or from one of the helperPaths (which you can add).
+     * 
+     * @param string        $helperName Name of the helper
+     * @param string|null   $directory  Directory to load the helper from, will ignore $helperPaths
+     * @return bool                     Whether the helper was succesfully loaded (true if yes)
+     */
+    public function load($helperName, $directory = null)
     {
         // First determine the name of the helper
         $helperName = strtolower(str_replace(array('_helper', '.php'), '', $helperName).'_helper');
         
         // Determine what directories should be checked
-        $directories = (is_null($directory) ? self::$helperPaths : array($directory));
+        $directories = (is_null($directory) ? $this->helperPaths : array($directory));
 
         // Check it is already loaded
-        if (isset($helpers[$helperName]))
+        if (isset($this->helpers[$helperName]))
         {
             Logger::log("Helper '".$helperName."' is already loaded. Skipping");
             return false;
@@ -94,7 +127,7 @@ class Helpers
 
             include_once($event->extendedHelperFile);
             include_once($event->helperFile);
-            self::$helpers[$event->helperName] = true;
+            $this->helpers[$event->helperName] = true;
             Logger::log("Loading base helper '".$event->helperName."' and extended helper '".$event->extendedHelperName."'");
             return true;
         }
@@ -115,7 +148,7 @@ class Helpers
                 }
 
                 include_once($event->helperFile);
-                self::$helpers[$event->helperName] = true;
+                $this->helpers[$event->helperName] = true;
                 Logger::log("Loading helper '".$event->helperName."'");
                 return true;
             }
@@ -124,29 +157,54 @@ class Helpers
         throw new HelperException("Could not load helper. Helper not found.", 1);
     }
 
-    public static function get($helperName, $directory = null)
+    /**
+     * Alias for load
+     * @see load
+     * 
+     * @param string        $helperName Name of the helper
+     * @param string|null   $directory  Directory to load the helper from, will ignore $helperPaths
+     * @return bool                     Whether the helper was succesfully loaded (true if yes)
+     */
+    public function get($helperName, $directory = null)
     {
-        return self::load($helperName, $directory);
+        return $this->load($helperName, $directory);
     }
 
-    public static function addHelperPath($directory)
+    /**
+     * Add a path where helpers can be found
+     * 
+     * @param string $directory The directory
+     * @return void
+     */
+    public function addHelperPath($directory)
     {
-        if (!in_array($directory, $directories))
+        if (!in_array($directory, $this->helperPaths))
         {
-            $directories[] = $directory;
+            $this->helperPaths[] = $directory;
         }
     }
 
-    public static function removeHelperPath($directory)
+    /**
+     * Remove a path where helpers can be found
+     * 
+     * @param string $directory The directory
+     * @return void
+     */    
+    public function removeHelperPath($directory)
     {
-        if (($key = array_search($directory, $directories)) !== false) 
+        if (($key = array_search($directory, $this->helperPaths)) !== false) 
         {
-            unset($directories[$key]);
+            unset($this->helperPaths[$key]);
         }
     }
 
-    public static function getHelperPaths()
+    /**
+     * Get a list of all current helperPaths
+     * 
+     * @return array Array of paths where helpers can be found
+     */
+    public function getHelperPaths()
     {
-        return $directories;
+        return $this->helperPaths;
     }
 }

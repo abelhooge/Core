@@ -30,6 +30,8 @@
  * @version     Version 0.0.1
  */
 
+use FuzeWorks\Core;
+
 /**
  * Class CoreTest.
  *
@@ -39,13 +41,29 @@ class coreTest extends CoreTestAbstract
 {
     public function testCanLoadStartupFiles()
     {
-
         // Assert
-        $this->assertTrue(class_exists('\FuzeWorks\Config'));
-        $this->assertTrue(class_exists('\FuzeWorks\Logger'));
-        $this->assertTrue(class_exists('\FuzeWorks\Events'));
-        $this->assertTrue(class_exists('\FuzeWorks\Router'));
-        $this->assertTrue(class_exists('\FuzeWorks\Layout'));
-        $this->assertTrue(class_exists('\FuzeWorks\Models'));
+        $this->assertTrue(class_exists('FuzeWorks\Core'));
+        $this->assertTrue(class_exists('FuzeWorks\Config'));
+        $this->assertTrue(class_exists('FuzeWorks\Logger'));
+        $this->assertTrue(class_exists('FuzeWorks\Events'));
+        $this->assertTrue(class_exists('FuzeWorks\Router'));
+        $this->assertTrue(class_exists('FuzeWorks\Layout'));
+        $this->assertTrue(class_exists('FuzeWorks\Models'));
+        $this->assertTrue(class_exists('FuzeWorks\Database'));
+        $this->assertTrue(class_exists('FuzeWorks\Factory'));
+        $this->assertTrue(class_exists('FuzeWorks\Helpers'));
+        $this->assertTrue(class_exists('FuzeWorks\Input'));
+        $this->assertTrue(class_exists('FuzeWorks\Language'));
+        $this->assertTrue(class_exists('FuzeWorks\Libraries'));
+        $this->assertTrue(class_exists('FuzeWorks\Output'));
+        $this->assertTrue(class_exists('FuzeWorks\Security'));
+        $this->assertTrue(class_exists('FuzeWorks\URI'));
+        $this->assertTrue(class_exists('FuzeWorks\UTF8'));
     }
+
+    public function testIsPHP()
+    {
+        $this->assertTrue(Core::isPHP('1.2.0'));
+        $this->assertFalse(Core::isphp('9999.9.9'));
+    } 
 }

@@ -33,30 +33,99 @@
 namespace FuzeWorks;
 
 /**
- * @todo add documentation
- * @todo Add configuration load if no config parameter provided
+ * Libraries Class.
  *
+ * FuzeWorks allows the user to use the built-in libraries as-is, and use it's functionality to get jobs done.
+ * 
+ * If a user wants to make their own libraries, they have, in general, 3 options:
+ * 1. Create a completely new library
+ * 2. Extend an existing library
+ * 3. Replace an existing library
+ * 
+ * The first option is done by adding a new library to the Application/Libraries folder. If the library name is 'Example' then the
+ * file should be 'Application/Libraries/Example.php' and the classname should be Example. Code can be added and it can be
+ * loaded through Libraries->get('example');.
+ * 
+ * The second option allows the user to extend an existing core library. All functionality will be inherited in that situation. Let's take
+ * the 'Zip' library as an example. The user needs to create a file in Application/Libraries. The name of the file and the class depend on
+ * the configuration of FuzeWorks. The extended class needs to get a prefix, which is defined in config.main.php. By default, this is 'MY_'.
+ * The user needs to create the file 'Application/Libraries/MY_Zip.php' with the classname MY_Zip. It can be loaded through Libraries->get('zip');.
+ * 
+ * The third option allows the user to replace a system library with their own. Doing so could potentially break systems, so be careful. 
+ * If, for example we want to replace the Zip library, we need to create the file 'Application/Libraries/Zip.php' with the classname FW_Zip.
+ * 'FW_' is the prefix for all FuzeWorks core libraries. And that's it. It can be loaded through Libraries->get('zip');.
+ *
+ * @todo 	  Implement events
  * @author    Abel Hoogeveen <abel@techfuze.net>
  * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
 class Libraries
 {
 
-	protected static $libraryPaths = array('Core'.DS.'Libraries', 'Application'.DS.'Libraries');
+	/**
+	 * Factory object for interaction with FuzeWorks
+	 * 
+	 * @var Factory
+	 */
+	protected $factory;
 
-	protected static $libraries = array();
+	/**
+	 * Array of all the paths where libraries can be found
+	 * 
+	 * @var array Library paths
+	 */
+	protected $libraryPaths = array('Core'.DS.'Libraries', 'Application'.DS.'Libraries');
 
-	public static function get($libraryName, array $parameters = null, $directory = null, $keepInstance = false) 
+	/**
+	 * Array of all the loaded library objects
+	 * 
+	 * @var array All the loaded library objects, so they can be returned when reloading
+	 */
+	protected $libraries = array();
+
+	/**
+	 * Attach the Factory to this class
+	 */
+	public function __construct()
+	{
+		$this->factory = Factory::getInstance();
+	}
+
+	/**
+	 * Library Loader
+	 *
+	 * Loads, instantiates and returns libraries.
+	 *
+	 * @param	string	$library		Library name
+	 * @param	array	$params			Optional parameters to pass to the library class constructor
+	 * @param	array	$directory 		Optional list of directories where the library can be found. Overrides default list
+	 * @param   bool 	$newInstance 	Whether to return a new instance of the library or the same one
+	 * @return	object
+	 * @throws 	LibraryException
+	 */ 
+	public function get($libraryName, array $parameters = null, array $directory = null, $newInstance = false) 
 	{
 		if (empty($libraryName)) 
 		{
 			throw new LibraryException("Could not load library. No name provided", 1);
 		}
 
-		return self::loadLibrary($libraryName, $parameters, $directory, $keepInstance);
+		return $this->loadLibrary($libraryName, $parameters, $directory, $newInstance);
 	}
 
-	public static function getDriver($libraryName, array $parameters = null, $directory = null, $keepInstance = false)
+	/**
+	 * Driver Library Loader
+	 *
+	 * Loads, instantiates and returns driver libraries.
+	 *
+	 * @param	string	$library		Driver Library name
+	 * @param	array	$params			Optional parameters to pass to the library class constructor
+	 * @param	array	$directory 		Optional list of directories where the library can be found. Overrides default list
+	 * @param   bool 	$newInstance 	Whether to return a new instance of the library or the same one
+	 * @return	object
+	 * @throws 	LibraryException
+	 */ 
+	public function getDriver($libraryName, array $parameters = null, array $directory = null, $newInstance = false)
 	{
 		if (empty($libraryName))
 		{
@@ -70,13 +139,25 @@ class Libraries
 		}
 
 		// And then load and return the library
-		return self::loadLibrary($libraryName, $parameters, $directory, $keepInstance);
+		return $this->loadLibrary($libraryName, $parameters, $directory, $newInstance);
 	}
 
-	private static function loadLibrary($libraryName, $parameters = null, $directory = null, $keepInstance = false) 
+	/**
+	 * Internal Library Loader
+	 *
+	 * Determines what type of library needs to be loaded
+	 *
+	 * @param	string	$library		Library name
+	 * @param	array	$params			Optional parameters to pass to the library class constructor
+	 * @param	array	$directory 		Optional list of directories where the library can be found. Overrides default list
+	 * @param   bool 	$newInstance 	Whether to return a new instance of the library or the same one
+	 * @return	object
+	 * @throws 	LibraryException
+	 */ 
+	protected function loadLibrary($libraryName, $parameters = null, array $directory = null, $newInstance = false) 
 	{
 		// First get the directories where the library can be located
-		$directories = (is_null($directory) ? self::$libraryPaths : array($directory));
+		$directories = (is_null($directory) ? $this->libraryPaths : $directory);
 
 		// Now figure out the className and subdir
 		$class = trim($libraryName, '/');
@@ -99,14 +180,27 @@ class Libraries
 		if (file_exists('Core'.DS.'Libraries'.DS.$subdir.$class.'.php'))
 		{
 			// Load base library
-			return self::loadCoreLibrary($class, $subdir, $parameters, $directories, $keepInstance);
+			return $this->loadCoreLibrary($class, $subdir, $parameters, $directories, $newInstance);
 		}
 
 		// Otherwise try and load an Application Library
-		return self::loadAppLibrary($class, $subdir, $parameters, $directories, $keepInstance);
+		return $this->loadAppLibrary($class, $subdir, $parameters, $directories, $newInstance);
 	}
 
-	private static function loadCoreLibrary($class, $subdir, $parameters, array $directories, $keepInstance = false) 
+	/**
+	 * Core Library Loader
+	 *
+	 * Loads, instantiates and returns a core library.
+	 *
+	 * @param	string	$class			Classname
+	 * @param   string 	$subdir 		Sub directory in which the final class can be found
+	 * @param	array	$params			Optional parameters to pass to the library class constructor
+	 * @param	array	$directory 		Optional list of directories where the library can be found. Overrides default list
+	 * @param   bool 	$newInstance 	Whether to return a new instance of the library or the same one
+	 * @return	object
+	 * @throws 	LibraryException
+	 */ 
+	protected function loadCoreLibrary($class, $subdir, array $parameters = null, array $directories, $newInstance = false) 
 	{
 		// First check if the input is correct
 		if (!is_array($directories)) 
@@ -128,25 +222,28 @@ class Libraries
 				$prefix = $appPrefix;
 			}
 
-			if (!isset(self::$libraries[$prefix.$class]))
+			if (!isset($this->libraries[$prefix.$class]))
 			{
-				return self::initLibrary($prefix.$class, $parameters);
+				return $this->initLibrary($prefix.$class, $parameters);
 			}
 
 			// If required to do so, return the existing instance or load a new one
-			if ($keepInstance)
+			if ($newInstance)
 			{
-				Logger::log("Library '".$prefix.$class."' already loaded. Returning existing instance");
-				return self::$libraries[$prefix.$class];	
+				$this->factory->logger->log("Library '".$prefix.$class."' already loaded. Returning existing instance");
+				return $this->libraries[$prefix.$class];	
 			}
 
-			Logger::log("Library '".$prefix.$class."' already loaded. Returning new instance");
-			return self::initLibrary($prefix.$class, $parameters);
+			$this->factory->logger->log("Library '".$prefix.$class."' already loaded. Returning new instance");
+			return $this->initLibrary($prefix.$class, $parameters);
 		}
 
 		// Remove the core directory from the checklist
-		array_shift($directories);
-
+		if (in_array('Core'.DS.'Libraries', $directories))
+		{
+			array_shift($directories);
+		}
+		
 		// First check the directories for the core library (the FW_ class)
 		foreach ($directories as $directory) 
 		{
@@ -159,12 +256,12 @@ class Libraries
 				include_once($file);
 				if (class_exists($prefix.$class, false))
 				{
-					return self::initLibrary($prefix.$class, $parameters);
+					return $this->initLibrary($prefix.$class, $parameters);
 				}
 				else
 				{
 					// Otherwise log a message
-					Logger::logWarning("File ".$file." exists but does not declare $prefix$class");
+					$this->factory->logger->logWarning("File ".$file." exists but does not declare $prefix$class");
 				}
 			}
 		}
@@ -173,7 +270,7 @@ class Libraries
 		include_once('Core'.DS.'Libraries'.DS.$subdir.$class.'.php');
 		
 		// Now let's check for extensions
-		$subclass = Config::get('main')->application_prefix . $class;
+		$subclass = $this->factory->config->getConfig('main')->application_prefix . $class;
 		foreach ($directories as $directory) 
 		{
 			$file = $directory . DS . $subdir . $subclass . '.php';
@@ -184,11 +281,11 @@ class Libraries
 				include_once($file);
 				if (class_exists($appPrefix.$class, false))
 				{
-					return self::initLibrary($appPrefix.$class, $parameters);
+					return $this->initLibrary($appPrefix.$class, $parameters);
 				} 
 				else 
 				{
-					Logger::logWarning("File ".$file." exists but does not declare $prefix$class");
+					$this->factory->logger->logWarning("File ".$file." exists but does not declare $prefix$class");
 				}
 			}
 		}
@@ -196,13 +293,27 @@ class Libraries
 		// Third and last base; just load the FW_ core class
 		if (class_exists('\FuzeWorks\Library\FW_'.$class, false))
 		{
-			return self::initLibrary('\FuzeWorks\Library\FW_'.$class, $parameters);
+			return $this->initLibrary('\FuzeWorks\Library\FW_'.$class, $parameters);
 		}
 
 		throw new LibraryException("Could not load library. File ".'Core'.DS.'Libraries'.DS.$subdir.$class.'.php'." exists but does not declare \FuzeWorks\Library\FW_$class", 1);
 	}
 
-	private static function loadAppLibrary($class, $subdir, $parameters, array $directories, $keepInstance = false) 
+	/**
+	 * Application Library Loader
+	 *
+	 * Loads, instantiates and returns an application library.
+	 * Could possibly extend a core library if requested.
+	 *
+	 * @param	string	$class			Classname
+	 * @param   string 	$subdir 		Sub directory in which the final class can be found
+	 * @param	array	$params			Optional parameters to pass to the library class constructor
+	 * @param	array	$directory 		Optional list of directories where the library can be found. Overrides default list
+	 * @param   bool 	$newInstance 	Whether to return a new instance of the library or the same one
+	 * @return	object
+	 * @throws 	LibraryException
+	 */ 
+	protected function loadAppLibrary($class, $subdir, array $parameters = null, array $directories, $newInstance = false) 
 	{
 		// First check if the input is correct
 		if (!is_array($directories)) 
@@ -227,40 +338,51 @@ class Libraries
 			if (class_exists($className, false)) 
 			{
 				// Return existing instance
-				if (!isset(self::$libraries[$className])) 
+				if (!isset($this->libraries[$className])) 
 				{
-					return self::initLibrary($className, $parameters);
+					return $this->initLibrary($className, $parameters);
 				}
 
 				// If required to do so, return the existing instance or load a new one
-				if ($keepInstance)
+				if ($newInstance)
 				{
-					Logger::log("Library '".$className."' already loaded. Returning existing instance");
-					return self::$libraries[$prefix.$class];	
+					$this->factory->logger->log("Library '".$className."' already loaded. Returning existing instance");
+					return $this->libraries[$prefix.$class];	
 				}
 
-				Logger::log("Library '".$className."' already loaded. Returning new instance");
-				return self::initLibrary($className, $parameters);
+				$this->factory->logger->log("Library '".$className."' already loaded. Returning new instance");
+				return $this->initLibrary($className, $parameters);
 			}
 
 			// Otherwise load the file first
 			if (file_exists($file))
 			{
 				include_once($file);
-				return self::initLibrary($className, $parameters);
+				return $this->initLibrary($className, $parameters);
 			}
+		}
 
-			// Maybe it's in a subdirectory with the same name as the class
-			if ($subdir === '')
-			{
-				return self::loadLibrary($class."/".$class, $parameters, $directories, $keepInstance);
-			}
+		// Maybe it's in a subdirectory with the same name as the class
+		if ($subdir === '')
+		{
+			return $this->loadLibrary($class."/".$class, $parameters, $directories, $newInstance);
 		}
 
 		throw new LibraryException("Could not load library. Library was not found", 1);
 	}
 
-	private static function initLibrary($class, $parameters) 
+	/**
+	 * Library Initializer
+	 *
+	 * Instantiates and returns a library.
+	 * Determines whether to use the parameters array or a config file
+	 *
+	 * @param	string	$class			Classname
+	 * @param	array	$params			Optional parameters to pass to the library class constructor
+	 * @return	object
+	 * @throws 	LibraryException
+	 */ 
+	protected function initLibrary($class, array $parameters = null) 
 	{
 		// First check to see if the library is already loaded
 		if (!class_exists($class, false))
@@ -268,42 +390,69 @@ class Libraries
 			throw new LibraryException("Could not initiate library. Class not found", 1);
 		}
 
-		// Check if the adress is already reserved
-		if (isset(self::$libraries[$class]))
+		// Determine what parameters to use
+		if (is_null($parameters) || empty($parameters))
 		{
-			$parameters = (is_null($parameters) ? array() : $parameters);
+			try {
+				$parameters = $this->factory->config->getConfig(strtolower($class))->toArray();
+			} catch (ConfigException $e) {
+				// No problem, just use an empty array instead
+				$parameters = array();
+			}
+		}
+
+		// Check if the adress is already reserved, if it is, we can presume that a new instance is requested.
+		// Otherwise this code would not be reached
+		if (isset($this->libraries[$class]))
+		{
 			$classObject = new $class($parameters);
-			Logger::log("Loaded new Library instance of: ".$class);
+			$this->factory->logger->log("Loaded new Library instance of: ".$class);
 			return $classObject;
 		} 
 		else 
 		{
 			// Now load the class
-			$parameters = (is_null($parameters) ? array() : $parameters);
-			self::$libraries[$class] = new $class($parameters);
-			Logger::log("Loaded Library: ".$class);
-			return $c = self::$libraries[$class];
+			$this->libraries[$class] = new $class($parameters);
+			$this->factory->logger->log("Loaded Library: ".$class);
+			return $this->libraries[$class];
 		}
 	}
 
-	public static function addLibraryPath($directory)
+    /**
+     * Add a path where libraries can be found
+     * 
+     * @param string $directory The directory
+     * @return void
+     */
+	public function addLibraryPath($directory)
 	{
-		if (!in_array($directory, self::$libraryPaths))
+		if (!in_array($directory, $this->libraryPaths))
 		{
-			self::$libraryPaths[] = $directory;
+			$this->libraryPaths[] = $directory;
 		}
 	}
 
-	public static function removeLibraryPath($directory)
+    /**
+     * Remove a path where libraries can be found
+     * 
+     * @param string $directory The directory
+     * @return void
+     */  
+	public function removeLibraryPath($directory)
 	{
-		if (($key = array_search($directory, self::$libraryPaths)) !== false) 
+		if (($key = array_search($directory, $this->libraryPaths)) !== false) 
 		{
-		    unset(self::$libraryPaths[$key]);
+		    unset($this->libraryPaths[$key]);
 		}
 	}
 
-	public static function getLibraryPaths()
+    /**
+     * Get a list of all current libraryPaths
+     * 
+     * @return array Array of paths where libraries can be found
+     */
+	public function getLibraryPaths()
 	{
-		return self::$libraryPaths;
+		return $this->libraryPaths;
 	}
 }

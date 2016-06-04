@@ -29,24 +29,24 @@
  *
  * @version     Version 0.0.1
  */
-use \FuzeWorks\Core;
-use \FuzeWorks\Events;
-use \FuzeWorks\EventPriority;
+
+use FuzeWorks\Factory;
 
 /**
- * Class CoreStartEventTest.
+ * Class XmlHelperTest.
+ *
+ * Helpers testing suite, will test specific helper
  */
-class coreStartEventTest extends CoreTestAbstract
+class xmlHelperTest extends CoreTestAbstract
 {
-    /**
-     * Check if the event is fired when it should be.
-     */
-    public function testCoreStartEvent()
+    public function setUp()
     {
-        $mock = $this->getMock('MockEvent', array('mockMethod'));
-        $mock->expects($this->once())->method('mockMethod');
+        // Load Helper
+        Factory::getInstance()->helpers->load('xml');
+    }
 
-        Events::addListener(array($mock, 'mockMethod'), 'coreStartEvent', EventPriority::NORMAL);
-        Core::init();
+    public function test_xml_convert()
+    {
+        $this->assertEquals('&lt;tag&gt;my &amp; test &#45; &lt;/tag&gt;', xml_convert('<tag>my & test - </tag>'));
     }
 }

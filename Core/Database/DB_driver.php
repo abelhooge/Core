@@ -32,7 +32,7 @@
 
 use FuzeWorks\Logger;
 use FuzeWorks\DatabaseException;
-use FuzeWorks\Helpers;
+use FuzeWorks\Utf8;
 use FuzeWorks\Language;
 
 /**
@@ -372,6 +372,8 @@ abstract class FW_DB_driver {
 				$this->$key = $val;
 			}
 		}
+
+		$this->factory = Factory::getInstance();
 
 		Logger::log('Database Driver Class Initialized');
 	}
@@ -1181,8 +1183,7 @@ abstract class FW_DB_driver {
 	 */
 	protected function _escape_str($str)
 	{
-		Helpers::load('common');
-		return str_replace("'", "''", remove_invisible_characters($str));
+		return str_replace("'", "''", Utf8::remove_invisible_characters($str));
 	}
 
 	// --------------------------------------------------------------------

@@ -30,7 +30,7 @@
  * @version Version 0.0.1
  */
 
-use FuzeWorks\Helpers;
+use FuzeWorks\Utf8;
 
 /**
  * ODBC Database Adapter Class
@@ -212,8 +212,7 @@ class FW_DB_odbc_driver extends FW_DB {
 	 */
 	protected function _escape_str($str)
 	{
-		Helpers::load('common');
-		return remove_invisible_characters($str);
+		return Utf8::remove_invisible_characters($str);
 	}
 
 	// --------------------------------------------------------------------

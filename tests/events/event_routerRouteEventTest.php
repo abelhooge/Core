@@ -29,14 +29,14 @@
  *
  * @version     Version 0.0.1
  */
-use \FuzeWorks\Events;
-use \FuzeWorks\Layout;
-use \FuzeWorks\EventPriority;
+use FuzeWorks\Events;
+use FuzeWorks\Router;
+use FuzeWorks\EventPriority;
 
 /**
- * Class LayoutLoadViewEventTest.
+ * Class RouterRouteEventTest.
  */
-class layoutLoadViewEventTest extends CoreTestAbstract
+class routerRouteEventTest extends CoreTestAbstract
 {
     /**
      * Check if the event is fired when it should be.
@@ -46,35 +46,9 @@ class layoutLoadViewEventTest extends CoreTestAbstract
         $mock = $this->getMock('MockEvent', array('mockMethod'));
         $mock->expects($this->once())->method('mockMethod');
 
-        Events::addListener(array($mock, 'mockMethod'), 'layoutLoadViewEvent', EventPriority::NORMAL);
-
-        // And run the test
-        Layout::get('home');
-    }
-
-    /**
-     * Intercept and change the event.
-     *
-     * @expectedException \FuzeWorks\LayoutException
-     */
-    public function test_change()
-    {
-        Events::addListener(array($this, 'listener_change'), 'layoutLoadViewEvent', EventPriority::NORMAL);
-        Layout::get('home');
-    }
-
-    // Change title from new to other
-    public function listener_change($event)
-    {
-
-        // This controller should not exist
-        $this->assertEquals('Application/Views/view.home.php', $event->file);
-        $this->assertEquals('Application/Views/', $event->directory);
-
-        // It should exist now
-        $event->file = 'Application/Views/view.test.not_found';
-
-        return $event;
+        Events::addListener(array($mock, 'mockMethod'), 'routerRouteEvent', EventPriority::NORMAL);
+        Router::setPath('a/b/c');
+        Router::route(false);
     }
 
     /**
@@ -82,10 +56,14 @@ class layoutLoadViewEventTest extends CoreTestAbstract
      */
     public function test_cancel()
     {
+        Router::setPath('x/y/z');
 
-        // Listen for the event and cancel it
-        Events::addListener(array($this, 'listener_cancel'), 'layoutLoadViewEvent', EventPriority::NORMAL);
-        $this->assertFalse(Layout::get('home'));
+        Events::addListener(array($this, 'listener_cancel'), 'routerRouteEvent', EventPriority::NORMAL);
+        Router::route(false);
+
+        $this->assertNotEquals('x', Router::getMatches()['controller']);
+        $this->assertNotEquals('y', Router::getMatches()['function']);
+        $this->assertNotEquals('z', Router::getMatches()['parameters']);
     }
 
     // Cancel all calls
