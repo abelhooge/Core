@@ -466,14 +466,14 @@ class URI {
 		$total_segments = "total_{$which}s";
 		$segment_array = "{$which}_array";
 
-		if ($this->total_segments() < $n)
+		if ($this->$total_segments() < $n)
 		{
 			return (count($default) === 0)
 				? array()
 				: array_fill_keys($default, NULL);
 		}
 
-		$segments = array_slice($this->segment_array(), ($n - 1));
+		$segments = array_slice($this->$segment_array(), ($n - 1));
 		$i = 0;
 		$lastval = '';
 		$retval = array();
@@ -591,7 +591,7 @@ class URI {
 			$trailing	= '';
 		}
 
-		return $leading.$this->which($n).$trailing;
+		return $leading.$this->$which($n).$trailing;
 	}
 
 	// --------------------------------------------------------------------
@@ -653,17 +653,4 @@ class URI {
 	{
 		return $this->uri_string;
 	}
-
-	// --------------------------------------------------------------------
-
-	/**
-	 * Fetch Re-routed URI string
-	 *
-	 * @return	string
-	 */
-	public function ruri_string()
-	{
-		return ltrim(load_class('Router', 'core')->directory, '/').implode('/', $this->rsegments);
-	}
-
 }
