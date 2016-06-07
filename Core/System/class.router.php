@@ -41,12 +41,14 @@ use Application\Init;
  * The overall structure of the routing is as follows:
  *
  * The routes-array will hold a list of RegEx-strings. When the route-method is called, the framework will try
- * to match the current path against all the RegEx's. When a RegEx matches, the linked callable will be called.
+ * to match the current path found in the URI class against all the RegEx's. When a RegEx matches, 
+ * it will try and load what the route is related to. This can be a callable or a translator. A translator will 
+ * convert the values of a route into a callable. In the end a callable will always be loaded.
  *
- * Every module can register routes and add their own callables. By default, two callables are used:
- * The defaultCallable and the moduleCallable.
+ * Every module can register routes and add their own callables. By default, two callables are available:
+ * The defaultCallable and the moduleCallable of which the last one is found in the Modules class.
  *
- * The defaultCallable is a traditional MVC controller loader. Loading an URL using a default route works as follows:
+ * The defaultCallable is a traditional MVC controller loader. Loading an URL when no route matches works as follows:
  *
  *      Let's say the visitor requests /A/B/C
  *
@@ -54,7 +56,7 @@ use Application\Init;
  *      B would be the function to be called in the 'controller' (default: index)
  *      C would be the first parameter
  *
- *      All controllers are to be placed in the /Application/controller-directory.
+ *      All controllers are to be placed in the /Application/Controller - directory.
  *
  * This is the default behaviour by adding routes to the config.routes.php. It is also possible to load Modules using routes.
  * To load a Module using a route, add the route to the moduleInfo.php in a routes array.
@@ -69,19 +71,19 @@ use Application\Init;
  *      Callables are NO controllers!! By default, the 'defaultCallable' will load the correct controller from
  *      the default controller directory. When you make custom routes, the callable will need to call your own
  *      controllers. This means that the one callable you provide with your RegEx will be called for EVERYTHING
- *      the RegEx matches. The names groups 'controller' and 'function' will be passed as first two arguments,
+ *      the RegEx matches. Only the regex matches will be provided to the callable,
  *      if no names groups are available; you will need to extract them yourself from the path.
  *
  * After the core has been loaded, the URI class will generate the URI which is currently being used.
- * That method will then call the route-method, which will call the right controller and it's method.
+ * The index file will then call the route-method, which will call the right controller and it's associated method.
  *
  * @see Router::route
+ * @see Router::addRoute
  *
  * @author    Abel Hoogeveen <abel@techfuze.net>
  * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  * 
  * @todo Implement Query Strings
- * @todo Add Documentation
  * @todo Implement Unit tests
  */
 class Router
@@ -111,18 +113,47 @@ class Router
      */
     protected $translate_uri_dashes = false;
 
+    /**
+     * The Config class used to get configurations
+     * 
+     * @var Config FuzeWorks config class
+     */
     protected $config;
 
+    /**
+     * The Uri class used to get paths
+     * 
+     * @var Uri FuzeWorks uri class
+     */
     protected $uri;
 
+    /**
+     * The Logger class used to log information
+     * 
+     * @var Logger FuzeWorks logger class
+     */
     protected $logger;
 
+    /**
+     * The Events class used to fire events
+     * 
+     * @var Events FuzeWorks events class
+     */
     protected $events;
 
+    /**
+     * The Output class used to parse cache data
+     * 
+     * @var Output FuzeWorks output class
+     */
     protected $output;
 
     /**
-     * The constructor adds the default route to the routing table.
+     * Constructor of the Router
+     * 
+     * Loads all required classes and adds all the routes to the routingTable
+     * 
+     * @return void
      */
     public function __construct()
     {
@@ -138,6 +169,14 @@ class Router
         $this->parseRouting();
     }
 
+    /**
+     * Route Parser
+     * 
+     * This method parses all the routes in the routes table config file
+     * and adds them to the Router. It converts some routes which use wildcards
+     * 
+     * @return void
+     */
     protected function parseRouting()
     {
         // Get routing routes
@@ -201,6 +240,25 @@ class Router
         return $this->matches;
     }
 
+    /**
+     * Add a route to the Router's routing table
+     * 
+     * The route consists of 2 parts: the route and data.
+     * 
+     * The route is a regex string which will later be matched upon Router::route().
+     * 
+     * The data can be multiple things. First it can be a string, which will later be processed and turned into
+     * a callable. If the string is like 'controller/method' then the contoller 'Controller' will be loaded and the
+     * method 'method' will be called. The data can also be a callable. That callable will be called with all the regex
+     * that match the route. The callable is expected to return a string just like above. You can also provide an array.
+     * If you have an array like this: array('callable' => array('Class', 'method')) then your callable shall be used
+     * instead of the defaultCallabele. 
+     *
+     * @param string   $route    This is a RegEx of the route, Every capture group will be a match, passed on to a callable
+     * @param mixed    $data     Can be multiple things. See description above
+     * @param bool     $prepend  Whether or not to insert at the beginning of the routing table
+     * @return void
+     */
     public function addRoute($route, $callable, $prepend = true)
     {
         if ($prepend) {
@@ -227,7 +285,7 @@ class Router
     /**
      * Extracts the routing path from the URL using the routing table.
      *
-     * Determines what callable should be loaded and what data matches the route regex.
+     * Determines what should be loaded and what data matches the route regex.
      *
      * @param bool $performLoading Immediate process the route after it has been determined
      */
@@ -319,6 +377,13 @@ class Router
         $c = count($segments);
     }
 
+    /**
+     * Converts a routing string into parameters for the defaultCallable.
+     * 
+     * @param array $segments Segments of the controller,method,parameters to open
+     * @param string @route   The route which was matched
+     * @return void
+     */
     protected function routeDefault($segments = array(), $route)
     {
         // If we don't have any segments left - try the default controller;
