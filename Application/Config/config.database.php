@@ -11,12 +11,13 @@ return array(
 				'username' => '',
 				'password' => '',
 				'database' => '',
-				'dbdriver' => 'mysqli',
+				'dbdriver' => '',
+				'subdriver'=> '',
 				'dbprefix' => '',
 				'pconnect' => FALSE,
 				'db_debug' => FALSE,
 				'cache_on' => FALSE,
-				'cachedir' => '',
+				'cachedir' => 'Application/Cache',
 				'char_set' => 'utf8',
 				'dbcollat' => 'utf8_general_ci',
 				'swap_pre' => '',
@@ -24,7 +25,6 @@ return array(
 				'compress' => FALSE,
 				'stricton' => FALSE,
 				'failover' => array(),
-				'save_queries' => TRUE
 			),
 
 

@@ -32,6 +32,7 @@
 
 use FuzeWorks\Logger;
 use Fuzeworks\Factory;
+use FuzeWorks\Core;
 
 /**
  * Database Cache Class
@@ -43,16 +44,8 @@ use Fuzeworks\Factory;
  * @author		EllisLab Dev Team
  * @link		https://codeigniter.com/user_guide/database/
  * @license		http://opensource.org/licenses/MIT	MIT License
- * @todo		Fix URI
  */
 class FW_DB_Cache {
-
-	/**
-	 * CI Singleton
-	 *
-	 * @var	object
-	 */
-	public $CI;
 
 	/**
 	 * Database object
@@ -81,7 +74,7 @@ class FW_DB_Cache {
 	 */
 	public function __construct(&$db)
 	{
-		// Assign the main CI object to $this->CI and load the file helper since we use it a lot
+		$this->db =& $db;
 		$this->factory = Factory::getInstance();
 		$this->factory->helpers->load('file');
 
@@ -121,7 +114,7 @@ class FW_DB_Cache {
 			return $this->db->cache_off();
 		}
 
-		if ( ! is_really_writable($path))
+		if ( ! Core::isReallyWritable($path))
 		{
 			Logger::logDebug('DB cache dir not writable: '.$path);
 
@@ -146,8 +139,8 @@ class FW_DB_Cache {
 	 */
 	public function read($sql)
 	{
-		$segment_one = ($this->CI->uri->segment(1) == FALSE) ? 'default' : $this->CI->uri->segment(1);
-		$segment_two = ($this->CI->uri->segment(2) == FALSE) ? 'index' : $this->CI->uri->segment(2);
+		$segment_one = ($this->factory->uri->segment(1) == FALSE) ? 'default' : $this->factory->uri->segment(1);
+		$segment_two = ($this->factory->uri->segment(2) == FALSE) ? 'index' : $this->factory->uri->segment(2);
 		$filepath = $this->db->cachedir.$segment_one.'+'.$segment_two.'/'.md5($sql);
 
 		if (FALSE === ($cachedata = @file_get_contents($filepath)))
@@ -169,8 +162,8 @@ class FW_DB_Cache {
 	 */
 	public function write($sql, $object)
 	{
-		$segment_one = ($this->CI->uri->segment(1) == FALSE) ? 'default' : $this->CI->uri->segment(1);
-		$segment_two = ($this->CI->uri->segment(2) == FALSE) ? 'index' : $this->CI->uri->segment(2);
+		$segment_one = ($this->factory->uri->segment(1) == FALSE) ? 'default' : $this->factory->uri->segment(1);
+		$segment_two = ($this->factory->uri->segment(2) == FALSE) ? 'index' : $this->factory->uri->segment(2);
 		$dir_path = $this->db->cachedir.$segment_one.'+'.$segment_two.'/';
 		$filename = md5($sql);
 
@@ -201,12 +194,12 @@ class FW_DB_Cache {
 	{
 		if ($segment_one === '')
 		{
-			$segment_one  = ($this->CI->uri->segment(1) == FALSE) ? 'default' : $this->CI->uri->segment(1);
+			$segment_one  = ($this->factory->uri->segment(1) == FALSE) ? 'default' : $this->factory->uri->segment(1);
 		}
 
 		if ($segment_two === '')
 		{
-			$segment_two = ($this->CI->uri->segment(2) == FALSE) ? 'index' : $this->CI->uri->segment(2);
+			$segment_two = ($this->factory->uri->segment(2) == FALSE) ? 'index' : $this->factory->uri->segment(2);
 		}
 
 		$dir_path = $this->db->cachedir.$segment_one.'+'.$segment_two.'/';
