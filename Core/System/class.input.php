@@ -110,7 +110,7 @@ class Input {
 	 *
 	 * Parsed from php://input at runtime
 	 *
-	 * @see	CI_Input::input_stream()
+	 * @see	Input::input_stream()
 	 * @var	array
 	 */
 	protected $_input_stream;
@@ -685,7 +685,7 @@ class Input {
 		// Clean UTF-8 if supported
 		if (UTF8_ENABLED === TRUE)
 		{
-			$str = UTF8::clean_string($str);
+			$str = $this->factory->utf8->clean_string($str);
 		}
 
 		// Remove control characters
@@ -734,7 +734,7 @@ class Input {
 		// Clean UTF-8 if supported
 		if (UTF8_ENABLED === TRUE)
 		{
-			return UTF8::clean_string($str);
+			return $this->factory->utf8->clean_string($str);
 		}
 
 		return $str;

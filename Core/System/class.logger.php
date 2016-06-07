@@ -232,7 +232,7 @@ class Logger {
 
         Layout::reset();
         Layout::assign('Logs', self::$Logs);
-        Layout::view(self::$logger_template, 'Core'.DS.'Views');
+        Layout::view(self::$logger_template, 'Core'.DS.'Views', true);
     }
 
     public static function logToFile()

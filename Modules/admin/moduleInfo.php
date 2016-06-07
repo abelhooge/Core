@@ -39,7 +39,7 @@ return array(
     'aliases' => array(),
     'dependencies' => array(),
     'events' => array(),
-    'routes' => array('/^admin(|\/(?P<identifier>.*?)(|\/(?<page>.*?)(|\/(?P<subdata>.*?))))$/'),
+    'routes' => array('admin(|\/(?P<identifier>.*?)(|\/(?<page>.*?)(|\/(?P<subdata>.*?))))'),
     'advertise' => array('admin' => array('identifier' => 'fuzeadmin', 'pages' => array(array('name' => 'TEST', 'page_path' => 'testPage', 'icon' => 'fa-plane')))),
     'listenFor' => array('admin'),
     'name' => 'FuzeWorks Admin Panel',

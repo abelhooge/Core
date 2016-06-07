@@ -403,7 +403,7 @@ class Modules
                 self::$advertiseRegister = $advertiseRegister;
                 self::$module_routes = $routeRegister;
                 foreach ($routeRegister as $route => $name) {
-                    Router::addRoute($route, array('\FuzeWorks\Modules', 'moduleCallable'), true);
+                    Factory::getInstance()->router->addRoute($route, array('callable' => array('\FuzeWorks\Modules', 'moduleCallable')), true);
                 }
                 Logger::stopLevel();
                 return true;
@@ -489,7 +489,7 @@ class Modules
                     foreach ($cfg->routes as $route) {
                         // Create the route and callable and parse them
                         $callable = array('\FuzeWorks\Modules', 'moduleCallable');
-                        Router::addRoute($route, $callable, true);
+                        Factory::getInstance()->router->addRoute($route, array('callable' => $callable), true);
                         self::$module_routes[$route] = $name;
                     }
                 }

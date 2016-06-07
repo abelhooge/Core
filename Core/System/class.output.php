@@ -115,6 +115,10 @@ class Output {
 	 */
 	public $parse_exec_vars = TRUE;
 
+	protected $config;
+	protected $uri;
+	protected $router;
+
 	/**
 	 * Class constructor
 	 *
@@ -124,15 +128,20 @@ class Output {
 	 */
 	public function __construct()
 	{
+		$factory = Factory::getInstance();
+		$this->config = $factory->config;
+		$this->uri = $factory->uri;
+		$this->router = $factory->router;
+
 		$this->_zlib_oc = (bool) ini_get('zlib.output_compression');
 		$this->_compress_output = (
 			$this->_zlib_oc === FALSE
-			&& Config::get('main')->compress_output === TRUE
+			&& $this->config->main->compress_output === TRUE
 			&& extension_loaded('zlib')
 		);
 
 		// Get mime types for later
-		$this->mimes = Config::get('mimes')->toArray();
+		$this->mimes = $this->config->mimes->toArray();
 	}
 
 	// --------------------------------------------------------------------
@@ -157,7 +166,7 @@ class Output {
 	 * Sets the output string.
 	 *
 	 * @param	string	$output	Output data
-	 * @return	CI_Output
+	 * @return	Output
 	 */
 	public function set_output($output)
 	{
@@ -173,7 +182,7 @@ class Output {
 	 * Appends data onto the output string.
 	 *
 	 * @param	string	$output	Data to append
-	 * @return	CI_Output
+	 * @return	Output
 	 */
 	public function append_output($output)
 	{
@@ -193,7 +202,7 @@ class Output {
 	 *
 	 * @param	string	$header		Header
 	 * @param	bool	$replace	Whether to replace the old header value, if already set
-	 * @return	CI_Output
+	 * @return	Output
 	 */
 	public function set_header($header, $replace = TRUE)
 	{
@@ -217,7 +226,7 @@ class Output {
 	 *
 	 * @param	string	$mime_type	Extension of the file we're outputting
 	 * @param	string	$charset	Character set (default: NULL)
-	 * @return	CI_Output
+	 * @return	Output
 	 */
 	public function set_content_type($mime_type, $charset = NULL)
 	{
@@ -314,13 +323,11 @@ class Output {
 	 *
 	 * @param	int	$code	Status code (default: 200)
 	 * @param	string	$text	Optional message
-	 * @todo 	Fix this
-	 * @return	CI_Output
+	 * @return	Output
 	 */
 	public function set_status_header($code = 200, $text = '')
 	{
-		return $this;
-		set_status_header($code, $text);
+		Core::setStatusHeader($code, $text);
 		return $this;
 	}
 
@@ -330,7 +337,7 @@ class Output {
 	 * Enable/disable Profiler
 	 *
 	 * @param	bool	$val	TRUE to enable or FALSE to disable
-	 * @return	CI_Output
+	 * @return	Output
 	 */
 	public function enable_profiler($val = TRUE)
 	{
@@ -347,7 +354,7 @@ class Output {
 	 * Profiler section display.
 	 *
 	 * @param	array	$sections	Profiler sections
-	 * @return	CI_Output
+	 * @return	Output
 	 */
 	public function set_profiler_sections($sections)
 	{
@@ -371,7 +378,7 @@ class Output {
 	 * Set Cache
 	 *
 	 * @param	int	$time	Cache expiration time in minutes
-	 * @return	CI_Output
+	 * @return	Output
 	 */
 	public function cache($time)
 	{
@@ -391,23 +398,21 @@ class Output {
 	 * Note: All "view" data is automatically put into $this->final_output
 	 *	 by controller class.
 	 *
-	 * @uses	CI_Output::$final_output
+	 * @uses	Output::$final_output
 	 * @param	string	$output	Output data override
 	 * @return	void
-	 * @todo Implement cache
 	 */
 	public function _display($output = '')
 	{
-		// Note:  We use load_class() because we can't use $CI =& get_instance()
-		// since this function is sometimes called by the caching mechanism,
-		// which happens before the CI super object is available.
-		$BM =& load_class('Benchmark', 'core');
-		$CFG =& load_class('Config', 'core');
-
+		$router = Factory::getInstance()->router;
 		// Grab the super object if we can.
-		if (class_exists('CI_Controller', FALSE))
+		if ($router->getCallable() === null)
 		{
-			$CI =& get_instance();
+			$use_cache = true;
+		}
+		else
+		{
+			$use_cache = false;
 		}
 
 		// --------------------------------------------------------------------
@@ -423,10 +428,10 @@ class Output {
 		// Do we need to write a cache file? Only if the controller does not have its
 		// own _output() method and we are not dealing with a cache file, which we
 		// can determine by the existence of the $CI object above
-		//if ($this->cache_expiration > 0 && isset($CI) && ! method_exists($CI, '_output'))
-		//{
-		//	$this->_write_cache($output);
-		//}
+		if ($this->cache_expiration > 0 && $use_cache === false)
+		{
+			$this->_write_cache($output);
+		}
 
 		// --------------------------------------------------------------------
 
@@ -444,12 +449,12 @@ class Output {
 		// --------------------------------------------------------------------
 
 		// Is compression requested?
-		//if (isset($CI) // This means that we're not serving a cache file, if we were, it would already be compressed
-		//	&& $this->_compress_output === TRUE
-		//	&& isset($_SERVER['HTTP_ACCEPT_ENCODING']) && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== FALSE)
-		//{
-		//	ob_start('ob_gzhandler');
-		//}
+		if ($use_cache === false // This means that we're not serving a cache file, if we were, it would already be compressed
+			&& $this->_compress_output === TRUE
+			&& isset($_SERVER['HTTP_ACCEPT_ENCODING']) && strpos($_SERVER['HTTP_ACCEPT_ENCODING'], 'gzip') !== FALSE)
+		{
+			ob_start('ob_gzhandler');
+		}
 
 		// --------------------------------------------------------------------
 
@@ -464,10 +469,7 @@ class Output {
 
 		// --------------------------------------------------------------------
 
-		// Does the $CI object exist?
-		// If not we know we are dealing with a cache file so we'll
-		// simply echo out the data and exit.
-		if ( ! isset($CI))
+		if ( $use_cache === true)
 		{
 			if ($this->_compress_output === TRUE)
 			{
@@ -494,8 +496,11 @@ class Output {
 
 		// Do we need to generate profile data?
 		// If so, load the Profile class and run it.
-		/*if ($this->enable_profiler === TRUE)
+		if ($this->enable_profiler === TRUE)
 		{
+			Logger::logWarning("Profiler not yet implemented");
+			return;
+
 			$CI->load->library('profiler');
 			if ( ! empty($this->_profiler_sections))
 			{
@@ -511,16 +516,7 @@ class Output {
 			}
 		}
 
-		// Does the controller contain a function named _output()?
-		// If so send the output there.  Otherwise, echo it.
-		if (method_exists($CI, '_output'))
-		{
-			$CI->_output($output);
-		}
-		else
-		{
-			echo $output; // Send it to the browser!
-		}*/
+		echo $output;
 
 		Logger::log('Final output sent to browser');
 		Logger::logDebug('Total execution time: '.$elapsed);
@@ -532,30 +528,24 @@ class Output {
 	 * Write Cache
 	 *
 	 * @param	string	$output	Output data to cache
-	 * @todo 	Implement cache
 	 * @return	void
 	 */
 	public function _write_cache($output)
 	{
-		Logger::logWarning("Cache is not implemented as of yet");
-		return;
+		$path = $this->config->cache->cache_file_path;
+		$cache_path = ($path === '') ? 'Application'.DS.'Cache'.DS : $path;
 
-
-		$CI =& get_instance();
-		$path = $CI->config->item('cache_path');
-		$cache_path = ($path === '') ? APPPATH.'cache/' : $path;
-
-		if ( ! is_dir($cache_path) OR ! is_really_writable($cache_path))
+		if ( ! is_dir($cache_path) OR ! Core::isReallyWritable($cache_path))
 		{
-			log_message('error', 'Unable to write cache file: '.$cache_path);
+			Logger::logError('Unable to write cache file: '.$cache_path);
 			return;
 		}
 
-		$uri = $CI->config->item('base_url')
-			.$CI->config->item('index_page')
-			.$CI->uri->uri_string();
+		$uri = $this->config->main->base_url
+			.$this->config->main->index_page
+			.$this->uri->uri_string();
 
-		if (($cache_query_string = $CI->config->item('cache_query_string')) && ! empty($_SERVER['QUERY_STRING']))
+		if (($cache_query_string = $this->config->cache->cache_query_string) && ! empty($_SERVER['QUERY_STRING']))
 		{
 			if (is_array($cache_query_string))
 			{
@@ -571,7 +561,7 @@ class Output {
 
 		if ( ! $fp = @fopen($cache_path, 'w+b'))
 		{
-			log_message('error', 'Unable to write cache file: '.$cache_path);
+			Logger::logError('Unable to write cache file: '.$cache_path);
 			return;
 		}
 
@@ -612,7 +602,7 @@ class Output {
 		}
 		else
 		{
-			log_message('error', 'Unable to secure a file lock for file at: '.$cache_path);
+			Logger::logError('Unable to secure a file lock for file at: '.$cache_path);
 			return;
 		}
 
@@ -621,7 +611,7 @@ class Output {
 		if (is_int($result))
 		{
 			chmod($cache_path, 0640);
-			log_message('debug', 'Cache file written: '.$cache_path);
+			Logger::logDebug('Cache file written: '.$cache_path);
 
 			// Send HTTP cache-control headers to browser to match file cache settings.
 			$this->set_cache_header($_SERVER['REQUEST_TIME'], $expire);
@@ -629,7 +619,7 @@ class Output {
 		else
 		{
 			@unlink($cache_path);
-			log_message('error', 'Unable to write the complete cache content at: '.$cache_path);
+			Logger::logError('Unable to write the complete cache content at: '.$cache_path);
 		}
 	}
 
@@ -638,26 +628,20 @@ class Output {
 	/**
 	 * Update/serve cached output
 	 *
-	 * @uses	CI_Config
-	 * @uses	CI_URI
-	 * @todo 	Implement
+	 * @uses	Config
+	 * @uses	URI
 	 *
-	 * @param	object	&$CFG	CI_Config class instance
-	 * @param	object	&$URI	CI_URI class instance
 	 * @return	bool	TRUE on success or FALSE on failure
 	 */
-	public function _display_cache(&$CFG, &$URI)
+	public function _display_cache()
 	{
-		Logger::logWarning("Cache is not implemented as of yet");
-		return false;
-
-
-		$cache_path = ($CFG->item('cache_path') === '') ? APPPATH.'cache/' : $CFG->item('cache_path');
+		$cache_path = ($this->config->cache->cache_file_path === '') ? 'Application'.DS.'Cache'.DS : $this->config->cache->cache_file_path;
 
 		// Build the file path. The file name is an MD5 hash of the full URI
-		$uri = $CFG->item('base_url').$CFG->item('index_page').$URI->uri_string;
+		$main = $this->config->main;
+		$uri = $main->base_url.$main->index_page.$this->uri->uri_string;
 
-		if (($cache_query_string = $CFG->item('cache_query_string')) && ! empty($_SERVER['QUERY_STRING']))
+		if (($cache_query_string = $this->config->cache->cache_query_string) && ! empty($_SERVER['QUERY_STRING']))
 		{
 			if (is_array($cache_query_string))
 			{
@@ -673,6 +657,7 @@ class Output {
 
 		if ( ! file_exists($filepath) OR ! $fp = @fopen($filepath, 'rb'))
 		{
+			Logger::logDebug("No cache file for $uri found");
 			return FALSE;
 		}
 
@@ -695,11 +680,11 @@ class Output {
 		$last_modified = filemtime($filepath);
 
 		// Has the file expired?
-		if ($_SERVER['REQUEST_TIME'] >= $expire && is_really_writable($cache_path))
+		if ($_SERVER['REQUEST_TIME'] >= $expire && Core::isReallyWritable($cache_path))
 		{
 			// If so we'll delete it.
 			@unlink($filepath);
-			log_message('debug', 'Cache file has expired. File deleted.');
+			Logger::logDebug('Cache file has expired. File deleted.');
 			return FALSE;
 		}
 		else
@@ -716,7 +701,7 @@ class Output {
 
 		// Display the cache
 		$this->_display(substr($cache, strlen($match[0])));
-		log_message('debug', 'Cache file is current. Sending it to browser.');
+		Logger::logDebug('Cache file is current. Sending it to browser.');
 		return TRUE;
 	}
 
@@ -727,31 +712,26 @@ class Output {
 	 *
 	 * @param	string	$uri	URI string
 	 * @return	bool
-	 * @todo 	Implement
 	 */
 	public function delete_cache($uri = '')
 	{
-		Logger::logWarning("Caching is not implemented as of yet");
-		return false;
-		
-		$CI =& get_instance();
-		$cache_path = $CI->config->item('cache_path');
+		$cache_path = $this->config->cache->cache_file_path;
 		if ($cache_path === '')
 		{
-			$cache_path = APPPATH.'cache/';
+			$cache_path = 'Application'.DS.'Cache'.DS;
 		}
 
 		if ( ! is_dir($cache_path))
 		{
-			log_message('error', 'Unable to find cache path: '.$cache_path);
+			Logger::logError('Unable to find cache path: '.$cache_path);
 			return FALSE;
 		}
 
 		if (empty($uri))
 		{
-			$uri = $CI->uri->uri_string();
+			$uri = $this->uri->uri_string();
 
-			if (($cache_query_string = $CI->config->item('cache_query_string')) && ! empty($_SERVER['QUERY_STRING']))
+			if (($cache_query_string = $this->config->cache->cache_query_string) && ! empty($_SERVER['QUERY_STRING']))
 			{
 				if (is_array($cache_query_string))
 				{
@@ -764,11 +744,11 @@ class Output {
 			}
 		}
 
-		$cache_path .= md5($CI->config->item('base_url').$CI->config->item('index_page').ltrim($uri, '/'));
+		$cache_path .= md5($this->config->mainbase_url.$this->config->main->index_page.ltrim($uri, '/'));
 
 		if ( ! @unlink($cache_path))
 		{
-			log_message('error', 'Unable to delete cache file for '.$uri);
+			Logger::logError('Unable to delete cache file for '.$uri);
 			return FALSE;
 		}
 

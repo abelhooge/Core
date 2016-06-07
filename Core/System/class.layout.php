@@ -95,23 +95,33 @@ class Layout
     private static $current_engine;
 
     /**
-     * Retrieve a template file using a string and a directory and immediatly echo it.
+     * Retrieve a template file using a string and a directory and immediatly parse it to the output class.
      *
      * What template file gets loaded depends on the template engine that is being used.
      * PHP for example uses .php files. Providing this function with 'home/dashboard' will load the home/view.dashboard.php file.
      * You can also provide no particular engine, and the manager will decide what template to load.
      * Remember that doing so will result in a LayoutException when multiple compatible files are found.
      *
-     * @param string $file      File to load
-     * @param string $directory Directory to load it from
+     * @param string $file         File to load
+     * @param string $directory    Directory to load it from
+     * @param bool   $directOutput Whether to directly output the result with an echo or send it to the output class. True if echo
      *
      * @throws LayoutException On error
      */
-    public static function view($file, $directory = null)
+    public static function view($file, $directory = null, $directOutput = false)
     {
+        $output = Factory::getInstance()->output;
         $directory = (is_null($directory) ? self::$directory : $directory);
-        echo self::get($file, $directory);
 
+        if ($directOutput === true)
+        {
+            echo self::get($file, $directory);
+        }
+        else
+        {
+            $output->append_output(self::get($file, $directory));  
+        }
+        
         return;
     }
 
@@ -146,11 +156,9 @@ class Layout
         }
 
         // Then assign some basic variables for the template
-        self::$assigned_variables['viewDir'] = Config::get('main')->SITE_URL.preg_replace('#/+#', '/', substr(self::$directory.'/', -strlen(self::$directory.'/')));
-        self::$assigned_variables['siteURL'] = Config::get('main')->SITE_URL;
-        self::$assigned_variables['siteLogo'] = Config::get('main')->SITE_LOGO_URL;
-        self::$assigned_variables['serverName'] = Config::get('main')->SERVER_NAME;
-        self::$assigned_variables['siteDomain'] = Config::get('main')->SITE_DOMAIN;
+        self::$assigned_variables['viewDir'] = Config::get('main')->base_url.preg_replace('#/+#', '/', substr(self::$directory.'/', -strlen(self::$directory.'/')));
+        self::$assigned_variables['siteURL'] = Config::get('main')->base_url;
+        self::$assigned_variables['serverName'] = Config::get('main')->server_name;
         self::$assigned_variables['adminMail'] = Config::get('main')->administrator_mail;
         self::$assigned_variables['contact'] = Config::get('contact')->toArray();
 

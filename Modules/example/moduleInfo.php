@@ -56,7 +56,7 @@ return array(
     // Routes that this module listens on. Any URL that matches this pattern will load this module
     // If the URL /example/ gets called, this module will be loaded
     // Everything after /example/ will be sent to the route() function in the matches array under the, in this example, 'data' key
-    'routes' => array('/^example(|\/(?P<data>.*?))$/'),
+    'routes' => array('example(|\/(?P<data>.*?))$'),
 
     // Advertises some data with the key 'exampleAdvertisement'. This data will be sent to a module which listens for this key.
     // This allows for some data to be sent to a module which listens to this key.

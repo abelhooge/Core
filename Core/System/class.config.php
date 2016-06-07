@@ -96,6 +96,11 @@ class Config
         return $this->cfg[$configName];
     }
 
+    public function __get($configName)
+    {
+        return $this->getConfig($configName);
+    }
+
     /**
      * Determine whether the file exists and, if so, load the ConfigORM
      * 

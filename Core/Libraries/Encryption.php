@@ -184,7 +184,7 @@ class FW_Encryption {
 	 * Initialize
 	 *
 	 * @param	array	$params	Configuration parameters
-	 * @return	CI_Encryption
+	 * @return	Encryption
 	 */
 	public function initialize(array $params)
 	{

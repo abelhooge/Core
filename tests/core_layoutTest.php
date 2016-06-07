@@ -30,6 +30,7 @@
  * @version     Version 0.0.1
  */
 use FuzeWorks\Layout;
+use FuzeWorks\Factory;
 
 /**
  * Class LayoutTest.
@@ -122,6 +123,7 @@ class layoutTest extends CoreTestAbstract
 
         ob_start();
         Layout::view('test', $directory);
+        Factory::getInstance()->output->_display();
         $output = ob_get_contents();
         ob_end_clean();
 

@@ -72,60 +72,103 @@ use Application\Init;
  *      the RegEx matches. The names groups 'controller' and 'function' will be passed as first two arguments,
  *      if no names groups are available; you will need to extract them yourself from the path.
  *
- * After the core has been loaded, the method setPath will be called with the request URI (e.g. obtained via .htaccess).
+ * After the core has been loaded, the URI class will generate the URI which is currently being used.
  * That method will then call the route-method, which will call the right controller and it's method.
  *
- * @see Router::setPath
  * @see Router::route
  *
  * @author    Abel Hoogeveen <abel@techfuze.net>
  * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * 
+ * @todo Implement Query Strings
+ * @todo Add Documentation
+ * @todo Implement Unit tests
  */
 class Router
 {
     /**
-     * @var null|string The provided path
-     */
-    private static $path = null;
-
-    /**
      * @var array Routes
      */
-    private static $routes = array();
+    protected $routes = array();
 
     /**
      * @var null|mixed The callable
      */
-    private static $callable = null;
+    protected $callable = null;
 
     /**
      * @var null|array The extracted matches from the regex
      */
-    private static $matches = null;
+    protected $matches = null;
+
+    /**
+     * Translate URI dashes
+     *
+     * Determines whether dashes in controller & method segments
+     * should be automatically replaced by underscores.
+     *
+     * @var bool
+     */
+    protected $translate_uri_dashes = false;
+
+    protected $config;
+
+    protected $uri;
+
+    protected $logger;
+
+    protected $events;
+
+    protected $output;
 
     /**
      * The constructor adds the default route to the routing table.
      */
     public function __construct()
     {
-        foreach (Config::get('routes') as $route => $callable) {
-            if (is_int($route)) {
-                $route = $callable;
-                $callable = array('\FuzeWorks\Router', 'defaultCallable');
-            }
+        // Load related classes
+        $factory = Factory::getInstance();
+        $this->config = $factory->config;
+        $this->uri = $factory->uri;
+        $this->logger = $factory->logger;
+        $this->events = $factory->events;
+        $this->output = $factory->output;
 
-            self::addRoute($route, $callable, false);
-        }
+        // Start parsing the routing
+        $this->parseRouting();
     }
 
-    /**
-     * Returns the current routing path.
-     *
-     * @return bool|string
-     */
-    public static function getPath()
+    protected function parseRouting()
     {
-        return self::$path;
+        // Get routing routes
+        $routes = $this->config->routes;
+        $routing = $this->config->routing;
+
+        // If no query strings are used, we will add all routes in the config.routes.php file. 
+        // We modify these routes to be an array of a regex string and a callable
+        $http_verb = isset($_SERVER['REQUEST_METHOD']) ? strtolower($_SERVER['REQUEST_METHOD']) : 'cli';
+
+        foreach ($routes as $route => $value) 
+        {
+            // Check if the route format is using HTTP verbs
+            if (is_array($value))
+            {
+                $value = array_change_key_case($value, CASE_LOWER);
+                if (isset($value[$http_verb]))
+                {
+                    $value = $value['http_verb'];
+                }
+                else
+                {
+                    continue;
+                }
+            }
+
+            // Convert wildcards to Regex
+            $route = str_replace(array(':any', ':num'), array('[^/]+', '[0-9]+'), $route);
+
+            $this->addRoute($route, $value, false);
+        }
     }
 
     /**
@@ -133,19 +176,19 @@ class Router
      *
      * @return array
      */
-    public static function getRoutes()
+    public function getRoutes()
     {
-        return self::$routes;
+        return $this->routes;
     }
 
     /**
-     * Returns the currently loaded callable.
+     * Returns the currently loaded or selected callable.
      *
      * @return null|callable
      */
-    public static function getCallable()
+    public function getCallable()
     {
-        return self::$callable;
+        return $this->callable;
     }
 
     /**
@@ -153,99 +196,20 @@ class Router
      *
      * @return null|array
      */
-    public static function getMatches()
+    public function getMatches()
     {
-        return self::$matches;
+        return $this->matches;
     }
 
-    /**
-     * Set the current routing path.
-     *
-     * @param string $path The routing path (e.g. a/b/c/d/e)
-     *
-     * @return bool|string
-     */
-    public static function setPath($path)
-    {
-
-        // Fire the event to notify our modules
-        $event = Events::fireEvent('routerSetPathEvent', $path);
-
-        // The event has been cancelled
-        if ($event->isCancelled()) {
-            return false;
-        }
-
-        // Remove double slashes
-        $path = preg_replace('@[/]+@', '/', $event->path);
-
-        // Remove first slash
-        if (substr($path, 0, 1) == '/') {
-            $path = substr($path, 1);
-        }
-
-        // Remove trailing slash
-        if (substr($path, -1, 1) == '/') {
-            $path = substr($path, 0, strlen($path) - 1);
-        }
-
-        return self::$path = $path;
-    }
-
-    /**
-     * Add a route.
-     *
-     * The path will be checked before custom routes before the default route(/controller/function/param1/param2/etc)
-     * When the given RegEx matches the current routing-path, the callable will be called.
-     *
-     * The callable will be called with three arguments:
-     *
-     *      Callable($regex_matches = array())
-     *
-     * The variables in the array will be the named groups of your RegEx. When one or more named groups are
-     * not matched, they will be set to NULL. The default RegEx is:
-     *
-     *      /^(?P<controller>.*?)(|\/(?P<function>.*?)(|\/(?P<parameters>.*?)))$/
-     *
-     *           ^ Named group 1        ^ Named group 2     ^ Named group 3
-     *
-     *      Named group 1 is named 'controller' and thus will become $controller
-     *      Named group 2 is named 'function' and thus will become $function
-     *      Named group 3 is named 'parameters' and thus will become $parameters
-     *
-     * You can also add aliases with the following:
-     *
-     *      '/^this-is-an-alias$/' => array(
-     *          'controller' => 'home',
-     *          'function'   => 'index',
-     *          'parameters' => array()
-     *      ),
-     *
-     *      This will link '/this-is-an-alias/ to /home/index. It is also possible to use the three named capture groups
-     *      for the function, parameters or controllers. Like this:
-     *
-     *      '/^alias(|\-(?P<function>.*?))$/' => array(
-     *          'controller' => 'home'
-     *      ),
-     *
-     *      This will mask '/alias' to '/home' and '/alias-test' to 'home/test'.
-     *
-     * You do not *have* to use named groups, but when you don't the arguments will be left NULL; and you will need to
-     * extract the information from the routing-path yourself.
-     *
-     * @param string   $route    This is a RegEx of the route, Every capture group will be a parameter
-     * @param callable $callable The callable to execute
-     * @param bool     $prepend  Whether or not to insert at the beginning of the routing table
-     */
-    public static function addRoute($route, $callable, $prepend = true)
+    public function addRoute($route, $callable, $prepend = true)
     {
         if ($prepend) {
-            self::$routes = array($route => $callable) + self::$routes;
+            $this->routes = array($route => $callable) + $this->routes;
         } else {
-            self::$routes[$route] = $callable;
+            $this->routes[$route] = $callable;
         }
 
-        Logger::log('Route added at '.($prepend ? 'top' : 'bottom').': "'.$route.'"');
+        $this->logger->log('Route added at '.($prepend ? 'top' : 'bottom').': "'.$route.'"');
     }
 
     /**
@@ -253,11 +217,11 @@ class Router
      *
      * @param $route string The route to remove
      */
-    public static function removeRoute($route)
+    public function removeRoute($route)
     {
-        unset(self::$routes[$route]);
+        unset($this->routes[$route]);
 
-        Logger::log('Route removed: '.$route);
+        $this->logger->log('Route removed: '.$route);
     }
 
     /**
@@ -265,45 +229,133 @@ class Router
      *
      * Determines what callable should be loaded and what data matches the route regex.
      *
-     * @param bool $loadCallable Immediate load the callable when it's route matches
+     * @param bool $performLoading Immediate process the route after it has been determined
      */
-    public static function route($loadCallable = true)
+    public function route($performLoading = true)
     {
+        // Turn the segment array into a URI string
+        $uri = implode('/', $this->uri->segments);
+
         // Fire the event to notify our modules
-        $event = Events::fireEvent('routerRouteEvent', self::$routes, $loadCallable, self::$path);
+        $event = Events::fireEvent('routerRouteEvent', $this->routes, $performLoading, $uri);
 
         // The event has been cancelled
-        if ($event->isCancelled()) {
+        if ($event->isCancelled()) 
+        {
             return;
         }
 
         // Assign everything to the object to make it accessible, but let modules check it first
         $routes = $event->routes;
-        $loadCallable = $event->loadCallable;
+        $performLoading = $event->performLoading;
 
-        //Check the custom routes
-        foreach ($routes as $r => $c) {
-            //A custom route is found
-            if (preg_match($r, $event->path, $matches)) {
-                Logger::log('Route matched: '.$r);
+        // If a cached page should be loaded, do so and stop loading a routed page
+        if ($performLoading === true && $event->cacheOverride === false && $this->output->_display_cache() === true)
+        {
+            return true;
+        }
 
-                // Add the matches to the current class
-                self::$matches = $matches;
+        // Check the custom routes
+        foreach ($routes as $route => $value) 
+        {
+            // Match the path against the routes
+            if (preg_match('#^'.$route.'$#', $event->path, $matches))
+            {
+                $this->logger->log('Route matched: '.$route);
+                // Save the matches
+                $this->matches = $matches;
 
-                self::$callable = $c;
-                if (!$loadCallable || !self::loadCallable($matches, $r)) {
-                    break;
+                // Are we using callbacks or another method?
+                if ( is_array($value))
+                {
+                    // Maybe there is a real callable which should be called in the future
+                    if ( isset($value['callable']) )
+                    {
+                        $this->callable = $value['callable'];
+                    }
+
+                    // If the callable is satisfied, break away
+                    if (!$performLoading || !$this->loadCallable($matches, $route))
+                    {
+                        return;
+                    }
+
+                    // Otherwise try other routes
+                    continue;
                 }
+                elseif ( ! is_string($value) && is_callable($value))
+                {
+                    // Prepare the callable
+                    array_shift($matches);
+
+                    // Retrieve the path that should be loaded
+                    $value = call_user_func_array($value, $matches);
+                }
+                elseif (strpos($value, '$') !== FALSE && strpos($route, '(') !== FALSE)
+                {
+                    $value = preg_replace('#^'.$route.'$#', $value, $event->path);
+                }
+
+                // Now run the defaultRouter for when something is not a callable
+                $this->routeDefault(explode('/', $value), $route);
+                return;
             }
         }
 
-        // Check if we found a callable anyway
-        if (self::$callable === null) {
-            Logger::log('No routes found for given path: "'.$event->path.'"', E_WARNING);
-            Logger::http_error(404);
-
-            return;
+        // If we got this far it means we didn't encounter a
+        // matching route so we'll set the site default route
+        $this->matches = array();
+        if ($performLoading === true)
+        {
+            $this->routeDefault(array_values($this->uri->segments), '.*$');
         }
+    }
+
+    /**
+     * @todo Implement validateRequest
+     */
+    protected function validateRequest($segments)
+    {
+        $c = count($segments);
+    }
+
+    protected function routeDefault($segments = array(), $route)
+    {
+        // If we don't have any segments left - try the default controller;
+        // WARNING: Directories get shifted out of the segments array!
+        if (empty($segments))
+        {
+            $segments[0] = $this->config->routing->default_controller;
+        }
+
+        if ($this->translate_uri_dashes === true)
+        {
+            $segments[0] = str_replace('-', '_', $segments[0]);
+            if (isset($segments[1]))
+            {
+                $segments[1] = str_replace('-', '_', $segments[1]);
+            }
+        }
+
+        // Prepare the values for loading
+        $controller = $segments[0];
+        $function = (isset($segments[1]) ? $segments[1] : $this->config->routing->default_function);
+
+        // And prepare the Router URI
+        array_unshift($segments, null);
+        unset($segments[0]);
+        $this->uri->rsegments = $segments;
+
+        // Now create a matches array
+        $matches = array(
+                'controller' => $controller,
+                'function' => $function,
+                'parameters' => array_slice($this->uri->rsegments, 2)
+            );
+
+        // And finally load the callable
+        $this->callable = array('\FuzeWorks\Router', 'defaultCallable');
+        $this->loadCallable($matches, $route);
     }
 
     /**
@@ -318,12 +370,12 @@ class Router
      *
      * @return bool Whether or not the callable was satisfied
      */
-    public static function loadCallable($matches = array(), $route)
+    public function loadCallable($matches = array(), $route)
     {
-        Logger::newLevel('Loading callable');
+        $this->logger->newLevel('Loading callable');
 
         // Fire the event to notify our modules
-        $event = Events::fireEvent('routerLoadCallableEvent', self::$callable, $matches, $route);
+        $event = Events::fireEvent('routerLoadCallableEvent', $this->callable, $matches, $route);
 
         // The event has been cancelled
         if ($event->isCancelled()) {
@@ -335,39 +387,39 @@ class Router
         $args['route'] = $event->route;
 
         if (!is_callable($event->callable)) {
-            if (isset(self::$callable['controller'])) {
+            if (isset($this->callable['controller'])) {
                 // Reset the arguments and fetch from custom callable
                 $args = array();
-                $args['controller'] = isset(self::$callable['controller']) ? self::$callable['controller'] : (isset($matches['controller']) ? $matches['controller'] : null);
-                $args['function'] = isset(self::$callable['function'])   ? self::$callable['function']   : (isset($matches['function']) ? $matches['function'] : null);
-                $args['parameters'] = isset(self::$callable['parameters']) ? self::$callable['parameters'] : (isset($matches['parameters']) ? explode('/', $matches['parameters']) : null);
+                $args['controller'] = isset($this->callable['controller']) ? $this->callable['controller'] : (isset($matches['controller']) ? $matches['controller'] : null);
+                $args['function'] = isset($this->callable['function'])   ? $this->callable['function']   : (isset($matches['function']) ? $matches['function'] : null);
+                $args['parameters'] = isset($this->callable['parameters']) ? $this->callable['parameters'] : (isset($matches['parameters']) ? explode('/', $matches['parameters']) : null);
 
-                self::$callable = array('\FuzeWorks\Router', 'defaultCallable');
+                $this->callable = array('\FuzeWorks\Router', 'defaultCallable');
             } else {
-                Logger::log('The given callable is not callable!', E_ERROR);
-                Logger::http_error(500);
-                Logger::stopLevel();
+                $this->logger->log('The given callable is not callable!', E_ERROR);
+                $this->logger->http_error(500);
+                $this->logger->stopLevel();
 
                 return true;
             }
         } else {
-            self::$callable = $event->callable;
+            $this->callable = $event->callable;
         }
 
         // And log the input to the logger
-        Logger::newLevel('Calling callable');
+        $this->logger->newLevel('Calling callable');
         foreach ($args as $key => $value) {
-            Logger::log($key.': '.var_export($value, true).'');
+            $this->logger->log($key.': '.var_export($value, true).'');
         }
-        Logger::stopLevel();
+        $this->logger->stopLevel();
 
-        $skip = call_user_func_array(self::$callable, array($args)) === false;
+        $skip = call_user_func_array($this->callable, array($args)) === false;
 
         if ($skip) {
-            Logger::log('Callable not satisfied, skipping to next callable');
+            $this->logger->log('Callable not satisfied, skipping to next callable');
         }
 
-        Logger::stopLevel();
+        $this->logger->stopLevel();
 
         return $skip;
     }
@@ -378,12 +430,12 @@ class Router
      * This callable will do the 'old skool' routing. It will load the controllers from the controller-directory
      * in the application-directory.
      */
-    public static function defaultCallable($arguments = array())
+    public function defaultCallable($arguments = array())
     {
-        Logger::log('Default callable called!');
+        $this->logger->log('Default callable called!');
 
-        $controller = empty($arguments['controller']) ? Config::get('main')->default_controller : $arguments['controller'];
-        $function = empty($arguments['function']) ? Config::get('main')->default_function   : $arguments['function'];
+        $controller = $arguments['controller'];
+        $function = $arguments['function'];
         $parameters = empty($arguments['parameters']) ? null : $arguments['parameters'];
 
         // Construct file paths and classes
@@ -405,38 +457,37 @@ class Router
             return;
         }
 
-        Logger::log('Loading controller '.$event->className.' from file: '.$event->file);
-
         // Check if the file exists
         if (file_exists($event->file)) {
             if (!class_exists($event->className)) {
+                $this->logger->log('Loading controller '.$event->className.' from file: '.$event->file);
                 include $event->file;
             }
 
             // Get the path the controller should know about
-            $path = substr(self::getPath(), ($pos = strpos(self::getPath(), '/')) !== false ? $pos + 1 : 0);
+            $path = implode('/', $this->uri->rsegments);
 
             // And create the controller
-            self::$callable = new $event->className($path);
+            $this->callable = new $event->className($path);
 
             // If the controller does not want a function to be loaded, provide a halt parameter.
-            if (isset(self::$callable->halt)) {
+            if (isset($this->callable->halt)) {
                 return;
             }
 
             // Check if method exists or if there is a caller function
-            if (method_exists(self::$callable, $event->function) || method_exists(self::$callable, '__call')) {
+            if (method_exists($this->callable, $event->function) || method_exists($this->callable, '__call')) {
                 // Execute the function on the controller
-                echo self::$callable->{$event->function}($event->parameters);
+                echo $this->callable->{$event->function}($event->parameters);
             } else {
                 // Function could not be found
-                Logger::log('Could not find function '.$event->function.' on controller '.$event->className);
-                Logger::http_error(404);
+                $this->logger->log('Could not find function '.$event->function.' on controller '.$event->className);
+                $this->logger->http_error(404);
             }
         } else {
             // Controller could not be found
-            Logger::log('Could not find controller '.$event->className);
-            Logger::http_error(404);
+            $this->logger->log('Could not find controller '.$event->className);
+            $this->logger->http_error(404);
         }
     }
 }
