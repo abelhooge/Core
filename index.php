@@ -32,6 +32,8 @@
 use FuzeWorks\Core;
 use FuzeWorks\Factory;
 
+define('ENVIRONMENT', 'PRODUCTION');
+
 // Include framework
 require_once dirname(__FILE__).'/Core/System/class.core.php';
 

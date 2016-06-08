@@ -477,8 +477,8 @@ class Layout
 
             // Load the engines provided in this file
             self::registerEngine(new PHPEngine(), 'PHP', array('php'));
-            self::registerEngine(new SmartyEngine(), 'Smarty', array('tpl'));
             self::registerEngine(new JsonEngine(), 'JSON', array('json'));
+            self::registerEngine(new SmartyEngine(), 'Smarty', array('tpl'));
             self::$engines_loaded = true;
         }
     }

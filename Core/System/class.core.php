@@ -70,6 +70,15 @@ class Core
      */
     public static function init()
     {
+        // Set the CWD for usage in the shutdown function+
+        self::$cwd = getcwd();
+
+        // If the environment is not yet defined, use production settings
+        if (!defined('ENVIRONMENT'))
+        {
+            define('ENVIRONMENT', 'PRODUCTION');
+        }
+        
         // Defines the time the framework starts. Used for timing functions in the framework
         if (!defined('STARTTIME')) {
             define('STARTTIME', microtime(true));
@@ -112,9 +121,6 @@ class Core
         if ($event->isCancelled()) {
             return true;
         }
-
-        // Set the CWD for usage in the shutdown function+
-        self::$cwd = getcwd();
     }
 
     /**
@@ -177,6 +183,7 @@ class Core
         if ($event->isCancelled() === false)
         {
             // If the output should be displayed, send the final render and parse the logger
+            Logger::shutdownError();
             Factory::getInstance()->output->_display();
             Logger::shutdown();
         }
@@ -194,6 +201,7 @@ class Core
         if (file_exists($file)) {
             include $file;
             Logger::log('Loaded Composer');
+            Logger::loadComposer();
 
             return true;
         }

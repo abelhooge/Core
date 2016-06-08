@@ -41,13 +41,6 @@ require_once 'Core/System/class.core.php';
 ob_start();
 Core::init();
 
-// Disable debugger
-$cfg = Config::get('error');
-$cfg->debug = false;
-$cfg->error_reporting = false;
-$cfg->log_to_file = false;
-$cfg->commit();
-
 restore_error_handler();
 restore_exception_handler();
 

@@ -385,7 +385,7 @@ class Modules
         if ($cache)
         {   
             // Retrieve the cache if possible
-            $cache = Libraries::getDriver('cache');
+            $cache = Factory::getInstance()->libraries->getDriver('cache');
             $cacheData = $cache->$cachingMethod->get('moduleRegisters');
 
             if ( ! is_bool($cacheData) )
