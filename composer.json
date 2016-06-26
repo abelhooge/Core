@@ -3,7 +3,8 @@
     	"php": ">=5.4.0",
 	    "ext-curl": "*",
 	    "ext-json": "*",
-	    "smarty/smarty": "~3.1"
+	    "smarty/smarty": "~3.1",
+		"tracy/tracy": "*"
 	},
     "require-dev": {
         "phpunit/phpunit": "5.3.*",

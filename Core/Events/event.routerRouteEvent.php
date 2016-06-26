@@ -54,7 +54,14 @@ class routerRouteEvent extends Event
     /**
      * @var bool Whether the callable will be loaded directly after or not
      */
-    public $loadCallable;
+    public $performLoading;
+
+    /**
+     * Whether a cached page should be ignored or not
+     * 
+     * @var bool true if cache should not be used
+     */
+    public $cacheOverride = false;
 
     /**
      * The current path input to FuzeWorks.
@@ -63,10 +70,20 @@ class routerRouteEvent extends Event
      */
     public $path;
 
-    public function init($routes, $loadCallable, $path)
+    public function init($routes, $performLoading, $path)
     {
         $this->routes = $routes;
-        $this->loadCallable = $loadCallable;
+        $this->performLoading = $performLoading;
         $this->path = $path;
+    }
+
+    /**
+     * Whether a cached page should be ignored or not
+     * 
+     * @param bool $overrideCache true if cache should not be used
+     */
+    public function overrideCache($bool = true)
+    {
+        $this->cacheOverride = $bool;
     }
 }

@@ -30,7 +30,9 @@
  * @version     Version 0.0.1
  */
 use FuzeWorks\Core;
-use FuzeWorks\Router;
+use FuzeWorks\Factory;
+
+define('ENVIRONMENT', 'PRODUCTION');
 
 // Include framework
 require_once dirname(__FILE__).'/Core/System/class.core.php';
@@ -38,5 +40,5 @@ require_once dirname(__FILE__).'/Core/System/class.core.php';
 // Load it
 Core::init();
 
-Router::setPath((isset($_GET['path']) ? $_GET['path'] : null));
-Router::route();
+$router = Factory::getInstance()->router;
+$router->route();

@@ -98,11 +98,11 @@ class Factory
 	        $this->instances['Database'] = new Database();
 	        $this->instances['Language'] = new Language();
 	        $this->instances['Utf8'] = new Utf8();
-	        $this->instances['URI'] = new URI();
+	        $this->instances['Uri'] = new URI();
 	        $this->instances['Security'] = new Security();
 	        $this->instances['Input'] = new Input();
-	        $this->instances['Router'] = new Router();
 	        $this->instances['Output'] = new Output();
+	        $this->instances['Router'] = new Router();
 
 	        return true;
 		}

@@ -114,7 +114,7 @@ class LayoutManager
     private static function getVariables()
     {
         $vars = array();
-        $vars['adminURL'] = Config::get('main')->SITE_URL.'admin/';
+        $vars['adminURL'] = Config::get('main')->base_url.'admin/';
 
         return $vars;
     }

@@ -31,6 +31,7 @@
  */
 use FuzeWorks\Events;
 use FuzeWorks\Layout;
+use FuzeWorks\Factory;
 
 /**
  * Class CoreTestAbstract.
@@ -49,5 +50,6 @@ abstract class CoreTestAbstract extends PHPUnit_Framework_TestCase
         Events::$listeners = array();
         Layout::reset();
         Events::enable();
+        Factory::getInstance()->output->set_output('');
     }
 }

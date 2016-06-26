@@ -24,3 +24,4 @@ Modules/admin/themes/adminlte2.1/bootstrap/
 doc
 nbproject
 Application/Cache
+Application/Logs

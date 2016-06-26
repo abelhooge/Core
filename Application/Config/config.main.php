@@ -1,10 +1,9 @@
 <?php
 
 return array(
-  'SITE_URL' => '',
-  'SITE_DOMAIN' => '',
-  'SERVER_NAME' => '',
-  'SITE_LOGO_URL' => '',
+  'base_url' => '',
+  'index_page' => 'index.php',
+  'server_name' => '',
 
   'administrator_mail' => '',
 

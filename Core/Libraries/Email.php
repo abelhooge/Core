@@ -132,7 +132,7 @@ class FW_Email {
 	/**
 	 * Number of characters to wrap at.
 	 *
-	 * @see	CI_Email::$wordwrap
+	 * @see	Email::$wordwrap
 	 * @var	int
 	 */
 	public $wrapchars	= 76;
@@ -227,7 +227,7 @@ class FW_Email {
 	/**
 	 * BCC Batch max number size.
 	 *
-	 * @see	CI_Email::$bcc_batch_mode
+	 * @see	Email::$bcc_batch_mode
 	 * @var	int
 	 */
 	public $bcc_batch_size	= 200;
@@ -314,7 +314,7 @@ class FW_Email {
 	/**
 	 * Debug messages
 	 *
-	 * @see	CI_Email::print_debugger()
+	 * @see	Email::print_debugger()
 	 * @var	string
 	 */
 	protected $_debug_msg		= array();
@@ -357,7 +357,7 @@ class FW_Email {
 	/**
 	 * Valid $protocol values
 	 *
-	 * @see	CI_Email::$protocol
+	 * @see	Email::$protocol
 	 * @var	string[]
 	 */
 	protected $_protocols		= array('mail', 'sendmail', 'smtp');
@@ -377,7 +377,7 @@ class FW_Email {
 	 *
 	 * Valid mail encodings
 	 *
-	 * @see	CI_Email::$_encoding
+	 * @see	Email::$_encoding
 	 * @var	string[]
 	 */
 	protected $_bit_depths		= array('7bit', '8bit');
@@ -447,7 +447,7 @@ class FW_Email {
 	 * Initialize preferences
 	 *
 	 * @param	array
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function initialize($config = array())
 	{
@@ -480,7 +480,7 @@ class FW_Email {
 	 * Initialize the Email Data
 	 *
 	 * @param	bool
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function clear($clear_attachments = FALSE)
 	{
@@ -514,7 +514,7 @@ class FW_Email {
 	 * @param	string	$from
 	 * @param	string	$name
 	 * @param	string	$return_path = NULL	Return-Path
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function from($from, $name = '', $return_path = NULL)
 	{
@@ -562,7 +562,7 @@ class FW_Email {
 	 *
 	 * @param	string
 	 * @param	string
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function reply_to($replyto, $name = '')
 	{
@@ -602,7 +602,7 @@ class FW_Email {
 	 * Set Recipients
 	 *
 	 * @param	string
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function to($to)
 	{
@@ -630,7 +630,7 @@ class FW_Email {
 	 * Set CC
 	 *
 	 * @param	string
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function cc($cc)
 	{
@@ -658,7 +658,7 @@ class FW_Email {
 	 *
 	 * @param	string
 	 * @param	string
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function bcc($bcc, $limit = '')
 	{
@@ -693,7 +693,7 @@ class FW_Email {
 	 * Set Email Subject
 	 *
 	 * @param	string
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function subject($subject)
 	{
@@ -708,7 +708,7 @@ class FW_Email {
 	 * Set Body
 	 *
 	 * @param	string
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function message($body)
 	{
@@ -737,7 +737,7 @@ class FW_Email {
 	 * @param	string	$disposition = 'attachment'
 	 * @param	string	$newname = NULL
 	 * @param	string	$mime = ''
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function attach($file, $disposition = '', $newname = NULL, $mime = '')
 	{
@@ -810,7 +810,7 @@ class FW_Email {
 	 *
 	 * @param	string
 	 * @param	string
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function set_header($header, $value)
 	{
@@ -844,7 +844,7 @@ class FW_Email {
 	 * Set Multipart Value
 	 *
 	 * @param	string
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function set_alt_message($str)
 	{
@@ -858,7 +858,7 @@ class FW_Email {
 	 * Set Mailtype
 	 *
 	 * @param	string
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function set_mailtype($type = 'text')
 	{
@@ -872,7 +872,7 @@ class FW_Email {
 	 * Set Wordwrap
 	 *
 	 * @param	bool
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function set_wordwrap($wordwrap = TRUE)
 	{
@@ -886,7 +886,7 @@ class FW_Email {
 	 * Set Protocol
 	 *
 	 * @param	string
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function set_protocol($protocol = 'mail')
 	{
@@ -900,7 +900,7 @@ class FW_Email {
 	 * Set Priority
 	 *
 	 * @param	int
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function set_priority($n = 3)
 	{
@@ -914,7 +914,7 @@ class FW_Email {
 	 * Set Newline Character
 	 *
 	 * @param	string
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function set_newline($newline = "\n")
 	{
@@ -928,7 +928,7 @@ class FW_Email {
 	 * Set CRLF
 	 *
 	 * @param	string
-	 * @return	CI_Email
+	 * @return	Email
 	 */
 	public function set_crlf($crlf = "\n")
 	{

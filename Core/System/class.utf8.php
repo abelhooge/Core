@@ -75,7 +75,7 @@ class Utf8 {
                 mb_internal_encoding($charset);            
             }
             // This is required for mb_convert_encoding() to strip invalid characters.
-            // That's utilized by CI_Utf8, but it's also done for consistency with iconv.
+            // That's utilized by Utf8, but it's also done for consistency with iconv.
             mb_substitute_character('none');
         }
         else
@@ -135,9 +135,9 @@ class Utf8 {
      * @param   string  $str    String to clean
      * @return  string
      */
-    public static function clean_string($str)
+    public function clean_string($str)
     {
-        if (self::is_ascii($str) === FALSE)
+        if ($this->is_ascii($str) === FALSE)
         {
             if (MB_ENABLED)
             {
@@ -164,9 +164,9 @@ class Utf8 {
      * @param   string  $str    String to clean
      * @return  string
      */
-    public static function safe_ascii_for_xml($str)
+    public function safe_ascii_for_xml($str)
     {
-        return self::remove_invisible_characters($str, FALSE);
+        return $this->remove_invisible_characters($str, FALSE);
     }
 
     // --------------------------------------------------------------------
@@ -180,7 +180,7 @@ class Utf8 {
      * @param   string  $encoding   Input encoding
      * @return  string  $str encoded in UTF-8 or FALSE on failure
      */
-    public static function convert_to_utf8($str, $encoding)
+    public function convert_to_utf8($str, $encoding)
     {
         if (MB_ENABLED)
         {
@@ -204,7 +204,7 @@ class Utf8 {
      * @param   string  $str    String to check
      * @return  bool
      */
-    public static function is_ascii($str)
+    public function is_ascii($str)
     {
         return (preg_match('/[^\x00-\x7F]/S', $str) === 0);
     }

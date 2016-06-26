@@ -32,6 +32,7 @@
  */
 
 namespace FuzeWorks;
+use Tracy\Debugger;
 
 /**
  * Logger Class.
@@ -116,6 +117,13 @@ class Logger {
     public static $markPoints = array();
 
     /**
+     * Whether to use the Tracy debugger instead of FuzeWorks Logger
+     *
+     * @var bool
+     */
+    public static $useTracy = false;
+
+    /**
      * Initiates the Logger.
      *
      * Registers the error and exception handler, when required to do so by configuration
@@ -127,10 +135,51 @@ class Logger {
             set_Exception_handler(array('\FuzeWorks\Logger', 'exceptionHandler'));
             error_reporting(false);
         }
-        self::$debug = Config::get('error')->debug;
+        self::$debug = (ENVIRONMENT === 'DEVELOPMENT');
         self::$log_to_file = Config::get('error')->log_to_file;
         self::$logger_template = Config::get('error')->logger_template;
         self::newLevel('Logger Initiated');
+    }
+
+    /**
+     * Try to load Trace Debugger when available
+     * 
+     * @return void
+     */
+    public static function loadComposer()
+    {
+        if (class_exists('\Tracy\Debugger', true))
+        {
+            if (ENVIRONMENT === 'DEVELOPMENT')
+            {
+                Debugger::enable(Debugger::DEVELOPMENT, realpath('Application'.DS.'Logs'));
+            }
+            else
+            {
+                Debugger::enable(Debugger::PRODUCTION, realpath('Application'.DS.'Logs'));
+            }
+            self::$useTracy = true;
+        }
+    }
+
+    /**
+     * Function to be run upon FuzeWorks shutdown.
+     *
+     * Logs data to screen when requested to do so
+     */
+    public static function shutdown() {
+        // And finally stop the Logging
+        self::stopLevel();
+
+        if (self::$debug === true || self::$print_to_screen) {
+            self::log('Parsing debug log');
+            self::logToScreen();
+        }
+
+        if (self::$log_to_file == true)
+        {
+            self::logToFile();
+        }
     }
 
     /**
@@ -138,7 +187,8 @@ class Logger {
      *
      * Logs a fatal error and outputs the log when configured or requested to do so
      */
-    public static function shutdown() {
+    public static function shutdownError()
+    {
         // Load last error if thrown
         $errfile = 'Unknown file';
         $errstr = 'shutdown';
@@ -153,20 +203,13 @@ class Logger {
             $errstr = $error['message'];
 
             // Log it!
+            Factory::getInstance()->output->set_output('');
             self::errorHandler($errno, $errstr, $errfile, $errline);
-        }
 
-        // And finally stop the Logging
-        self::stopLevel();
-
-        if (self::$debug == true || self::$print_to_screen) {
-            self::log('Parsing debug log');
-            self::logToScreen();
-        }
-
-        if (self::$log_to_file == true)
-        {
-            self::logToFile();
+            if (self::$useTracy === false)
+            {
+                self::http_error('500');
+            }
         }
     }
 
@@ -232,7 +275,7 @@ class Logger {
 
         Layout::reset();
         Layout::assign('Logs', self::$Logs);
-        Layout::view(self::$logger_template, 'Core'.DS.'Views');
+        Layout::view(self::$logger_template, 'Core'.DS.'Views', true);
     }
 
     public static function logToFile()
@@ -314,6 +357,12 @@ class Logger {
 
         self::$infoErrors[] = $LOG;
         self::$Logs[] = $LOG;
+
+        // Use Tracy when we can
+        if (self::$useTracy === true)
+        {
+            Debugger::log($msg, 'info');
+        }
     }
 
     /**
@@ -334,6 +383,12 @@ class Logger {
 
         self::$debugErrors[] = $LOG;
         self::$Logs[] = $LOG;
+
+        // Use Tracy when we can
+        if (self::$useTracy === true)
+        {
+            Debugger::log($msg, 'debug');
+        }
     }
 
     /**
@@ -354,6 +409,12 @@ class Logger {
 
         self::$criticalErrors[] = $LOG;
         self::$Logs[] = $LOG;
+
+        // Use Tracy when we can
+        if (self::$useTracy === true)
+        {
+            Debugger::log($msg, 'error');
+        }
     }
 
     /**
@@ -374,6 +435,12 @@ class Logger {
 
         self::$warningErrors[] = $LOG;
         self::$Logs[] = $LOG;
+
+        // Use Tracy when we can
+        if (self::$useTracy === true)
+        {
+            Debugger::log($msg, 'warning');
+        }
     }
 
     /**
@@ -393,6 +460,12 @@ class Logger {
             'runtime' => round(self::getRelativeTime(), 4),);
 
         self::$Logs[] = $LOG;
+
+        // Use Tracy when we can
+        if (self::$useTracy === true)
+        {
+            Debugger::log($msg, 'info');
+        }
     }
 
     /**

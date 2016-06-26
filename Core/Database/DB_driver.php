@@ -30,6 +30,7 @@
  * @version Version 0.0.1
  */
 
+use FuzeWorks\Factory;
 use FuzeWorks\Logger;
 use FuzeWorks\DatabaseException;
 use FuzeWorks\Utf8;
@@ -375,7 +376,7 @@ abstract class FW_DB_driver {
 
 		$this->factory = Factory::getInstance();
 
-		Logger::log('Database Driver Class Initialized');
+		Logger::log('Database Driver ' . get_class($this) . ' Initialized');
 	}
 
 	// --------------------------------------------------------------------
@@ -1739,14 +1740,13 @@ abstract class FW_DB_driver {
 	 * @param	string	any "swap" values
 	 * @param	bool	whether to localize the message
 	 * @return	string	sends the application/views/errors/error_db.php template
-	 * @todo FIX THIS
 	 */
 	public function display_error($error = '', $swap = '', $native = FALSE)
 	{
 		// First load the language
-		$LANG = Language::get('db');
+		Language::get('db');
 
-		$heading = $LANG->line('db_error_heading');
+		$heading = Language::line('db_error_heading');
 
 		if ($native === TRUE)
 		{
@@ -1754,7 +1754,7 @@ abstract class FW_DB_driver {
 		}
 		else
 		{
-			$message = is_array($error) ? $error : array(str_replace('%s', $swap, $LANG->line($error)));
+			$message = is_array($error) ? $error : array(str_replace('%s', $swap, Language::line($error)));
 		}
 
 		// Find the most likely culprit of the error by going through
@@ -1774,14 +1774,17 @@ abstract class FW_DB_driver {
 				if (strpos($call['file'], 'Core'.DS.'Database') === FALSE && strpos($call['class'], 'Loader') === FALSE)
 				{
 					// Found it - use a relative path for safety
-					$message[] = 'Filename: '.str_replace(array(APPPATH, BASEPATH), '', $call['file']);
+					$message[] = 'Filename: '.str_replace(array('Application', 'Core'), '', $call['file']);
 					$message[] = 'Line Number: '.$call['line'];
 					break;
 				}
 			}
 		}
 
-		Logger::logError($heading . ' || ' . $message);
+		Logger::logError($heading);
+		foreach ($message as $message) {
+			Logger::logError($message);
+		}
 		Logger::http_error(500);
 		exit(8); // EXIT_DATABASE
 	}

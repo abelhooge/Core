@@ -34,7 +34,7 @@ namespace FuzeWorks\Library;
 use FuzeWorks\Config;
 use FuzeWorks\Logger;
 use FuzeWorks\LibraryException;
-use FuzeWorks\Libraries;
+use FuzeWorks\Factory;
 use ReflectionObject;
 
 /**
@@ -117,7 +117,7 @@ class FW_Driver_Library {
 		}
 
 		// Get package paths and filename case variations to search
-		$paths = Libraries::getLibraryPaths();
+		$paths = Factory::getInstance()->libraries->getLibraryPaths();
 
 		// Is there an extension?
 		$class_name = str_replace('{prefix}', $prefix, $child_name);

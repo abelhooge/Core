@@ -84,4 +84,7 @@ return array(
 	*/
     'url_suffix' => '',
 
+    'default_controller' => 'standard',
+    'default_function' => 'index',
+
 );

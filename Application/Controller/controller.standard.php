@@ -54,6 +54,7 @@ class Standard extends ControllerAbstract
      */
     public function index($path = null)
     {
+        $this->output->cache(60);
         $this->layout->view('home');
     }
 }
