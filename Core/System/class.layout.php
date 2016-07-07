@@ -35,6 +35,7 @@ namespace FuzeWorks;
 use FuzeWorks\TemplateEngine\JSONEngine;
 use FuzeWorks\TemplateEngine\PHPEngine;
 use FuzeWorks\TemplateEngine\SmartyEngine;
+use FuzeWorks\TemplateEngine\LatteEngine;
 use FuzeWorks\TemplateEngine\TemplateEngine;
 
 /**
@@ -479,6 +480,7 @@ class Layout
             self::registerEngine(new PHPEngine(), 'PHP', array('php'));
             self::registerEngine(new JsonEngine(), 'JSON', array('json'));
             self::registerEngine(new SmartyEngine(), 'Smarty', array('tpl'));
+            self::registerEngine(new LatteEngine(), 'Latte', array('latte'));
             self::$engines_loaded = true;
         }
     }
@@ -528,6 +530,7 @@ namespace FuzeWorks\TemplateEngine;
 
 use FuzeWorks\LayoutException;
 use Smarty;
+use Latte\Engine as Latte;
 
 /**
  * Interface that all Template Engines must follow.
@@ -749,6 +752,74 @@ class SmartyEngine implements TemplateEngine
         $this->loadSmarty();
 
         return call_user_func_array(array($this->smartyInstance, $name), $params);
+    }
+}
+
+/**
+ * Wrapper for the Latte Engine from Nette Framework.
+ *
+ * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ */
+class LatteEngine implements TemplateEngine
+{
+
+    /**
+     * Instance of the Latte Engine
+     * 
+     * @var Latte\Engine The Latte Engine to be used
+     */
+    protected $latte;
+
+    /**
+     * Set the directory of the current template.
+     *
+     * @param string $directory Template Directory
+     */
+    public function setDirectory($directory)
+    {
+        if (class_exists('\Latte\Engine', true))
+        {
+            // If possible, load Latte\Engine
+            $this->latte = new Latte;
+            $this->latte->setTempDirectory(realpath('Application'.DS.'Cache'));
+        }
+        else
+        {
+            throw new LayoutException("Could not load LatteEngine. Is it installed or Composer not loaded?", 1);
+        }
+    }
+
+    /**
+     * Handle and retrieve a template file.
+     *
+     * @param string $file               Template File
+     * @param array  $assigned_variables All the variables used in this view
+     *
+     * @return string Output of the template
+     */
+    public function get($file, $assigned_variables)
+    {
+        $this->latte->render($file, $assigned_variables);
+    }
+
+    /**
+     * Retrieve the file extensions that this template engine uses.
+     *
+     * @return array All used extensions. eg: array('php')
+     */
+    public function getFileExtensions()
+    {
+        return array('latte');
+    }
+
+    /**
+     * Reset the template engine to its default state, so it can be used again clean.
+     */
+    public function reset()
+    {
+        // If possible, load Latte\Engine
+        $this->latte = null;
     }
 }
 
