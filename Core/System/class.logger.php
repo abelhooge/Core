@@ -205,7 +205,6 @@ class Logger {
             // Log it!
             Factory::getInstance()->output->set_output('');
             self::errorHandler($errno, $errstr, $errfile, $errline);
-
             if (self::$useTracy === false)
             {
                 self::http_error('500');
@@ -249,6 +248,11 @@ class Logger {
         $context = $exception->getTraceAsString();
 
         self::logError('Exception thrown: ' . $message . ' | ' . $code, null, $file, $line);
+        // And return a 500 because this error was fatal
+        if (self::$useTracy === false)
+        {
+            self::http_error('500');
+        }
     }
 
     /**
@@ -592,6 +596,7 @@ class Logger {
 
         // Try and load the view, if impossible, load HTTP code instead.
         try {
+            Layout::reset();
             Layout::view($view);
         } catch (LayoutException $exception) {
             // No error page could be found, just echo the result
