@@ -3,3 +3,4 @@
 .gitlab_ci.yml export-ignore
 tests/ export-ignore
 CI/ export-ignore
+Application/ export-ignore
