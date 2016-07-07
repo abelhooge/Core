@@ -145,7 +145,7 @@ class layoutTest extends CoreTestAbstract
 
         // Test for default values
         $this->assertFalse(Layout::getTitle());
-        $this->assertEquals('Application/Views', Layout::getDirectory());
+        $this->assertTrue(strpos(Layout::getDirectory(), 'application/Views') !== false);
     }
 
     public function testGetEngineFromExtension()

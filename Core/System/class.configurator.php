@@ -93,9 +93,11 @@ class Configurator
      * Adds new parameters. The %params% will be expanded.
      * @return self
      */
-    public function addParameters(array $params)
+    public function setParameters(array $params)
     {
-        $this->parameters = DI\Config\Helpers::merge($params, $this->parameters);
+        foreach ($params as $key => $value) {
+            $this->parameters[$key] = $value;
+        }
         return $this;
     }
 

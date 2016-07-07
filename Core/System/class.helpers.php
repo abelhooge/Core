@@ -72,7 +72,7 @@ class Helpers
 
     public function __construct()
     {
-        $this->helperPath = [
+        $this->helperPaths = [
             Core::$appDir . DS . 'Helpers',
             Core::$coreDir . DS . 'Helpers'
         ];

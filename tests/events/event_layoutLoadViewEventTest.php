@@ -68,11 +68,11 @@ class layoutLoadViewEventTest extends CoreTestAbstract
     {
 
         // This controller should not exist
-        $this->assertEquals('Application/Views/view.home.php', $event->file);
-        $this->assertEquals('Application/Views/', $event->directory);
+        $this->assertTrue(strpos($event->file, 'application/Views/view.home.php') !== false);
+        $this->assertTrue(strpos($event->directory, 'application/Views/') !== false);
 
         // It should exist now
-        $event->file = 'Application/Views/view.test.not_found';
+        $event->file = $event->directory . 'view.test.not_found';
 
         return $event;
     }
