@@ -31,6 +31,6 @@
 		"latte/latte": "*"
 	},
 	"autoload": {
-		"classmap": ["Core/System/"],
+		"classmap": ["Core/System/"]
 	}
 }
