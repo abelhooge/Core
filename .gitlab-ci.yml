@@ -50,6 +50,7 @@ release:
     name: "${CI_BUILD_NAME}_${CI_BUILD_REF_NAME}"
     paths:
       - build/
+    expire_in: 3 weeks
   cache:
     key: "$CI_BUILD_REF/$CI_BUILD_REF_NAME"
     paths:

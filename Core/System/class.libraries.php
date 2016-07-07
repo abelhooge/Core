@@ -74,7 +74,7 @@ class Libraries
 	 * 
 	 * @var array Library paths
 	 */
-	protected $libraryPaths = array('Core'.DS.'Libraries', 'Application'.DS.'Libraries');
+	protected $libraryPaths = array();
 
 	/**
 	 * Array of all the loaded library objects
@@ -89,6 +89,8 @@ class Libraries
 	public function __construct()
 	{
 		$this->factory = Factory::getInstance();
+		$this->libraryPaths[] = Core::$coreDir . DS . 'Libraries';
+		$this->libraryPaths[] = Core::$appDir . DS . 'Libraries';
 	}
 
 	/**
@@ -135,7 +137,7 @@ class Libraries
 		// Load the driver class if it is not yet loaded
 		if ( ! class_exists('FuzeWorks\FW_Driver_Library', false))
 		{
-			require_once('Core'.DS.'Libraries'.DS.'Driver.php');
+			require_once(Core::$coreDir . DS . 'Libraries'.DS.'Driver.php');
 		}
 
 		// And then load and return the library
@@ -177,7 +179,7 @@ class Libraries
 		$class = ucfirst($class);
 
 		// Is the library a core library, then load a core library
-		if (file_exists('Core'.DS.'Libraries'.DS.$subdir.$class.'.php'))
+		if (file_exists(Core::$coreDir . DS . 'Libraries'.DS.$subdir.$class.'.php'))
 		{
 			// Load base library
 			return $this->loadCoreLibrary($class, $subdir, $parameters, $directories, $newInstance);
@@ -239,7 +241,7 @@ class Libraries
 		}
 
 		// Remove the core directory from the checklist
-		if (in_array('Core'.DS.'Libraries', $directories))
+		if (in_array(Core::$coreDir . DS . 'Libraries', $directories))
 		{
 			array_shift($directories);
 		}
@@ -267,7 +269,7 @@ class Libraries
 		}
 
 		// Second base; if no base class is found in the app folder, load it from the core folder
-		include_once('Core'.DS.'Libraries'.DS.$subdir.$class.'.php');
+		include_once(Core::$coreDir . DS . 'Libraries'.DS.$subdir.$class.'.php');
 		
 		// Now let's check for extensions
 		$subclass = $this->factory->config->getConfig('main')->application_prefix . $class;
@@ -325,7 +327,7 @@ class Libraries
 		foreach ($directories as $directory) 
 		{
 			// Skip the core directory
-			if ($directory === 'Core'.DS.'Libraries')
+			if ($directory === Core::$coreDir . DS . 'Libraries')
 			{
 				continue;
 			}

@@ -157,7 +157,7 @@ class Events
             $eventName = $input;
             if (!class_exists($eventClass)) {
                 // Check if the file even exists
-                $file = 'Core/Events/event.'.$eventName.'.php';
+                $file = Core::$coreDir . DS . 'Events' . DS . 'event.'.$eventName.'.php';
                 if (file_exists($file)) {
                     // Load the file
                     $eventClass = "\FuzeWorks\Event\\".$eventClass;

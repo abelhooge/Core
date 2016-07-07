@@ -32,6 +32,7 @@
 
 namespace FuzeWorks\Library;
 use FuzeWorks\Factory;
+use FuzeWorks\Core;
 
 /**
  * FuzeWorks File Caching Class
@@ -75,7 +76,7 @@ class FW_Cache_file extends FW_Driver {
 		$this->factory->helpers->load('file');
 
 		$path = $this->factory->config->get('cache')->cache_file_path;
-		$this->_cache_path = ($path === '') ? 'Application'.DS.'Cache/' : $path;
+		$this->_cache_path = ($path === '') ? Core::$appDir . DS . 'Cache/' : $path;
 	}
 
 	// ------------------------------------------------------------------------

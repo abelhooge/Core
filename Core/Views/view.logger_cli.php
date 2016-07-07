@@ -51,8 +51,6 @@ if (!function_exists('getColoredString'))
     }
 }
 
-
-
 $mask = "|%5s |%-90s | %10s |\n";
 $id = 1;
 

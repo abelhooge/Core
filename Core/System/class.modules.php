@@ -92,7 +92,7 @@ class Modules
     public static function get($name)
     {
         // Where the modules are
-        $path = 'Modules/';
+        $path = Core::$appDir . DS . 'Modules/';
 
         // Check if the requested module is registered
         if (isset(self::$register[$name])) {
@@ -413,7 +413,7 @@ class Modules
         Logger::newLevel('Loading Module Headers', 'Core');
 
         // Get all the module directories
-        $dir = 'Modules/';
+        $dir = Core::$appDir . DS . 'Modules/';
         $mod_dirs = array();
         $mod_dirs = array_values(array_diff(scandir($dir), array('..', '.')));
 

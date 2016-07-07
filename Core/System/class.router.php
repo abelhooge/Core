@@ -505,8 +505,8 @@ class Router
 
         // Construct file paths and classes
         $class = '\Application\Controller\\'.ucfirst($controller);
-        $directory = 'Application/Controller/';
-        $file = $directory . 'controller.'.$controller.'.php';
+        $directory = Core::$appDir . DS . 'Controller';
+        $file = $directory . DS .'controller.'.$controller.'.php';
 
         $event = Events::fireEvent('routerLoadControllerEvent', 
             $file, 

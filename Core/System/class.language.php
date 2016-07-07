@@ -62,7 +62,7 @@ class Language
      * Paths where the class can find translations
      * @var array
      */
-    protected static $languagePaths = array('Application'.DS.'Language');
+    protected static $languagePaths = array();
     
     /**
      * The current language array
@@ -76,6 +76,11 @@ class Language
      */
     protected static $is_loaded = array();
     
+    public static function init()
+    {
+        self::$languagePaths[] = Core::$appDir . DS . 'Language';
+    }
+
     /**
      * Retrieve a language file and return the language array
      * 
@@ -115,7 +120,7 @@ class Language
         $lang = array();
 
         // Load the base file, so any others found can override it
-        $basepath = 'Core'.DS.'Language'.DS.$idiom.DS.$langfile;
+        $basepath = Core::$coreDir . DS. 'Language'.DS.$idiom.DS.$langfile;
         if (($found = file_exists($basepath)) === TRUE)
         {
             $lang = array_merge($lang, (array) include($basepath));

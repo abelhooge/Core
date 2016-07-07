@@ -35,6 +35,7 @@ use FuzeWorks\Config;
 use FuzeWorks\ConfigException;
 use FuzeWorks\Database;
 use FuzeWorks\DatabaseException;
+use FuzeWorks\Core;
 
 /**
  * Initialize the database
@@ -144,11 +145,11 @@ function &DB($params = '', $query_builder_override = NULL)
 		$query_builder = $active_record;
 	}
 
-	require_once('Core'.DS.'Database'.DS.'DB_driver.php');
+	require_once(Core::$coreDir . DS . 'Database'.DS.'DB_driver.php');
 
 	if ( ! isset($query_builder) OR $query_builder === TRUE)
 	{
-		require_once('Core'.DS.'Database'.DS.'DB_query_builder.php');
+		require_once(Core::$coreDir . DS . 'Database'.DS.'DB_query_builder.php');
 		if ( ! class_exists('FW_DB', FALSE))
 		{
 			/**
@@ -171,7 +172,7 @@ function &DB($params = '', $query_builder_override = NULL)
 	}
 
 	// Load the DB driver
-	$driver_file = 'Core'.DS.'Database'.DS.'drivers/'.$params['dbdriver'].DS.$params['dbdriver'].'_driver.php';
+	$driver_file = Core::$coreDir . DS . 'Database'.DS.'drivers/'.$params['dbdriver'].DS.$params['dbdriver'].'_driver.php';
 
 	if (!file_exists($driver_file))
 	{
@@ -187,7 +188,7 @@ function &DB($params = '', $query_builder_override = NULL)
 	// Check for a subdriver
 	if ( ! empty($DB->subdriver))
 	{
-		$driver_file = 'Core'.DS.'Database'.DS.'drivers'.DS.$DB->dbdriver.'/subdrivers/'.$DB->dbdriver.'_'.$DB->subdriver.'_driver.php';
+		$driver_file = Core::$coreDir . DS . 'Database'.DS.'drivers'.DS.$DB->dbdriver.'/subdrivers/'.$DB->dbdriver.'_'.$DB->subdriver.'_driver.php';
 
 		if (file_exists($driver_file))
 		{

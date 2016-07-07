@@ -59,7 +59,7 @@ class Config
      * 
      * @var array Array of paths where helpers can be found
      */
-    protected $configPaths = array('Application'.DS.'Config');
+    protected $configPaths = array();
 
     /**
      * Temporary variable to remain compatible with old FuzeWorks code
@@ -68,6 +68,11 @@ class Config
      * @var FuzeWorks\Factory Shared Factory instance
      */
     protected static $factory;
+
+    public function __construct()
+    {
+        $this->configPaths[] = Core::$appDir . DS. 'Config';
+    }
 
     /**
      * Retrieve a config file object
@@ -115,10 +120,11 @@ class Config
         foreach ($configPaths as $directory) 
         {
             // If file exists, load it and break the loop
-            if (file_exists($directory . DS . 'config.'.$configName.'.php'))
+            $file = $directory . DS . 'config.'.$configName.'.php';
+            if (file_exists($file))
             {
                 // Load object
-                return new ConfigORM($directory . DS . 'config.'.$configName.'.php');
+                return new ConfigORM($file);
                 break;
             }
         }

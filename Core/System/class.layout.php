@@ -43,6 +43,7 @@ use FuzeWorks\TemplateEngine\TemplateEngine;
  *
  * @author    Abel Hoogeveen <abel@techfuze.net>
  * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @todo      Make Object, remove static stuff
  */
 class Layout
 {
@@ -58,7 +59,7 @@ class Layout
      *
      * @var string
      */
-    public static $directory = 'Application/Views';
+    public static $directory;
 
     /**
      * All assigned currently assigned to the template.
@@ -94,6 +95,11 @@ class Layout
      * @var string name of engine
      */
     private static $current_engine;
+
+    public static function init()
+    {
+        self::$directory = Core::$appDir . DS .'Views';
+    }
 
     /**
      * Retrieve a template file using a string and a directory and immediatly parse it to the output class.
@@ -521,7 +527,7 @@ class Layout
 
         self::$current_engine = null;
         self::$assigned_variables = array();
-        self::$directory = 'Application/Views';
+        self::$directory = Core::$appDir . DS . 'Views';
         Logger::log('Reset the layout manager to its default state');
     }
 }

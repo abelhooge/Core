@@ -152,11 +152,11 @@ class Logger {
         {
             if (ENVIRONMENT === 'DEVELOPMENT')
             {
-                Debugger::enable(Debugger::DEVELOPMENT, realpath('Application'.DS.'Logs'));
+                Debugger::enable(Debugger::DEVELOPMENT, realpath(Core::$appDir . DS . 'Logs'));
             }
             else
             {
-                Debugger::enable(Debugger::PRODUCTION, realpath('Application'.DS.'Logs'));
+                Debugger::enable(Debugger::PRODUCTION, realpath(Core::$appDir . DS . 'Logs'));
             }
             self::$useTracy = true;
         }
@@ -279,15 +279,15 @@ class Logger {
 
         Layout::reset();
         Layout::assign('Logs', self::$Logs);
-        Layout::view(self::$logger_template, 'Core'.DS.'Views', true);
+        Layout::view(self::$logger_template, Core::$coreDir . DS . 'Views', true);
     }
 
     public static function logToFile()
     {
         Layout::reset();
         Layout::assign('Logs', self::$Logs);
-        $contents = Layout::get('logger_cli', 'Core'.DS.'Views');
-        $file = 'Application'.DS.'Logs'.DS.'log_latest.php';
+        $contents = Layout::get('logger_cli', Core::$coreDir . DS . 'Views');
+        $file = Core::$appDir . 'Logs'.DS.'log_latest.php';
         if (is_writable($file))
         {
             file_put_contents($file, '<?php ' . $contents);

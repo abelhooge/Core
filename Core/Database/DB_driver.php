@@ -35,6 +35,7 @@ use FuzeWorks\Logger;
 use FuzeWorks\DatabaseException;
 use FuzeWorks\Utf8;
 use FuzeWorks\Language;
+use FuzeWorks\Core;
 
 /**
  * Database Driver Class
@@ -764,8 +765,8 @@ abstract class FW_DB_driver {
 
 		if ( ! class_exists($driver, FALSE))
 		{
-			require_once('Core'.DS.'Database'.DS.'DB_result.php');
-			require_once('Core'.DS.'database'.DS.'drivers'.DS.$this->dbdriver.'/'.$this->dbdriver.'_result.php');
+			require_once(Core::$coreDir . DS . 'Database'.DS.'DB_result.php');
+			require_once(Core::$coreDir . DS . 'database'.DS.'drivers'.DS.$this->dbdriver.'/'.$this->dbdriver.'_result.php');
 		}
 
 		return $driver;
@@ -1690,7 +1691,7 @@ abstract class FW_DB_driver {
 	{
 		if ( ! class_exists('FW_DB_Cache', FALSE))
 		{
-			require_once('Core'.DS.'Database'.DS.'DB_cache.php');
+			require_once(Core::$coreDir . DS . 'Database'.DS.'DB_cache.php');
 		}
 		elseif (is_object($this->CACHE))
 		{
@@ -1771,7 +1772,7 @@ abstract class FW_DB_driver {
 					$call['file'] = str_replace('\\', '/', $call['file']);
 				}
 
-				if (strpos($call['file'], 'Core'.DS.'Database') === FALSE && strpos($call['class'], 'Loader') === FALSE)
+				if (strpos($call['file'], Core::$coreDir . DS . 'Database') === FALSE && strpos($call['class'], 'Loader') === FALSE)
 				{
 					// Found it - use a relative path for safety
 					$message[] = 'Filename: '.str_replace(array('Application', 'Core'), '', $call['file']);

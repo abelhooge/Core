@@ -69,10 +69,10 @@ class Models
     {
         // Model load event
         $event = Events::fireEvent('modelLoadEvent', $name, $directory);
-        $directory = ($event->directory === null ? 'Application/Models' : $event->directory);
+        $directory = ($event->directory === null ? Core::$appDir . DS . 'Models' : $event->directory);
         $name = ($event->model === null ? $name : $event->model);
 
-        $file = $directory.'/model.'.$name.'.php';
+        $file = $directory.DS.'model.'.$name.'.php';
         if (isset(self::$model_types[$name])) {
             Logger::log('Loading Model: '.get_class(self::$model_types[$name]), get_class(self::$model_types[$name]));
             self::$models_array[$name] = self::$model_types[$name];
