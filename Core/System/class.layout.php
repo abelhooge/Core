@@ -163,7 +163,7 @@ class Layout
         }
 
         // Then assign some basic variables for the template
-        self::$assigned_variables['viewDir'] = Config::get('main')->base_url.preg_replace('#/+#', '/', substr(self::$directory.'/', -strlen(self::$directory.'/')));
+        self::$assigned_variables['wwwDir'] = Config::get('main')->base_url;
         self::$assigned_variables['siteURL'] = Config::get('main')->base_url;
         self::$assigned_variables['serverName'] = Config::get('main')->server_name;
         self::$assigned_variables['adminMail'] = Config::get('main')->administrator_mail;
@@ -535,6 +535,7 @@ class Layout
 namespace FuzeWorks\TemplateEngine;
 
 use FuzeWorks\LayoutException;
+use FuzeWorks\Core;
 use Smarty;
 use Latte\Engine as Latte;
 
@@ -694,8 +695,8 @@ class SmartyEngine implements TemplateEngine
             $this->smartyInstance = new Smarty();
 
             // Then prepare all variables
-            $this->smartyInstance->setCompileDir('Core/Cache/Compile');
-            $this->smartyInstance->setCacheDir('Core/Cache/');
+            $this->smartyInstance->setCompileDir(Core::$tempDir . DS . 'Smarty' . DS . 'Compile');
+            $this->smartyInstance->setCacheDir(Core::$tempDir . DS . 'Smarty');
         }
     }
 
@@ -788,7 +789,7 @@ class LatteEngine implements TemplateEngine
         {
             // If possible, load Latte\Engine
             $this->latte = new Latte;
-            $this->latte->setTempDirectory(realpath('Application'.DS.'Cache'));
+            $this->latte->setTempDirectory(realpath(Core::$tempDir . DS . 'Latte'));
         }
         else
         {

@@ -74,9 +74,7 @@ class FW_Cache_file extends FW_Driver {
 
 		// Load the required helpers
 		$this->factory->helpers->load('file');
-
-		$path = $this->factory->config->get('cache')->cache_file_path;
-		$this->_cache_path = ($path === '') ? Core::$appDir . DS . 'Cache/' : $path;
+		$this->_cache_path = Core::$tempDir . DS . 'CacheLibrary' . DS;
 	}
 
 	// ------------------------------------------------------------------------
@@ -263,6 +261,14 @@ class FW_Cache_file extends FW_Driver {
 	 */
 	public function is_supported()
 	{
+		if ( ! is_dir($this->_cache_path))
+		{
+			if (!mkdir($this->_cache_path, 0777, false))
+			{
+				return false;
+			}
+		}
+
 		return is_really_writable($this->_cache_path);
 	}
 

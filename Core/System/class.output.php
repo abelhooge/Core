@@ -532,12 +532,22 @@ class Output {
 	 */
 	public function _write_cache($output)
 	{
-		$path = $this->config->cache->cache_file_path;
-		$cache_path = ($path === '') ? 'Application'.DS.'Cache'.DS : $path;
+		$cache_path = Core::$tempDir . DS . 'Output' . DS;
 
-		if ( ! is_dir($cache_path) OR ! Core::isReallyWritable($cache_path))
+		// First try and see if the directory exists
+		if ( ! is_dir($cache_path))
 		{
-			Logger::logError('Unable to write cache file: '.$cache_path);
+			// Then try and create the directory
+			if (!mkdir($cache_path, 0777, false))
+			{
+				Logger::logError('Unable to write cache file: \''.$cache_path.'\' Cannot create directory');
+				return;
+			}
+		}
+
+		if (! Core::isReallyWritable($cache_path))
+		{
+			Logger::logError('Unable to write cache file: \''.$cache_path.'\' Directory not writeable');
 			return;
 		}
 
@@ -561,7 +571,7 @@ class Output {
 
 		if ( ! $fp = @fopen($cache_path, 'w+b'))
 		{
-			Logger::logError('Unable to write cache file: '.$cache_path);
+			Logger::logError('Unable to write cache file: \''.$cache_path.'\' Directory not writeable');
 			return;
 		}
 
@@ -635,7 +645,7 @@ class Output {
 	 */
 	public function _display_cache()
 	{
-		$cache_path = ($this->config->cache->cache_file_path === '') ? 'Application'.DS.'Cache'.DS : $this->config->cache->cache_file_path;
+		$cache_path = Core::$tempDir . DS . 'Output' . DS;
 
 		// Build the file path. The file name is an MD5 hash of the full URI
 		$main = $this->config->main;
@@ -715,11 +725,7 @@ class Output {
 	 */
 	public function delete_cache($uri = '')
 	{
-		$cache_path = $this->config->cache->cache_file_path;
-		if ($cache_path === '')
-		{
-			$cache_path = 'Application'.DS.'Cache'.DS;
-		}
+		$cache_path = Core::$tempDir . DS . 'Output' . DS;
 
 		if ( ! is_dir($cache_path))
 		{

@@ -60,9 +60,7 @@ class Configurator
         return [
             'appDir' => isset($trace[1]['file']) ? dirname($trace[1]['file']) : NULL,
             'wwwDir' => isset($last['file']) ? dirname($last['file']) : NULL,
-            'debugMode' => $debugMode,
-            'productionMode' => !$debugMode,
-            'consoleMode' => PHP_SAPI === 'cli',
+            'debugMode' => $debugMode
         ];
     }
 
@@ -132,7 +130,6 @@ class Configurator
             throw new Nette\InvalidArgumentException(sprintf('Value must be either a string, array, or boolean, %s given.', gettype($value)));
         }
         $this->parameters['debugMode'] = $value;
-        $this->parameters['productionMode'] = !$this->parameters['debugMode']; // compatibility
         return $this;
     }
 
@@ -164,6 +161,7 @@ class Configurator
         // First set all the directories
         Core::$appDir = $this->parameters['appDir'];
         Core::$wwwDir = $this->parameters['wwwDir'];
+        Core::$tempDir = $this->parameters['tempDir'];
 
         // Then set debug mode
         if ($this->parameters['debugMode'])

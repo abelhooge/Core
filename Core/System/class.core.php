@@ -64,6 +64,8 @@ class Core
 
     public static $coreDir;
 
+    public static $tempDir;
+
     /**
      * Initializes the core.
      *
