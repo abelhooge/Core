@@ -35,15 +35,33 @@ namespace FuzeWorks;
 /**
  * Class Configurator.
  *
+ * The configurator prepares FuzeWorks and loads it when requested. 
+ * 
+ * The user passes variables into the Configurator and the Configurator makes sure
+ * that FuzeWorks is loaded accordingly. 
+ * 
+ * This allows for more flexible startups.
  * @author    Abel Hoogeveen <abel@techfuze.net>
+ * @author    David Grudl <https://davidgrudl.com> 
  * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
  */
 class Configurator
 {
+    /**
+     * The parameters that will be passed to FuzeWorks.
+     *
+     * @var array
+     */ 
     protected $parameters;
 
     const COOKIE_SECRET = 'fuzeworks-debug';
 
+    /**
+     * Constructs the Configurator class. 
+     * 
+     * Loads the default parameters
+     * @return void
+     */
     public function __construct()
     {
         $this->parameters = $this->getDefaultParameters();
@@ -65,15 +83,13 @@ class Configurator
     }
 
     /**
-     * @param  string        error log directory
-     * @param  string        administrator email
-     * @return void
+     * Sets path to temporary directory.
+     * @return self
      */
-    public function enableDebugger($logDirectory = NULL, $email = NULL)
+    public function setLogDirectory($path)
     {
-        Tracy\Debugger::$strictMode = TRUE;
-        Tracy\Debugger::enable(!$this->parameters['debugMode'], $logDirectory, $email);
-        Nette\Bridges\Framework\TracyBridge::initialize();
+        $this->parameters['logDir'] = $path;
+        return $this;
     }
 
     /**
@@ -127,7 +143,7 @@ class Configurator
         if (is_string($value) || is_array($value)) {
             $value = static::detectDebugMode($value);
         } elseif (!is_bool($value)) {
-            throw new Nette\InvalidArgumentException(sprintf('Value must be either a string, array, or boolean, %s given.', gettype($value)));
+            throw new InvalidArgumentException(sprintf('Value must be either a string, array, or boolean, %s given.', gettype($value)));
         }
         $this->parameters['debugMode'] = $value;
         return $this;
@@ -156,12 +172,21 @@ class Configurator
         return in_array($addr, $list, TRUE) || in_array("$secret@$addr", $list, TRUE);
     }
 
+    /**
+     * Create the container which holds FuzeWorks.
+     *
+     * Due to the static nature of FuzeWorks, this is not yet possible. 
+     * When issue #101 is completed, this should be resolved. 
+     *
+     * @return void
+     */
     public function createContainer()
     {
         // First set all the directories
         Core::$appDir = $this->parameters['appDir'];
         Core::$wwwDir = $this->parameters['wwwDir'];
         Core::$tempDir = $this->parameters['tempDir'];
+        Core::$logDir = $this->parameters['logDir'];
 
         // Then set debug mode
         if ($this->parameters['debugMode'])
