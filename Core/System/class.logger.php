@@ -139,6 +139,8 @@ class Logger {
         self::$log_to_file = Config::get('error')->log_to_file;
         self::$logger_template = Config::get('error')->logger_template;
         self::newLevel('Logger Initiated');
+
+        self::loadTracy();
     }
 
     /**
@@ -146,17 +148,17 @@ class Logger {
      * 
      * @return void
      */
-    public static function loadComposer()
+    public static function loadTracy()
     {
         if (class_exists('\Tracy\Debugger', true))
         {
             if (ENVIRONMENT === 'DEVELOPMENT')
             {
-                Debugger::enable(Debugger::DEVELOPMENT, realpath(Core::$appDir . DS . 'Logs'));
+                Debugger::enable(Debugger::DEVELOPMENT, realpath(Core::$logDir));
             }
             else
             {
-                Debugger::enable(Debugger::PRODUCTION, realpath(Core::$appDir . DS . 'Logs'));
+                Debugger::enable(Debugger::PRODUCTION, realpath(Core::$logDir));
             }
             self::$useTracy = true;
         }
@@ -287,7 +289,7 @@ class Logger {
         Layout::reset();
         Layout::assign('Logs', self::$Logs);
         $contents = Layout::get('logger_cli', Core::$coreDir . DS . 'Views');
-        $file = Core::$appDir . 'Logs'.DS.'log_latest.php';
+        $file = Core::$logDir .DS. 'Logs'.DS.'log_latest.php';
         if (is_writable($file))
         {
             file_put_contents($file, '<?php ' . $contents);

@@ -13,6 +13,7 @@ $configurator->setParameters($parameters);
 
 $configurator->setTimeZone('Europe/Amsterdam');
 $configurator->setTempDirectory(__DIR__ . '/temp');
+$configurator->setLogDirectory(__DIR__ . '/temp');
 
 $container = $configurator->createContainer();
 
