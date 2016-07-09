@@ -11,17 +11,8 @@ FuzeWorks.esproj/*
 *.swp
 *.out
 
-# Framework Files
-Core/Cache/
-Core/Logs/Error.log
-
 # Build Files
 vendor/
 build/
-Modules/admin/themes/adminlte2.1/plugins/
-Modules/admin/themes/adminlte2.1/dist/
-Modules/admin/themes/adminlte2.1/bootstrap/
 doc
 nbproject
-Application/Cache
-Application/Logs

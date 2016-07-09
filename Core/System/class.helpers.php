@@ -68,7 +68,15 @@ class Helpers
      * 
      * @var array Array of paths where helpers can be found
      */
-    protected $helperPaths = array('Application'.DS.'Helpers', 'Core'.DS.'Helpers');
+    protected $helperPaths = array();
+
+    public function __construct()
+    {
+        $this->helperPaths = [
+            Core::$appDir . DS . 'Helpers',
+            Core::$coreDir . DS . 'Helpers'
+        ];
+    }
 
     /**
      * Load a helper.
@@ -111,7 +119,7 @@ class Helpers
         // If an extension is loaded there needs to be a base helper
         if ($extendedHelperLoaded)
         {
-            $baseHelper = 'Core'.DS.'Helpers'.$helperName.'.php';
+            $baseHelper = Core::$coreDir . DS . 'Helpers' . DS . $helperName.'.php';
             if (!file_exists($baseHelper))
             {
                 throw new HelperException("Could not load helper. Base Helper not found while Extension loaded", 1);

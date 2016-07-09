@@ -29,18 +29,19 @@
  *
  * @version     Version 0.0.1
  */
-// Load the abstract
 
 use FuzeWorks\Config;
 use FuzeWorks\Core;
 use FuzeWorks\Logger;
 
+// Load the FuzeWorks container
+$container = require('bootstrap.php');
+
+// Load the test abstract
 require_once 'abstract.coreTestAbstract.php';
-require_once 'Core/System/class.core.php';
 
+// Reset error and exception handlers
 ob_start();
-Core::init();
-
 restore_error_handler();
 restore_exception_handler();
 
@@ -51,14 +52,10 @@ error_reporting(E_ALL | E_STRICT);
 // Set localhost "remote" IP
 isset($_SERVER['REMOTE_ADDR']) OR $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
 
-// Load the vfsStream class either through PEAR installed library or through composer
-if ( ! class_exists('vfsStream') && file_exists('vendor/autoload.php'))
-{
-	include_once 'vendor/autoload.php';
-	class_alias('org\bovigo\vfs\vfsStream', 'vfsStream');
-	class_alias('org\bovigo\vfs\vfsStreamDirectory', 'vfsStreamDirectory');
-	class_alias('org\bovigo\vfs\vfsStreamWrapper', 'vfsStreamWrapper');
-}
+// Alias vfsStream
+class_alias('org\bovigo\vfs\vfsStream', 'vfsStream');
+class_alias('org\bovigo\vfs\vfsStreamDirectory', 'vfsStreamDirectory');
+class_alias('org\bovigo\vfs\vfsStreamWrapper', 'vfsStreamWrapper');
 
 Logger::setLoggerTemplate('logger_cli');
 

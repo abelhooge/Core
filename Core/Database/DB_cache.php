@@ -91,15 +91,7 @@ class FW_DB_Cache {
 	 */
 	public function check_path($path = '')
 	{
-		if ($path === '')
-		{
-			if ($this->db->cachedir === '')
-			{
-				return $this->db->cache_off();
-			}
-
-			$path = $this->db->cachedir;
-		}
+		$path = ($path === '' ? Core::$tempDir . DS . 'Database' : $path);
 
 		// Add a trailing slash to the path if needed
 		$path = realpath($path)
@@ -108,10 +100,13 @@ class FW_DB_Cache {
 
 		if ( ! is_dir($path))
 		{
-			Logger::logDebug('DB cache path error: '.$path);
+			if (!mkdir($path, 0777, false))
+			{
+				Logger::logDebug('DB cache path error: '.$path);
 
-			// If the path is wrong we'll turn off caching
-			return $this->db->cache_off();
+				// If the path is wrong we'll turn off caching
+				return $this->db->cache_off();
+			}
 		}
 
 		if ( ! Core::isReallyWritable($path))

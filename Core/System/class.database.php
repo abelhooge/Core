@@ -93,7 +93,7 @@ class Database
             return $reference = self::$defaultDB;
         }
 
-        require_once ('Core'.DS.'Database'.DS.'DB.php');
+        require_once (Core::$coreDir . DS . 'Database'.DS.'DB.php');
 
         if ($newInstance)
         {
@@ -131,12 +131,12 @@ class Database
             $database =& self::$defaultDB;
         }
 
-        require_once ('Core'.DS.'Database'.DS.'DB_forge.php');
-        require_once('Core'.DS.'Database'.DS.'drivers'.DS.$database->dbdriver.DS.$database->dbdriver.'_forge.php');
+        require_once (Core::$coreDir . DS . 'Database'.DS.'DB_forge.php');
+        require_once(Core::$coreDir . DS . 'Database'.DS.'drivers'.DS.$database->dbdriver.DS.$database->dbdriver.'_forge.php');
 
         if ( ! empty($database->subdriver))
         {
-            $driver_path = 'Core'.DS.'Database'.DS.'drivers'.DS.$database->dbdriver.DS.'subdrivers'.DS.$database->dbdriver.'_'.$database->subdriver.'_forge.php';
+            $driver_path = Core::$coreDir . DS . 'Database'.DS.'drivers'.DS.$database->dbdriver.DS.'subdrivers'.DS.$database->dbdriver.'_'.$database->subdriver.'_forge.php';
             if (file_exists($driver_path))
             {
                 require_once($driver_path);
@@ -185,8 +185,8 @@ class Database
             $database = & self::$defaultDB;
         }
 
-        require_once ('Core'.DS.'Database'.DS.'DB_utility.php');
-        require_once('Core'.DS.'Database'.DS.'drivers'.DS.$database->dbdriver.DS.$database->dbdriver.'_utility.php');
+        require_once (Core::$coreDir . DS . 'Database'.DS.'DB_utility.php');
+        require_once(Core::$coreDir . DS . 'Database'.DS.'drivers'.DS.$database->dbdriver.DS.$database->dbdriver.'_utility.php');
         $class = 'FW_DB_'.$database->dbdriver.'_utility';
 
         if ($newInstance)

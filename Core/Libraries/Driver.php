@@ -35,6 +35,7 @@ use FuzeWorks\Config;
 use FuzeWorks\Logger;
 use FuzeWorks\LibraryException;
 use FuzeWorks\Factory;
+use FuzeWorks\Core;
 use ReflectionObject;
 
 /**
@@ -132,7 +133,7 @@ class FW_Driver_Library {
 				if (file_exists($file))
 				{
 					// Yes - require base class from BASEPATH
-					$basepath = 'Core'.DS.'Libraries'.DS.$clean_class.DS.'drivers'.DS.$clean_class.'_'.$child.'.php';
+					$basepath = Core::$coreDir . DS. 'Libraries'.DS.$clean_class.DS.'drivers'.DS.$clean_class.'_'.$child.'.php';
 					if ( ! file_exists($basepath))
 					{
 						$msg = 'Unable to load the requested class: FW_'.$child_name;

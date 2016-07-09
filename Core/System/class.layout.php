@@ -43,6 +43,7 @@ use FuzeWorks\TemplateEngine\TemplateEngine;
  *
  * @author    Abel Hoogeveen <abel@techfuze.net>
  * @copyright Copyright (c) 2013 - 2016, Techfuze. (http://techfuze.net)
+ * @todo      Make Object, remove static stuff
  */
 class Layout
 {
@@ -58,7 +59,7 @@ class Layout
      *
      * @var string
      */
-    public static $directory = 'Application/Views';
+    public static $directory;
 
     /**
      * All assigned currently assigned to the template.
@@ -94,6 +95,11 @@ class Layout
      * @var string name of engine
      */
     private static $current_engine;
+
+    public static function init()
+    {
+        self::$directory = Core::$appDir . DS .'Views';
+    }
 
     /**
      * Retrieve a template file using a string and a directory and immediatly parse it to the output class.
@@ -157,7 +163,7 @@ class Layout
         }
 
         // Then assign some basic variables for the template
-        self::$assigned_variables['viewDir'] = Config::get('main')->base_url.preg_replace('#/+#', '/', substr(self::$directory.'/', -strlen(self::$directory.'/')));
+        self::$assigned_variables['wwwDir'] = Config::get('main')->base_url;
         self::$assigned_variables['siteURL'] = Config::get('main')->base_url;
         self::$assigned_variables['serverName'] = Config::get('main')->server_name;
         self::$assigned_variables['adminMail'] = Config::get('main')->administrator_mail;
@@ -521,7 +527,7 @@ class Layout
 
         self::$current_engine = null;
         self::$assigned_variables = array();
-        self::$directory = 'Application/Views';
+        self::$directory = Core::$appDir . DS . 'Views';
         Logger::log('Reset the layout manager to its default state');
     }
 }
@@ -529,6 +535,7 @@ class Layout
 namespace FuzeWorks\TemplateEngine;
 
 use FuzeWorks\LayoutException;
+use FuzeWorks\Core;
 use Smarty;
 use Latte\Engine as Latte;
 
@@ -688,8 +695,8 @@ class SmartyEngine implements TemplateEngine
             $this->smartyInstance = new Smarty();
 
             // Then prepare all variables
-            $this->smartyInstance->setCompileDir('Core/Cache/Compile');
-            $this->smartyInstance->setCacheDir('Core/Cache/');
+            $this->smartyInstance->setCompileDir(Core::$tempDir . DS . 'Smarty' . DS . 'Compile');
+            $this->smartyInstance->setCacheDir(Core::$tempDir . DS . 'Smarty');
         }
     }
 
@@ -782,7 +789,7 @@ class LatteEngine implements TemplateEngine
         {
             // If possible, load Latte\Engine
             $this->latte = new Latte;
-            $this->latte->setTempDirectory(realpath('Application'.DS.'Cache'));
+            $this->latte->setTempDirectory(realpath(Core::$tempDir . DS . 'Latte'));
         }
         else
         {

@@ -50,11 +50,6 @@ class Core
     public static $version = '0.0.1';
 
     /**
-     * @var bool Whether the files has been loaded
-     */
-    private static $loaded = false;
-
-    /**
      * Working directory of the Framework.
      *
      * This is required to make the shutdown function working under Apache webservers
@@ -63,6 +58,16 @@ class Core
      */
     public static $cwd;
 
+    public static $appDir;
+
+    public static $wwwDir;
+
+    public static $coreDir;
+
+    public static $tempDir;
+
+    public static $logDir;
+
     /**
      * Initializes the core.
      *
@@ -70,8 +75,11 @@ class Core
      */
     public static function init()
     {
-        // Set the CWD for usage in the shutdown function+
+        // Set the CWD for usage in the shutdown function
         self::$cwd = getcwd();
+
+        // Set the core dir for when the loading of classes is required
+        self::$coreDir = dirname(__DIR__);
 
         // If the environment is not yet defined, use production settings
         if (!defined('ENVIRONMENT'))
@@ -90,7 +98,7 @@ class Core
         register_shutdown_function(array('\FuzeWorks\Core', 'shutdown'));
 
         // Load core functionality
-        self::loadStartupFiles();
+        new Factory();
 
         // Load the config file of the FuzeWorks core
         $config = Config::get('core');
@@ -110,61 +118,15 @@ class Core
                 );
         }
 
-        // Load Composer
-        if ($config->enable_composer) {
-            $file = ($config->composer_autoloader != '' ? $config->composer_autoloader : 'vendor/autoload.php');
-            self::loadComposer($file);
-        }
-
         // And fire the coreStartEvent
         $event = Events::fireEvent('coreStartEvent');
         if ($event->isCancelled()) {
             return true;
         }
-    }
 
-    /**
-     * Load all the files of the FuzeWorks Framework.
-     */
-    private static function loadStartupFiles()
-    {
-        if (self::$loaded) {
-            return;
-        }
-
-        // Load core abstracts
-        include_once 'Core/System/class.factory.php';
-        include_once 'Core/System/class.exceptions.php';
-        include_once 'Core/System/class.abstract.event.php';
-
-        // Load the core classes
-        include_once 'Core/System/class.config.php';
-        include_once 'Core/System/class.abstract.configOrmAbstract.php';
-        include_once 'Core/System/class.configOrm.php';
-        include_once 'Core/System/class.abstract.eventPriority.php';
-        include_once 'Core/System/class.events.php';
-        include_once 'Core/System/class.logger.php';
-        include_once 'Core/System/class.abstract.model.php';
-        include_once 'Core/System/class.models.php';
-        include_once 'Core/System/class.layout.php';
-        include_once 'Core/System/class.abstract.controllerabstract.php';
-        include_once 'Core/System/class.router.php';
-        include_once 'Core/System/class.abstract.module.php';
-        include_once 'Core/System/class.modules.php';
-        include_once 'Core/System/class.libraries.php';
-        include_once 'Core/System/class.helpers.php';
-        include_once 'Core/System/class.database.php';
-        include_once 'Core/System/class.language.php';
-        include_once 'Core/System/class.utf8.php';
-        include_once 'Core/System/class.uri.php';
-        include_once 'Core/System/class.security.php';
-        include_once 'Core/System/class.input.php';
-        include_once 'Core/System/class.output.php';
-
-        // Load the core classes
-        new Factory();
-
-        self::$loaded = true;
+        // And initialize multiple classes
+        Layout::init();
+        Language::init();
     }
 
     /**
@@ -187,27 +149,6 @@ class Core
             Factory::getInstance()->output->_display();
             Logger::shutdown();
         }
-    }
-
-    /**
-     * Load composer if it is present.
-     *
-     * @param string directory of composer autoload file (optional)
-     *
-     * @return bool true on success, false on failure
-     */
-    private static function loadComposer($file = 'vendor/autoload.php')
-    {
-        if (file_exists($file)) {
-            include $file;
-            Logger::log('Loaded Composer');
-            Logger::loadComposer();
-
-            return true;
-        }
-        Logger::log('Failed to load Composer. File \''.$file.'\' not found');
-
-        return false;
     }
 
     /**
