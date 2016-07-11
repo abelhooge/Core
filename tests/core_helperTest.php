@@ -66,7 +66,7 @@ class helperTest extends CoreTestAbstract
     }
 
     /**
-     * @expectedException FuzeWorks\HelperException
+     * @expectedException FuzeWorks\Exception\HelperException
      */
     public function testAddHelperPathFail()
     {

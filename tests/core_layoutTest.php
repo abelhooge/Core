@@ -73,7 +73,7 @@ class layoutTest extends CoreTestAbstract
 
     /**
      * @depends testGetFilePath
-     * @expectedException FuzeWorks\LayoutException
+     * @expectedException FuzeWorks\Exception\LayoutException
      */
     public function testMalformedPaths()
     {
@@ -84,7 +84,7 @@ class layoutTest extends CoreTestAbstract
     }
 
     /**
-     * @expectedException FuzeWorks\LayoutException
+     * @expectedException FuzeWorks\Exception\LayoutException
      */
     public function testMissingDirectory()
     {
@@ -93,7 +93,7 @@ class layoutTest extends CoreTestAbstract
     }
 
     /**
-     * @expectedException FuzeWorks\LayoutException
+     * @expectedException FuzeWorks\Exception\LayoutException
      */
     public function testMissingFile()
     {
@@ -101,7 +101,7 @@ class layoutTest extends CoreTestAbstract
     }
 
     /**
-     * @expectedException FuzeWorks\LayoutException
+     * @expectedException FuzeWorks\Exception\LayoutException
      */
     public function testUnknownFileExtension()
     {
@@ -154,13 +154,13 @@ class layoutTest extends CoreTestAbstract
 
         // Test all the default engines
         $this->assertInstanceOf('FuzeWorks\TemplateEngine\PHPEngine', Layout::getEngineFromExtension('php'));
-        $this->assertInstanceOf('FuzeWorks\TemplateEngine\JSONEngine', Layout::getEngineFromExtension('json'));
+        $this->assertInstanceOf('FuzeWorks\TemplateEngine\JsonEngine', Layout::getEngineFromExtension('json'));
         $this->assertInstanceOf('FuzeWorks\TemplateEngine\SmartyEngine', Layout::getEngineFromExtension('tpl'));
     }
 
     /**
      * @depends testGetEngineFromExtension
-     * @expectedException FuzeWorks\LayoutException
+     * @expectedException FuzeWorks\Exception\LayoutException
      */
     public function testGetEngineFromExtensionFail()
     {
@@ -190,7 +190,7 @@ class layoutTest extends CoreTestAbstract
 
     /**
      * @depends testCustomEngine
-     * @expectedException FuzeWorks\LayoutException
+     * @expectedException FuzeWorks\Exception\LayoutException
      */
     public function testInvalidCustomEngine()
     {

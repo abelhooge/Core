@@ -55,7 +55,7 @@ class layoutLoadViewEventTest extends CoreTestAbstract
     /**
      * Intercept and change the event.
      *
-     * @expectedException FuzeWorks\LayoutException
+     * @expectedException FuzeWorks\Exception\LayoutException
      */
     public function test_change()
     {
