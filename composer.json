@@ -31,6 +31,8 @@
 		"latte/latte": "*"
 	},
 	"autoload": {
-		"classmap": ["Core/System/"]
+		"psr-4": {
+			"FuzeWorks\\": "src/FuzeWorks/"
+		}
 	}
 }

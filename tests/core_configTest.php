@@ -62,7 +62,7 @@ class configTest extends CoreTestAbstract
 
 	/**
 	 * @depends testLoadConfig
-	 * @expectedException FuzeWorks\ConfigException
+	 * @expectedException FuzeWorks\Exception\ConfigException
 	 */
 	public function testFileNotFound()
 	{
@@ -70,7 +70,7 @@ class configTest extends CoreTestAbstract
 	}
 
     /**
-     * @expectedException FuzeWorks\ConfigException
+     * @expectedException FuzeWorks\Exception\ConfigException
      */
     public function testAddConfigPathFail()
     {

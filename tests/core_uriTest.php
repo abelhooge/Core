@@ -57,7 +57,7 @@ class uriTest extends CoreTestAbstract {
 	// --------------------------------------------------------------------
 
 	/**
-	 * @expectedException FuzeWorks\UriException
+	 * @expectedException FuzeWorks\Exception\UriException
 	 */
 	public function test_filter_uri_throws_error()
 	{

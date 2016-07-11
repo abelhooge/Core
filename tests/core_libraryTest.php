@@ -78,7 +78,7 @@ class libraryTest extends CoreTestAbstract
 
     /**
      * @depends testLoadBasicLibrary
-     * @expectedException FuzeWorks\LibraryException
+     * @expectedException FuzeWorks\Exception\LibraryException
      */
     public function testFailLoadLibrary()
     {
@@ -102,7 +102,7 @@ class libraryTest extends CoreTestAbstract
     }
 
     /**
-     * @expectedException FuzeWorks\LibraryException
+     * @expectedException FuzeWorks\Exception\LibraryException
      */
     public function testAddLibraryPathFail()
     {

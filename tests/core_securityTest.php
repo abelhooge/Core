@@ -67,7 +67,7 @@ class securityTest extends CoreTestAbstract
     // --------------------------------------------------------------------
 
     /**
-     * @expectedException FuzeWorks\SecurityException
+     * @expectedException FuzeWorks\Exception\SecurityException
      */
     public function test_csrf_verify_invalid()
     {
