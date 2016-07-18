@@ -5,7 +5,7 @@ php:
   - 5.6
 
 script:
-  - php vendor/bin/phpunit -v
+  - php vendor/bin/phpunit -v -c tests/phpunit.xml --coverage-text
 
 before_script:
   - composer install
