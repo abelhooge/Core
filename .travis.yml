@@ -1,0 +1,11 @@
+language: php
+
+php:
+  - 7
+  - 5.6
+
+script:
+  - php vendor/bin/phpunit -v -c tests/phpunit.xml --coverage-text
+
+before_script:
+  - composer install
